@@ -198,16 +198,37 @@ export function NimegamiExplorer() {
   );
 
   const renderDetail = () => {
-    const isPlayable = (host: string) => {
+    const isPlayable = (host: string, link: string) => {
       const h = host.toLowerCase();
-      return h.includes('kraken') || h.includes('streaming') || h.includes('halahgan');
+      const l = link.toLowerCase();
+      return (
+        h.includes('kraken') || 
+        h.includes('streaming') || 
+        h.includes('halahgan') || 
+        l.includes('halahgan.com') ||
+        l.includes('berkasdrive')
+      );
     };
 
     const getEmbedUrl = (host: string, link: string) => {
-      if (host.toLowerCase().includes('kraken')) {
+      const h = host.toLowerCase();
+      const l = link.toLowerCase();
+
+      // Case 1: Krakenfiles
+      if (h.includes('kraken')) {
         const code = link.split('/view/')[1]?.split('/')[0];
         if (code) return `https://krakenfiles.com/embed-video/${code}`;
       }
+
+      // Case 2: Halahgan / BerkasDrive
+      // Transforms: https://dlgan.halahgan.com/?id=...
+      // Into: https://dlgan.halahgan.com/streaming.php?id=...
+      if (h.includes('halahgan') || link.includes('halahgan.com')) {
+        if (link.includes('?id=') && !link.includes('streaming.php')) {
+          return link.replace('dlgan.halahgan.com/?id=', 'dlgan.halahgan.com/streaming.php?id=');
+        }
+      }
+
       return link;
     };
 
@@ -285,7 +306,7 @@ export function NimegamiExplorer() {
                                     <Button asChild variant="outline" size="sm" className="h-9 px-4 rounded-xl text-[9px] font-bold border-primary/10 hover:bg-purple-500/10 hover:text-purple-600 shadow-sm">
                                       <a href={link.link} target="_blank" rel="noopener noreferrer">{link.host}</a>
                                     </Button>
-                                    {isPlayable(link.host) && (
+                                    {isPlayable(link.host, link.link) && (
                                       <Button 
                                         variant="secondary" 
                                         size="icon" 
