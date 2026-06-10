@@ -1,6 +1,7 @@
+
 "use client"
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,14 +17,30 @@ import {
   X,
   Link as LinkIcon,
   Trash2,
-  Sparkles
+  Sparkles,
+  Zap
 } from "lucide-react";
 import Image from 'next/image';
 import { removeImageBackground } from "@/app/actions/remove-bg";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useUser, useFirestore, useDoc } from "@/firebase";
+import { doc, updateDoc } from "firebase/firestore";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
+const ROLE_LIMITS = {
+  free: 3,
+  pro: 10,
+  sultan: 20
+};
 
 export function BackgroundRemover() {
+  const { user } = useUser();
+  const db = useFirestore();
+  const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
+  const { data: profile } = useDoc(userRef);
+
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +49,21 @@ export function BackgroundRemover() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const role = (profile?.role as keyof typeof ROLE_LIMITS) || 'free';
+  const limit = ROLE_LIMITS[role];
+  const usage = profile?.removerUsage || { count: 0, lastReset: new Date().toISOString().split('T')[0] };
+
+  // Daily Reset Check
+  const isResetNeeded = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return usage.lastReset !== today;
+  }, [usage.lastReset]);
+
+  const remainingCredits = useMemo(() => {
+    const currentCount = isResetNeeded ? 0 : (usage.count || 0);
+    return Math.max(0, limit - currentCount);
+  }, [isResetNeeded, usage.count, limit]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -55,7 +87,21 @@ export function BackgroundRemover() {
   };
 
   const handleProcess = async () => {
+    if (!user) {
+      toast({ variant: "destructive", title: "Session required", description: "Please sign in to use AI tools." });
+      return;
+    }
+
     if (!file && !url.trim()) return;
+
+    if (remainingCredits <= 0) {
+      toast({
+        variant: "warning",
+        title: "Daily Limit Reached",
+        description: `You have used all ${limit} removals for today. Upgrade for higher limits.`,
+      });
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -63,7 +109,7 @@ export function BackgroundRemover() {
     setStatus("Analyzing subject...");
 
     try {
-      // Small UI simulation delays
+      // Status simulation
       const statusUpdates = [
         { msg: "Detecting foreground...", delay: 2000 },
         { msg: "Generating alpha mask...", delay: 6000 },
@@ -83,10 +129,28 @@ export function BackgroundRemover() {
 
       if (!res.status) throw new Error(res.error);
 
+      // Increment usage in Firestore
+      if (userRef) {
+        const today = new Date().toISOString().split('T')[0];
+        const newCount = isResetNeeded ? 1 : (usage.count || 0) + 1;
+        updateDoc(userRef, {
+          removerUsage: {
+            count: newCount,
+            lastReset: today
+          }
+        }).catch(e => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'write',
+            requestResourceData: { removerUsage: { count: newCount, lastReset: today } }
+          }));
+        });
+      }
+
       setResult(res.data || null);
       toast({
         title: "Background Removed",
-        description: "Your subject has been isolated successfully.",
+        description: "Your subject has been isolated successfully. Credits deducted.",
       });
     } catch (err: any) {
       setError(err.message);
@@ -107,7 +171,7 @@ export function BackgroundRemover() {
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
       <CardHeader className="p-8 sm:p-10 pb-6">
-        <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-pink-500/10 text-pink-600 rounded-xl">
               <Eraser className="size-6" />
@@ -117,11 +181,24 @@ export function BackgroundRemover() {
               <CardDescription>Instantly isolate subjects from any image with professional precision.</CardDescription>
             </div>
           </div>
-          {(file || url || result) && (
-            <Button variant="ghost" size="icon" onClick={clear} className="rounded-full hover:bg-destructive/5 hover:text-destructive">
-              <Trash2 className="size-5" />
-            </Button>
-          )}
+
+          <div className={cn(
+            "flex items-center gap-3 px-6 py-3 rounded-2xl border border-primary/5",
+            role === 'sultan' ? "bg-yellow-500/5 text-yellow-600" : role === 'pro' ? "bg-pink-500/5 text-pink-600" : "bg-secondary/30"
+          )}>
+             <div className="p-2 bg-white/20 rounded-lg">
+                <Zap className="size-4" />
+             </div>
+             <div className="space-y-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Daily Credits ({role})</p>
+                <p className="text-sm font-bold font-headline">{remainingCredits} removals left</p>
+             </div>
+             {role === 'free' && (
+               <Button variant="link" asChild className="h-auto p-0 ml-4 text-[10px] font-bold uppercase text-pink-600">
+                  <a href="/pricing">Upgrade</a>
+               </Button>
+             )}
+          </div>
         </div>
       </CardHeader>
       
@@ -195,7 +272,7 @@ export function BackgroundRemover() {
             </div>
 
             <Button 
-              disabled={(!file && !url.trim()) || loading}
+              disabled={(!file && !url.trim()) || loading || remainingCredits <= 0}
               onClick={handleProcess}
               className="w-full h-14 rounded-2xl bg-pink-600 hover:bg-pink-700 text-white font-bold shadow-xl shadow-pink-500/10 transition-all active:scale-95"
             >
@@ -270,12 +347,14 @@ export function BackgroundRemover() {
           </div>
         )}
 
-        {error && (
+        {(error || (remainingCredits <= 0 && !result)) && (
           <div className="p-5 rounded-[1.5rem] bg-destructive/5 border border-destructive/10 flex items-start gap-3 animate-fade-in-up">
             <X className="size-5 text-destructive mt-0.5" />
             <div className="space-y-1">
-               <p className="text-sm text-destructive font-bold">Removal Failed</p>
-               <p className="text-xs text-destructive/80 font-medium leading-relaxed">{error}</p>
+               <p className="text-sm text-destructive font-bold">{error ? "Removal Failed" : "Limit Reached"}</p>
+               <p className="text-xs text-destructive/80 font-medium leading-relaxed">
+                 {error || `You have exhausted your daily removals. Please upgrade your identity for higher quotas.`}
+               </p>
             </div>
           </div>
         )}

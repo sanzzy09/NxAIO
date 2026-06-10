@@ -27,8 +27,8 @@ const plans = [
     price: "0",
     features: [
       {
-        category: "Temp-Mail Limits",
-        items: ["3 new identities per day", "Real-time OTP extraction", "Browser session persistence"]
+        category: "Daily Limits",
+        items: ["3 Temp-Mail Identities", "3 AI Background Removals", "5 AI Music Tracks / week"]
       },
       {
         category: "Core Features",
@@ -44,8 +44,8 @@ const plans = [
     popular: true,
     features: [
       {
-        category: "Temp-Mail Limits",
-        items: ["25 new identities per day", "Priority mailbox nodes", "Extended session life"]
+        category: "Enhanced Quotas",
+        items: ["25 Temp-Mail Identities", "10 AI Background Removals", "15 AI Music Tracks / week"]
       },
       {
         category: "Premium Identity",
@@ -64,8 +64,8 @@ const plans = [
     price: "99",
     features: [
       {
-        category: "Temp-Mail Limits",
-        items: ["50 new identities per day", "Private dedicated nodes", "Unlimited history sync"]
+        category: "Max Quotas",
+        items: ["50 Temp-Mail Identities", "20 AI Background Removals", "30 AI Music Tracks / week"]
       },
       {
         category: "Elite Identity",

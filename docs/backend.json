@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "GlobalStats": {
@@ -46,6 +47,13 @@
           "properties": {
             "count": { "type": "number", "default": 0 },
             "weekStart": { "type": "string", "format": "date-time" }
+          }
+        },
+        "removerUsage": {
+          "type": "object",
+          "properties": {
+            "count": { "type": "number", "default": 0 },
+            "lastReset": { "type": "string", "format": "date" }
           }
         },
         "followersCount": { "type": "number", "default": 0 },
