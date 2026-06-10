@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useMemo } from 'react';
@@ -15,6 +16,7 @@ import { TranscribeTool } from '@/components/dashboard/TranscribeTool';
 import { OCRTool } from '@/components/dashboard/OCRTool';
 import { AnichinExplorer } from '@/components/dashboard/AnichinExplorer';
 import { AdlinkBypasser } from '@/components/dashboard/AdlinkBypasser';
+import { FileHosting } from '@/components/dashboard/FileHosting';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -35,6 +37,7 @@ export default function Home() {
 
   const renderTool = () => {
     switch (activeTool) {
+      case "hosting": return <FileHosting />;
       case "bypass": return <AdlinkBypasser />;
       case "anichin": return <AnichinExplorer />;
       case "optimizer": return <ImageOptimizer />;

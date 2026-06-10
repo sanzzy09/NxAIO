@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -15,7 +16,8 @@ import {
   Waves,
   Mic,
   ScanText,
-  Sparkles
+  Sparkles,
+  CloudUpload
 } from "lucide-react";
 
 interface Tool {
@@ -33,6 +35,13 @@ const tools: Tool[] = [
     description: "Instantly skip annoying shortlinks, redirects, and timed ads.",
     icon: <Zap className="size-6" />,
     color: "bg-yellow-50 text-yellow-600"
+  },
+  {
+    id: "hosting",
+    name: "FileGoat Hosting",
+    description: "Decentralized file storage with custom expiration buckets.",
+    icon: <CloudUpload className="size-6" />,
+    color: "bg-indigo-50 text-indigo-600"
   },
   {
     id: "anichin",
