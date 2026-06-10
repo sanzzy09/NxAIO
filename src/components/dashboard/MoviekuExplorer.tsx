@@ -76,6 +76,25 @@ export function MoviekuExplorer() {
     }
   };
 
+  // Helper to transform Acefile/Abyss links into embeddable URLs
+  const getEmbedUrl = (url: string) => {
+    if (!url) return null;
+    
+    // Acefile transformation: /f/ID/slug -> /player/ID
+    if (url.includes('acefile.co/f/')) {
+      const parts = url.split('/f/')[1]?.split('/');
+      const id = parts?.[0];
+      return id ? `https://acefile.co/player/${id}` : url;
+    }
+
+    return url;
+  };
+
+  const isPlayable = (url: string) => {
+    if (!url) return false;
+    return url.includes('acefile.co/f/') || url.includes('abyssplayer.com');
+  };
+
   const renderGrid = () => (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">
       {results.map((item, i) => (
@@ -178,8 +197,8 @@ export function MoviekuExplorer() {
                 <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
                   <PlayCircle className="size-3" /> Streaming Active
                 </h4>
-                <Button variant="ghost" size="sm" onClick={() => setActiveVideo(null)} className="h-6 px-2 rounded-lg text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-destructive gap-1">
-                   <X className="size-3" /> Stop
+                <Button variant="ghost" size="sm" onClick={() => setActiveVideo(null)} className="h-6 px-2 rounded-lg text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-destructive gap-1.5">
+                   <X className="size-3" /> Stop Player
                 </Button>
               </div>
               <div className="relative aspect-video w-full bg-black rounded-[2rem] overflow-hidden shadow-2xl border border-primary/5">
@@ -187,8 +206,9 @@ export function MoviekuExplorer() {
                   src={activeVideo} 
                   className="w-full h-full border-none" 
                   allowFullScreen
-                  allow="autoplay; encrypted-media"
+                  allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
                   referrerPolicy="no-referrer"
+                  sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
                 />
               </div>
             </div>
@@ -229,10 +249,10 @@ export function MoviekuExplorer() {
              {selectedMedia.stream && !activeVideo && (
                 <div className="space-y-4">
                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-                     <PlayCircle className="size-3" /> Video Player
+                     <PlayCircle className="size-3" /> Main Player
                    </h4>
                    <Button 
-                    onClick={() => setActiveVideo(selectedMedia.stream)}
+                    onClick={() => setActiveVideo(getEmbedUrl(selectedMedia.stream))}
                     className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-bold shadow-xl shadow-primary/20 gap-2 transition-all hover:scale-[1.02]"
                    >
                      <PlayCircle className="size-5" /> Launch Streaming
@@ -243,7 +263,7 @@ export function MoviekuExplorer() {
              {Object.keys(selectedMedia.downloads || {}).length > 0 && (
                 <div className="space-y-4 md:col-span-2">
                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-                     <Download className="size-3" /> Download Mirrors
+                     <Download className="size-3" /> Mirror Selection
                    </h4>
                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       {Object.entries(selectedMedia.downloads).map(([res, links]: [string, any]) => (
@@ -251,11 +271,30 @@ export function MoviekuExplorer() {
                            <span className="text-[10px] font-bold uppercase text-primary tracking-widest">{res}</span>
                            <div className="flex flex-col gap-1.5">
                               {links.map((link: any, idx: number) => (
-                                <Button key={idx} asChild variant="outline" size="sm" className="h-8 justify-between rounded-lg border-primary/5 bg-background hover:bg-primary/5 hover:text-primary transition-all font-bold text-[9px] uppercase tracking-wider">
-                                   <a href={link.url} target="_blank" rel="noopener noreferrer">
-                                      {link.name} <ExternalLink className="size-2.5 opacity-40" />
-                                   </a>
-                                </Button>
+                                <div key={idx} className="flex gap-1">
+                                  <Button asChild variant="outline" size="sm" className="h-8 flex-1 justify-between rounded-lg border-primary/5 bg-background hover:bg-primary/5 hover:text-primary transition-all font-bold text-[9px] uppercase tracking-wider">
+                                     <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                        {link.name} <ExternalLink className="size-2.5 opacity-40" />
+                                     </a>
+                                  </Button>
+                                  {isPlayable(link.url) && (
+                                    <Button 
+                                      variant="secondary" 
+                                      size="icon" 
+                                      className="size-8 rounded-lg bg-primary/5 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+                                      onClick={() => {
+                                        setActiveVideo(getEmbedUrl(link.url));
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        toast({
+                                          title: "Player Activated",
+                                          description: `Streaming mirror ${link.name} loaded.`,
+                                        });
+                                      }}
+                                    >
+                                      <PlayCircle className="size-3.5" />
+                                    </Button>
+                                  )}
+                                </div>
                               ))}
                            </div>
                         </div>
@@ -279,7 +318,7 @@ export function MoviekuExplorer() {
             </div>
             <div>
               <CardTitle className="font-headline text-2xl">Movieku Explorer</CardTitle>
-              <CardDescription>Premium movie directory with multiple quality download mirrors.</CardDescription>
+              <CardDescription>Premium movie directory with multi-quality streaming mirrors.</CardDescription>
             </div>
           </div>
 
