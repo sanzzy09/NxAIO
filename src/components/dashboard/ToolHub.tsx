@@ -16,7 +16,8 @@ import {
   CloudUpload,
   Eraser,
   Film,
-  Music
+  Music,
+  Video
 } from "lucide-react";
 
 interface Tool {
@@ -41,6 +42,13 @@ const tools: Tool[] = [
     description: "Chain utilities with natural language commands.",
     icon: <Zap className="size-6" />,
     color: "bg-orange-50 text-orange-600"
+  },
+  {
+    id: "vidbox",
+    name: "Vidbox Explorer",
+    description: "Cinematic search engine for movies & series with multi-CDN mirrors.",
+    icon: <Video className="size-6" />,
+    color: "bg-purple-50 text-purple-600"
   },
   {
     id: "music",
