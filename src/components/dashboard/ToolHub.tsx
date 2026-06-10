@@ -28,6 +28,13 @@ interface Tool {
 
 const tools: Tool[] = [
   {
+    id: "bypass",
+    name: "Adlink Bypasser",
+    description: "Instantly skip annoying shortlinks, redirects, and timed ads.",
+    icon: <Zap className="size-6" />,
+    color: "bg-yellow-50 text-yellow-600"
+  },
+  {
     id: "anichin",
     name: "Anichin Explorer",
     description: "Premium anime database with high-speed streaming and downloads.",
