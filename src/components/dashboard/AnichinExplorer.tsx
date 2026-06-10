@@ -374,14 +374,23 @@ export function AnichinExplorer() {
               </TabsList>
             </Tabs>
             
-            <form onSubmit={handleSearch} className="relative group min-w-[260px] w-full sm:w-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground opacity-40 group-focus-within:text-orange-600 transition-colors" />
-              <Input 
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Search titles...`} 
-                className="h-12 pl-12 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-orange-500/20"
-              />
+            <form onSubmit={handleSearch} className="flex gap-2 min-w-[320px] w-full sm:w-auto">
+              <div className="relative flex-1 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground opacity-40 group-focus-within:text-orange-600 transition-colors" />
+                <Input 
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={`Search titles...`} 
+                  className="h-12 pl-12 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-orange-500/20"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                disabled={loading || !query.trim()} 
+                className="h-12 px-6 rounded-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-xl shadow-orange-500/10"
+              >
+                {loading ? <Loader2 className="size-4 animate-spin" /> : "Search"}
+              </Button>
             </form>
           </div>
         </div>

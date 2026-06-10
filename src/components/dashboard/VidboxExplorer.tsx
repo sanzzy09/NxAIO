@@ -316,15 +316,24 @@ export function VidboxExplorer() {
             </div>
           </div>
 
-          <form onSubmit={handleSearch} className="relative group w-full lg:max-w-md">
-            <div className="absolute inset-0 bg-primary/5 rounded-full blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-5 text-muted-foreground opacity-40 group-focus-within:text-primary transition-colors" />
-            <Input 
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for movies or TV series..." 
-              className="h-14 pl-14 pr-6 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 text-base font-medium shadow-inner"
-            />
+          <form onSubmit={handleSearch} className="flex gap-2 w-full lg:max-w-md">
+            <div className="relative flex-1 group">
+              <div className="absolute inset-0 bg-primary/5 rounded-full blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-5 text-muted-foreground opacity-40 group-focus-within:text-primary transition-colors" />
+              <Input 
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search for movies or TV series..." 
+                className="h-14 pl-14 pr-6 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 text-base font-medium shadow-inner"
+              />
+            </div>
+            <Button 
+              type="submit" 
+              disabled={loading || !query.trim()} 
+              className="h-14 px-8 rounded-full bg-primary text-primary-foreground font-bold shadow-xl shadow-primary/20 transition-all hover:scale-[1.02]"
+            >
+              {loading ? <Loader2 className="size-5 animate-spin" /> : "Search"}
+            </Button>
           </form>
         </div>
       </CardHeader>
