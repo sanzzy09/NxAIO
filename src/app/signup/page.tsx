@@ -2,10 +2,13 @@
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
 import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const GoogleIcon = (
   <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
@@ -24,15 +27,39 @@ const GithubIcon = (
 
 export default function SignUpPage() {
   const auth = useAuth();
+  const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  const initUserProfile = async (uid: string, email: string, displayName: string, photoURL: string) => {
+    const userRef = doc(db, "users", uid);
+    setDoc(userRef, {
+      uid,
+      email,
+      displayName,
+      photoURL,
+      createdAt: serverTimestamp(),
+    }, { merge: true }).catch(async (error) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: userRef.path,
+        operation: "write",
+        requestResourceData: { uid, email, displayName }
+      }));
+    });
+  };
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      await initUserProfile(
+        result.user.uid, 
+        result.user.email || "", 
+        result.user.displayName || "New User", 
+        result.user.photoURL || ""
+      );
       toast({
         title: "Account created",
         description: "Welcome to NxAIO!",
@@ -74,6 +101,8 @@ export default function SignUpPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
+      await initUserProfile(userCredential.user.uid, email, name, "");
+      
       toast({
         title: "Account created",
         description: "Welcome to NxAIO!",
