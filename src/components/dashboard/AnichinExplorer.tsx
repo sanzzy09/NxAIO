@@ -59,6 +59,7 @@ export function AnichinExplorer() {
       if (params.page) setPage(params.page);
       if (params.mode === 'genre_browse') setActiveGenre(params.slug!);
       
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -79,17 +80,15 @@ export function AnichinExplorer() {
   const renderGrid = (items: any[]) => (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">
       {items.map((item, i) => {
-        // Detect if the slug belongs to an episode or a series
-        // Episode slugs usually contain "-episode-" on this provider
         const isEpisodeLink = item.slug.toLowerCase().includes('episode');
 
         return (
-          <button 
+          <div 
             key={i} 
             onClick={() => handleFetch({ mode: isEpisodeLink ? 'watch' : 'detail', slug: item.slug })}
-            className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-orange-500/30 transition-all hover:shadow-xl"
+            className="group cursor-pointer text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-orange-500/30 transition-all hover:shadow-xl"
           >
-            <div className="relative aspect-[3/4] w-full bg-black/5">
+            <div className="relative aspect-[3/4] w-full bg-black/5 pointer-events-none">
               <Image 
                 src={item.thumbnail || "https://placehold.co/400x600/png?text=No+Cover"} 
                 alt={item.title} 
@@ -108,13 +107,13 @@ export function AnichinExplorer() {
                 </div>
               )}
             </div>
-            <div className="p-4 space-y-1">
+            <div className="p-4 space-y-1 pointer-events-none">
               <h4 className="font-headline font-bold text-sm line-clamp-2 leading-tight group-hover:text-orange-600 transition-colors">{item.title}</h4>
               {item.headline && item.headline !== item.title && (
                 <p className="text-[10px] text-muted-foreground opacity-60 font-medium line-clamp-1">{item.headline}</p>
               )}
             </div>
-          </button>
+          </div>
         );
       })}
     </div>
@@ -291,6 +290,7 @@ export function AnichinExplorer() {
             allowFullScreen
             allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
             referrerPolicy="no-referrer"
+            sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
           />
         </div>
 

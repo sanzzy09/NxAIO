@@ -48,7 +48,6 @@ export function VidboxExplorer() {
 
     setLoading(true);
     setError(null);
-    setResults([]);
     try {
       const res = await vidboxSearch(query);
       if (!res.status) throw new Error(res.error);
@@ -65,12 +64,13 @@ export function VidboxExplorer() {
     setSelectedMedia(media);
     setView('detail');
     setActiveServer(media.embed);
-    // Reset series info
     setSeason(1);
     setEpisode(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const updateEpisode = async (s: number, e: number) => {
+    if (loading) return;
     setSeason(s);
     setEpisode(e);
     if (selectedMedia.type === 'tv') {
@@ -92,12 +92,12 @@ export function VidboxExplorer() {
   const renderGrid = () => (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">
       {results.map((media, i) => (
-        <button 
+        <div 
           key={i} 
           onClick={() => handleSelectMedia(media)}
-          className="group text-left bg-secondary/20 border border-primary/5 rounded-[2rem] overflow-hidden hover:border-primary/20 transition-all hover:shadow-xl relative"
+          className="group cursor-pointer text-left bg-secondary/20 border border-primary/5 rounded-[2rem] overflow-hidden hover:border-primary/20 transition-all hover:shadow-xl relative"
         >
-          <div className="relative aspect-[2/3] w-full bg-black/5">
+          <div className="relative aspect-[2/3] w-full bg-black/5 pointer-events-none">
             <Image 
               src={media.poster || "https://placehold.co/500x750/png?text=No+Poster"} 
               alt={media.title} 
@@ -119,13 +119,13 @@ export function VidboxExplorer() {
                <PlayCircle className="size-12 text-white drop-shadow-2xl" />
             </div>
           </div>
-          <div className="p-4">
+          <div className="p-4 pointer-events-none">
             <h4 className="font-headline font-bold text-xs line-clamp-1 group-hover:text-primary transition-colors">
               {media.title}
             </h4>
             <p className="text-[10px] text-muted-foreground font-bold mt-1 opacity-60">{media.year || 'Unknown Year'}</p>
           </div>
-        </button>
+        </div>
       ))}
     </div>
   );
@@ -182,8 +182,8 @@ export function VidboxExplorer() {
                 <div className="flex flex-wrap gap-6">
                    <div className="space-y-3">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 ml-1">Season</span>
-                      <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5].map(s => (
+                      <div className="flex flex-wrap gap-2">
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
                           <Button 
                             key={s} 
                             variant={season === s ? "default" : "outline"}
@@ -257,7 +257,7 @@ export function VidboxExplorer() {
       <div className="space-y-6">
         <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5">
            {loading ? (
-             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-md">
+             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-md z-20">
                 <Loader2 className="size-12 animate-spin text-white/20" />
                 <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Re-authorizing server link...</p>
              </div>
@@ -268,6 +268,7 @@ export function VidboxExplorer() {
                allowFullScreen
                allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
                referrerPolicy="no-referrer"
+               sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
              />
            )}
         </div>
