@@ -42,61 +42,63 @@ export default function PublicProfilePage() {
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/10">
       <Navbar />
 
-      <main className="container mx-auto px-4 pt-32 pb-16 lg:pb-24 max-w-4xl">
-        <div className="bg-card border border-primary/5 rounded-[2.5rem] shadow-2xl overflow-hidden">
-          {/* Profile Banner */}
-          <div className="relative h-48 md:h-64 bg-secondary/30">
-            {profile.bannerURL ? (
-              <Image 
-                src={profile.bannerURL} 
-                alt="Profile Banner" 
-                fill 
-                className="object-cover"
-                unoptimized // GIFs support
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-tr from-primary/5 to-primary/10" />
-            )}
-          </div>
+      <main className="pb-16 lg:pb-24">
+        {/* Full-Width Immersive Banner */}
+        <div className="relative w-full h-64 md:h-80 lg:h-[450px] bg-secondary/30 overflow-hidden shadow-inner">
+          {profile.bannerURL ? (
+            <Image 
+              src={profile.bannerURL} 
+              alt="Profile Banner" 
+              fill 
+              className="object-cover"
+              unoptimized
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-tr from-primary/5 to-primary/10" />
+          )}
+        </div>
 
-          <div className="px-8 pb-12 relative">
-            {/* Avatar - overlapping the banner */}
-            <div className="absolute -top-16 left-8">
-              <Avatar className="w-32 h-32 border-4 border-card shadow-2xl">
-                <AvatarImage src={profile.photoURL || undefined} />
-                <AvatarFallback className="text-3xl bg-primary/5">
-                  {profile.displayName?.charAt(0) || "U"}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+        <div className="container mx-auto px-4 max-w-4xl -mt-24 relative z-10">
+          <div className="bg-card border border-primary/5 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] backdrop-blur-xl overflow-hidden">
+            <div className="px-8 pb-12 relative">
+              {/* Avatar - overlapping the full-width banner */}
+              <div className="absolute -top-16 left-8">
+                <Avatar className="w-32 h-32 border-4 border-card shadow-2xl scale-110">
+                  <AvatarImage src={profile.photoURL || undefined} />
+                  <AvatarFallback className="text-3xl bg-primary/5">
+                    {profile.displayName?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
 
-            <div className="pt-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <div className="space-y-2">
-                <h1 className="text-4xl font-bold font-headline tracking-tight">{profile.displayName || "Anonymous User"}</h1>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 opacity-40" />
-                    Joined {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'recently'}
+              <div className="pt-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-2">
+                  <h1 className="text-4xl font-bold font-headline tracking-tight leading-none">{profile.displayName || "Anonymous User"}</h1>
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 opacity-40" />
+                      Joined {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'recently'}
+                    </div>
+                    <Badge variant="secondary" className="bg-primary/5 text-primary/60 rounded-full text-[10px] font-bold uppercase tracking-widest border-none">
+                      Verified Member
+                    </Badge>
                   </div>
-                  <Badge variant="secondary" className="bg-primary/5 text-primary/60 rounded-full text-[10px] font-bold uppercase tracking-widest border-none">
-                    NxAIO Member
-                  </Badge>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <FollowButton targetUserId={userId} className="h-12 px-10 rounded-full shadow-xl shadow-primary/10 font-bold" />
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <FollowButton targetUserId={userId} className="h-11 px-8 rounded-full shadow-lg shadow-primary/10" />
-              </div>
-            </div>
-
-            <div className="mt-8 flex gap-8 border-t border-primary/5 pt-8">
-              <div className="text-center">
-                <p className="text-2xl font-bold font-headline">{profile.followersCount || 0}</p>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">Followers</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold font-headline">{profile.followingCount || 0}</p>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">Following</p>
+              <div className="mt-10 flex gap-10 border-t border-primary/5 pt-10">
+                <div className="text-left group cursor-pointer">
+                  <p className="text-3xl font-bold font-headline group-hover:text-primary transition-colors">{profile.followersCount || 0}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 group-hover:text-muted-foreground transition-colors">Followers</p>
+                </div>
+                <div className="text-left group cursor-pointer">
+                  <p className="text-3xl font-bold font-headline group-hover:text-primary transition-colors">{profile.followingCount || 0}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 group-hover:text-muted-foreground transition-colors">Following</p>
+                </div>
               </div>
             </div>
           </div>
