@@ -27,7 +27,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
   const renderFrameOverlay = () => {
     // Standardize SVG props for all frames
     const svgProps = {
-      className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[115%] h-[125%] pointer-events-none overflow-visible z-10",
+      className: "absolute -inset-[20%] w-[140%] h-[140%] pointer-events-none overflow-visible z-10",
       viewBox: "0 0 100 100",
       fill: "none",
       preserveAspectRatio: "xMidYMid meet"
@@ -47,16 +47,16 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
         );
       case 'royal':
         return (
-          <svg {...svgProps} className={cn(svgProps.className, "w-[125%] h-[125%]")}>
-            <circle cx="50" cy="50" r="46" stroke="#FFD700" strokeWidth="4" />
-            <circle cx="50" cy="50" r="48" stroke="#B8860B" strokeWidth="1" />
+          <svg {...svgProps}>
+            <circle cx="50" cy="50" r="47" stroke="#FFD700" strokeWidth="3" />
+            <circle cx="50" cy="50" r="49" stroke="#B8860B" strokeWidth="1" />
             {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
               <rect
                 key={deg}
-                x="47"
+                x="47.5"
                 y="0"
-                width="6"
-                height="6"
+                width="5"
+                height="5"
                 fill="#FF0000"
                 transform={`rotate(${deg} 50 50)`}
                 rx="1"
@@ -73,35 +73,35 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
                 <stop offset="100%" stopColor="#4B0082" />
               </linearGradient>
               <filter id="mysticGlow">
-                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feGaussianBlur stdDeviation="1.5" result="blur" />
                 <feComposite in="SourceGraphic" in2="blur" operator="over" />
               </filter>
             </defs>
-            <circle cx="50" cy="50" r="47" stroke="url(#mysticGradient)" strokeWidth="3" filter="url(#mysticGlow)" />
+            <circle cx="50" cy="50" r="48" stroke="url(#mysticGradient)" strokeWidth="3" filter="url(#mysticGlow)" />
             {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((deg) => (
-              <path key={deg} d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform={`rotate(${deg} 50 50)`} />
+              <path key={deg} d="M50 2 L53 10 L47 10 Z" fill="#8A2BE2" transform={`rotate(${deg} 50 50)`} />
             ))}
           </svg>
         );
       case 'emerald':
         return (
-          <svg {...svgProps} className={cn(svgProps.className, "w-[120%] h-[120%]")}>
-            <rect x="10" y="10" width="80" height="80" rx="40" stroke="#10B981" strokeWidth="4" />
-            <path d="M50 2L58 15H42L50 2Z" fill="#10B981" />
-            <path d="M50 98L42 85H58L50 98Z" fill="#10B981" />
-            <path d="M2 50L15 42V58L2 50Z" fill="#10B981" />
-            <path d="M98 50L85 58V42L98 50Z" fill="#10B981" />
+          <svg {...svgProps}>
+            <circle cx="50" cy="50" r="47" stroke="#10B981" strokeWidth="4" fill="none" />
+            <path d="M50 2L56 12H44L50 2Z" fill="#10B981" />
+            <path d="M50 98L44 88H56L50 98Z" fill="#10B981" />
+            <path d="M2 50L12 44V56L2 50Z" fill="#10B981" />
+            <path d="M98 50L88 56V44L98 50Z" fill="#10B981" />
           </svg>
         );
       case 'crimson':
         return (
           <svg {...svgProps}>
             <circle cx="50" cy="50" r="48" stroke="#DC2626" strokeWidth="2" strokeDasharray="10 5" />
-            <circle cx="50" cy="50" r="44" stroke="#7F1D1D" strokeWidth="1" />
-            <path d="M50 5L55 15H45Z" fill="#DC2626" />
-            <path d="M50 95L45 85H55Z" fill="#DC2626" />
-            <path d="M5 50L15 45V55Z" fill="#DC2626" />
-            <path d="M95 50L85 55V45Z" fill="#DC2626" />
+            <circle cx="50" cy="50" r="45" stroke="#7F1D1D" strokeWidth="1" />
+            <path d="M50 3L54 12H46Z" fill="#DC2626" />
+            <path d="M50 97L46 88H54Z" fill="#DC2626" />
+            <path d="M3 50L12 46V54Z" fill="#DC2626" />
+            <path d="M97 50L88 54V46Z" fill="#DC2626" />
           </svg>
         );
       default:
@@ -114,7 +114,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
       {renderFrameOverlay()}
       <Avatar className="w-full h-full z-0 overflow-hidden ring-offset-background">
         <AvatarImage src={src || undefined} className="object-cover" />
-        <AvatarFallback className="bg-primary/5 text-primary/40 font-headline font-bold">
+        <AvatarFallback className="bg-primary/5 text-primary/40 font-headline font-bold text-xs">
           {fallback || '?'}
         </AvatarFallback>
       </Avatar>
