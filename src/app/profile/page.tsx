@@ -1,116 +1,26 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
-import { updateProfile } from "firebase/auth";
+import { doc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Mail, Shield, Camera, Save, LogOut, Layout, Sparkles, Bell, CreditCard } from "lucide-react";
+import { Loader2, User, LogOut, Layout, Settings, Activity, ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import Image from 'next/image';
 import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
-import { cn } from '@/lib/utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const AVAILABLE_FRAMES: { id: FrameId; name: string; color: string }[] = [
-  { id: 'none', name: 'None', color: 'bg-muted' },
-  { id: 'tech', name: 'Tech Core', color: 'bg-blue-500' },
-  { id: 'royal', name: 'Royal Guard', color: 'bg-yellow-500' },
-  { id: 'mystic', name: 'Mystic Void', color: 'bg-purple-500' },
-  { id: 'emerald', name: 'Emerald', color: 'bg-emerald-500' },
-  { id: 'crimson', name: 'Crimson', color: 'bg-red-600' },
-];
+import Link from 'next/link';
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
-  const { toast } = useToast();
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
 
   const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
   const { data: profileData, loading: profileLoading } = useDoc(userRef);
-
-  const [formData, setFormData] = useState({
-    displayName: "",
-    photoURL: "",
-    bannerURL: "",
-    frameId: "none" as FrameId,
-    productUpdates: true,
-    weeklyDigest: false,
-    timezone: "lon"
-  });
-
-  useEffect(() => {
-    if (profileData) {
-      setFormData({
-        displayName: profileData.displayName || "",
-        photoURL: profileData.photoURL || "",
-        bannerURL: profileData.bannerURL || "",
-        frameId: (profileData.frameId as FrameId) || "none",
-        productUpdates: profileData.preferences?.productUpdates ?? true,
-        weeklyDigest: profileData.preferences?.weeklyDigest ?? false,
-        timezone: profileData.preferences?.timezone || "lon"
-      });
-    }
-  }, [profileData]);
-
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !userRef) return;
-
-    setSaving(true);
-    try {
-      await updateProfile(user, {
-        displayName: formData.displayName,
-        photoURL: formData.photoURL
-      });
-
-      setDoc(userRef, {
-        displayName: formData.displayName,
-        photoURL: formData.photoURL,
-        bannerURL: formData.bannerURL,
-        frameId: formData.frameId,
-        preferences: {
-          productUpdates: formData.productUpdates,
-          weeklyDigest: formData.weeklyDigest,
-          timezone: formData.timezone
-        },
-        updatedAt: new Date().toISOString()
-      }, { merge: true }).catch(async (error) => {
-        errorEmitter.emit("permission-error", new FirestorePermissionError({
-          path: userRef.path,
-          operation: "write",
-          requestResourceData: formData
-        }));
-      });
-
-      toast({
-        title: "Configuration updated",
-        description: "Your account settings have been synchronized.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: error.message || "Could not save settings.",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
 
   if (authLoading || profileLoading) {
     return (
@@ -132,10 +42,10 @@ export default function ProfilePage() {
       <main className="pb-16 lg:pb-24">
         {/* Immersive Full-Width Banner */}
         <div className="w-full h-64 md:h-80 lg:h-[400px] bg-secondary/30 relative overflow-hidden group shadow-inner">
-          {formData.bannerURL ? (
+          {profileData?.bannerURL ? (
             <Image 
-              src={formData.bannerURL} 
-              alt="Banner Preview" 
+              src={profileData.bannerURL} 
+              alt="Banner" 
               fill 
               className="object-cover"
               unoptimized
@@ -145,30 +55,22 @@ export default function ProfilePage() {
               <Layout className="w-12 h-12 text-primary/10" />
             </div>
           )}
-          <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-none px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-primary">
-              Live Banner Preview
-            </Badge>
-          </div>
         </div>
 
         <div className="container mx-auto px-4 max-w-5xl -mt-20 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            {/* Left Sidebar Info */}
             <div className="lg:col-span-4 space-y-6">
               <div className="flex flex-col items-center text-center space-y-4 p-8 bg-card border border-primary/5 rounded-[2.5rem] shadow-2xl backdrop-blur-xl">
-                <div className="relative group">
-                  <AvatarFrame 
-                    src={formData.photoURL || user.photoURL}
-                    fallback={formData.displayName?.charAt(0) || user.email?.charAt(0)}
-                    frameId={formData.frameId}
-                    size="xl"
-                  />
-                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    <Camera className="text-white w-6 h-6" />
-                  </div>
-                </div>
+                <AvatarFrame 
+                  src={profileData?.photoURL || user.photoURL}
+                  fallback={profileData?.displayName?.charAt(0) || user.email?.charAt(0)}
+                  frameId={(profileData?.frameId as FrameId) || 'none'}
+                  size="xl"
+                />
+                
                 <div className="space-y-1 pt-4">
-                  <h2 className="text-2xl font-bold font-headline">{formData.displayName || "Account User"}</h2>
+                  <h2 className="text-2xl font-bold font-headline">{profileData?.displayName || "Account User"}</h2>
                   <p className="text-sm text-muted-foreground">{user.email}</p>
                 </div>
                 
@@ -186,6 +88,14 @@ export default function ProfilePage() {
                 <Badge variant="secondary" className="bg-primary/5 text-primary/60 border-none px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
                   Professional Plan
                 </Badge>
+
+                <div className="w-full pt-4 space-y-3">
+                  <Button asChild className="w-full h-12 rounded-2xl font-bold gap-2 shadow-lg shadow-primary/10">
+                    <Link href="/settings">
+                      <Settings className="w-4 h-4" /> Account Settings
+                    </Link>
+                  </Button>
+                </div>
               </div>
 
               <Button 
@@ -201,213 +111,67 @@ export default function ProfilePage() {
               </Button>
             </div>
 
+            {/* Right Activity Column */}
             <div className="lg:col-span-8 space-y-8">
-              <Card className="border-primary/5 shadow-2xl rounded-[2.5rem] overflow-hidden bg-card/80 backdrop-blur-md">
-                <CardHeader className="p-8 sm:p-12 pb-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-primary/5 rounded-xl">
-                      <Shield className="w-5 h-5 text-primary/40" />
+              <div className="bg-card border border-primary/5 rounded-[2.5rem] p-8 sm:p-12 shadow-2xl bg-card/80 backdrop-blur-md min-h-[400px]">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-primary/40" />
+                      <h3 className="text-2xl font-bold font-headline">Recent Activity</h3>
                     </div>
-                    <CardTitle className="text-3xl font-bold font-headline tracking-tight leading-none">Settings</CardTitle>
+                    <p className="text-muted-foreground text-sm">Your recent actions and updates on NxAIO.</p>
                   </div>
-                  <CardDescription>Manage your profile, notifications, and platform preferences.</CardDescription>
-                </CardHeader>
+                </div>
 
-                <CardContent className="p-0">
-                  <Tabs defaultValue="profile" className="w-full">
-                    <div className="px-8 sm:px-12 mb-6">
-                      <TabsList className="bg-secondary/50 p-1 h-12 rounded-full border border-primary/5">
-                        <TabsTrigger value="profile" className="rounded-full gap-2 text-xs font-bold uppercase tracking-wider px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                          <User className="size-4" /> Profile
-                        </TabsTrigger>
-                        <TabsTrigger value="notifications" className="rounded-full gap-2 text-xs font-bold uppercase tracking-wider px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                          <Bell className="size-4" /> Notifications
-                        </TabsTrigger>
-                        <TabsTrigger value="billing" className="rounded-full gap-2 text-xs font-bold uppercase tracking-wider px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                          <CreditCard className="size-4" /> Billing
-                        </TabsTrigger>
-                      </TabsList>
+                <div className="space-y-6">
+                  {/* Mock Activity Items */}
+                  <div className="group flex items-center justify-between p-6 rounded-3xl border border-primary/5 hover:border-primary/10 hover:bg-secondary/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                        <Layout className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold font-headline">Updated profile banner</p>
+                        <p className="text-xs text-muted-foreground">Synchronized new custom assets.</p>
+                      </div>
                     </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">2h ago</span>
+                  </div>
 
-                    <form onSubmit={handleUpdate}>
-                      <TabsContent value="profile" className="p-8 sm:p-12 pt-0 space-y-10">
-                        <div className="space-y-4">
-                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                            <Sparkles className="w-3 h-3" /> Avatar Frame
-                          </label>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {AVAILABLE_FRAMES.map((frame) => (
-                              <button
-                                key={frame.id}
-                                type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, frameId: frame.id }))}
-                                className={cn(
-                                  "relative group p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-3",
-                                  formData.frameId === frame.id 
-                                    ? "border-primary bg-primary/5 shadow-lg scale-[1.02]" 
-                                    : "border-primary/5 bg-secondary/20 hover:border-primary/10 hover:bg-secondary/40"
-                                )}
-                              >
-                                <AvatarFrame 
-                                  src={formData.photoURL || user.photoURL}
-                                  fallback={formData.displayName?.charAt(0) || "U"}
-                                  frameId={frame.id}
-                                  size="md"
-                                />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">{frame.name}</span>
-                                {formData.frameId === frame.id && (
-                                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                  <div className="group flex items-center justify-between p-6 rounded-3xl border border-primary/5 hover:border-primary/10 hover:bg-secondary/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                        <Sparkles className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold font-headline">Equipped "Tech Core" frame</p>
+                        <p className="text-xs text-muted-foreground">Avatar presentation updated.</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">1d ago</span>
+                  </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-                          <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Full Name</Label>
-                            <div className="relative group">
-                              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
-                              <Input 
-                                value={formData.displayName}
-                                onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                                placeholder="Your Name" 
-                                className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20"
-                              />
-                            </div>
-                          </div>
+                  <div className="group flex items-center justify-between p-6 rounded-3xl border border-primary/5 hover:border-primary/10 hover:bg-secondary/30 transition-all opacity-50 grayscale">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold font-headline">Account established</p>
+                        <p className="text-xs text-muted-foreground">Joined the NxAIO platform.</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Oct 2024</span>
+                  </div>
+                </div>
 
-                          <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Timezone</Label>
-                            <Select 
-                              value={formData.timezone} 
-                              onValueChange={(val) => setFormData(prev => ({ ...prev, timezone: val }))}
-                            >
-                              <SelectTrigger className="h-14 rounded-2xl bg-secondary/30 border-primary/5 focus:ring-primary/20">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-2xl bg-card border-primary/5">
-                                <SelectGroup>
-                                  <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Americas</SelectLabel>
-                                  <SelectItem value="nyc">New York (GMT-5)</SelectItem>
-                                  <SelectItem value="sao">Sao Paulo (GMT-3)</SelectItem>
-                                </SelectGroup>
-                                <SelectGroup>
-                                  <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Europe</SelectLabel>
-                                  <SelectItem value="lon">London (GMT+0)</SelectItem>
-                                  <SelectItem value="ber">Berlin (GMT+1)</SelectItem>
-                                </SelectGroup>
-                                <SelectGroup>
-                                  <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Asia</SelectLabel>
-                                  <SelectItem value="tok">Tokyo (GMT+9)</SelectItem>
-                                </SelectGroup>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Avatar Image URL</Label>
-                          <div className="relative group">
-                            <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
-                            <Input 
-                              value={formData.photoURL}
-                              onChange={(e) => setFormData(prev => ({ ...prev, photoURL: e.target.value }))}
-                              placeholder="https://images.unsplash.com/..." 
-                              className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Profile Banner URL</Label>
-                          <div className="relative group">
-                            <Layout className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
-                            <Input 
-                              value={formData.bannerURL}
-                              onChange={(e) => setFormData(prev => ({ ...prev, bannerURL: e.target.value }))}
-                              placeholder="https://images.unsplash.com/..." 
-                              className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end pt-4">
-                          <Button 
-                            type="submit" 
-                            disabled={saving}
-                            className="h-14 px-10 rounded-2xl font-bold shadow-xl shadow-primary/10 gap-2 transition-all hover:scale-[1.02]"
-                          >
-                            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            Save Profile
-                          </Button>
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="notifications" className="p-8 sm:p-12 pt-0 space-y-6">
-                        <div className="flex items-center justify-between rounded-[2rem] border border-primary/5 bg-secondary/20 p-6 md:p-8">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-sm font-bold font-headline uppercase tracking-wider">Product updates</span>
-                            <span className="text-muted-foreground text-xs">News about features and releases.</span>
-                          </div>
-                          <Switch 
-                            checked={formData.productUpdates} 
-                            onCheckedChange={(val) => setFormData(prev => ({ ...prev, productUpdates: val }))}
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between rounded-[2rem] border border-primary/5 bg-secondary/20 p-6 md:p-8">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-sm font-bold font-headline uppercase tracking-wider">Weekly digest</span>
-                            <span className="text-muted-foreground text-xs">A summary of activity every Monday morning.</span>
-                          </div>
-                          <Switch 
-                            checked={formData.weeklyDigest} 
-                            onCheckedChange={(val) => setFormData(prev => ({ ...prev, weeklyDigest: val }))}
-                          />
-                        </div>
-
-                        <div className="flex justify-end pt-4">
-                          <Button 
-                            type="submit" 
-                            disabled={saving}
-                            className="h-14 px-10 rounded-2xl font-bold shadow-xl shadow-primary/10 gap-2 transition-all hover:scale-[1.02]"
-                          >
-                            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            Save Preferences
-                          </Button>
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="billing" className="p-8 sm:p-12 pt-0 space-y-6">
-                        <div className="flex items-center justify-between rounded-[2rem] border border-primary/20 bg-primary text-primary-foreground p-8">
-                          <div className="flex flex-col gap-2">
-                            <span className="text-lg font-bold font-headline">Pro Plan</span>
-                            <span className="text-primary-foreground/60 text-xs uppercase tracking-widest font-medium">
-                              $29 per month · Renews Oct 12, 2025
-                            </span>
-                          </div>
-                          <Button variant="outline" className="rounded-full bg-white/10 border-white/20 text-white hover:bg-white/20 px-8 font-bold">
-                            Manage
-                          </Button>
-                        </div>
-                        
-                        <div className="p-8 rounded-[2rem] border border-primary/5 bg-secondary/10 space-y-4">
-                           <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/40">Recent Activity</h4>
-                           <div className="flex justify-between items-center text-sm py-2 border-b border-primary/5">
-                              <span className="text-muted-foreground font-medium">Subscription Renewal</span>
-                              <span className="font-mono text-xs opacity-60">Sept 12, 2024</span>
-                           </div>
-                           <div className="flex justify-between items-center text-sm py-2">
-                              <span className="text-muted-foreground font-medium">Add-on: AI Tokens Tier 2</span>
-                              <span className="font-mono text-xs opacity-60">Aug 28, 2024</span>
-                           </div>
-                        </div>
-                      </TabsContent>
-                    </form>
-                  </Tabs>
-                </CardContent>
-              </Card>
+                <div className="mt-12 flex justify-center">
+                  <Button variant="ghost" className="text-muted-foreground text-xs font-bold uppercase tracking-widest gap-2">
+                    View full history <ArrowUpRight className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
