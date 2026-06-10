@@ -77,7 +77,7 @@ export default function SettingsPage() {
     frameId: "none" as FrameId,
     productUpdates: true,
     weeklyDigest: false,
-    timezone: "lon"
+    timezone: "Asia/Jakarta"
   });
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function SettingsPage() {
         frameId: (profileData.frameId as FrameId) || "none",
         productUpdates: profileData.preferences?.productUpdates ?? true,
         weeklyDigest: profileData.preferences?.weeklyDigest ?? false,
-        timezone: profileData.preferences?.timezone || "lon"
+        timezone: profileData.preferences?.timezone || "Asia/Jakarta"
       });
     }
   }, [profileData]);
@@ -146,17 +146,11 @@ export default function SettingsPage() {
 
     setDeleting(true);
     try {
-      // 1. Log the final activity
       logActivity(db, user.uid, 'profile_update', 'Account deletion initiated.');
-
-      // 2. Delete user document from Firestore (standard practice before auth deletion)
       if (userRef) {
         await deleteDoc(userRef);
       }
-
-      // 3. Delete from Firebase Auth
       await deleteUser(user);
-
       toast({
         title: "Account deleted",
         description: "Your account and data have been removed. We're sorry to see you go.",
@@ -285,18 +279,19 @@ export default function SettingsPage() {
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl bg-card border-primary/5">
                             <SelectGroup>
+                              <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Asia</SelectLabel>
+                              <SelectItem value="Asia/Jakarta">Jakarta (GMT+7)</SelectItem>
+                              <SelectItem value="Asia/Tokyo">Tokyo (GMT+9)</SelectItem>
+                            </SelectGroup>
+                            <SelectGroup>
                               <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Americas</SelectLabel>
-                              <SelectItem value="nyc">New York (GMT-5)</SelectItem>
-                              <SelectItem value="sao">Sao Paulo (GMT-3)</SelectItem>
+                              <SelectItem value="America/New_York">New York (GMT-5)</SelectItem>
+                              <SelectItem value="America/Sao_Paulo">Sao Paulo (GMT-3)</SelectItem>
                             </SelectGroup>
                             <SelectGroup>
                               <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Europe</SelectLabel>
-                              <SelectItem value="lon">London (GMT+0)</SelectItem>
-                              <SelectItem value="ber">Berlin (GMT+1)</SelectItem>
-                            </SelectGroup>
-                            <SelectGroup>
-                              <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Asia</SelectLabel>
-                              <SelectItem value="tok">Tokyo (GMT+9)</SelectItem>
+                              <SelectItem value="Europe/London">London (GMT+0)</SelectItem>
+                              <SelectItem value="Europe/Berlin">Berlin (GMT+1)</SelectItem>
                             </SelectGroup>
                           </SelectContent>
                         </Select>
@@ -340,7 +335,6 @@ export default function SettingsPage() {
                       </Button>
                     </div>
 
-                    {/* Danger Zone */}
                     <div className="pt-12 border-t border-destructive/10">
                       <div className="bg-destructive/5 rounded-[2.5rem] border border-destructive/10 p-8 sm:p-12 space-y-6">
                         <div className="space-y-1">

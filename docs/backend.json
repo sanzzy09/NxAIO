@@ -39,7 +39,7 @@
           "properties": {
             "productUpdates": { "type": "boolean", "default": true },
             "weeklyDigest": { "type": "boolean", "default": false },
-            "timezone": { "type": "string", "default": "GMT+0" }
+            "timezone": { "type": "string", "default": "Asia/Jakarta" }
           }
         },
         "createdAt": { "type": "string", "format": "date-time" }
