@@ -10,6 +10,7 @@ import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } f
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
+import { StaggeredFadeUp } from '@/components/ui/staggered-fade-up';
 import Link from 'next/link';
 import { useFirestore, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -19,8 +20,6 @@ export default function Home() {
   const db = useFirestore();
 
   // Real-time statistics from Firestore
-  // Path: system/stats
-  // Defined in backend.json and permitted in firestore.rules
   const statsRef = useMemo(() => doc(db, 'system', 'stats'), [db]);
   const { data: stats, loading: statsLoading } = useDoc(statsRef);
 
@@ -35,119 +34,127 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/10">
       <Navbar onDashboardClick={() => setActiveTool(null)} />
 
-      {/* Hero / Main Area */}
       <main className="flex-1 container mx-auto px-4 pt-32 pb-8 lg:pb-12">
         {!activeTool ? (
-          <div className="space-y-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center animate-fade-in-up">
-              <div className="space-y-8">
-                <h1 className="text-5xl lg:text-7xl font-bold font-headline leading-none">
-                  Intelligent <span className="text-muted-foreground">Logic</span> <br /> 
-                  Tool Hub.
+          <div className="space-y-16">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <StaggeredFadeUp className="space-y-8" delayStep={100}>
+                <h1 className="text-5xl lg:text-8xl font-bold font-headline leading-[0.9] tracking-tighter">
+                  Intelligent <br />
+                  <span className="text-muted-foreground/40">Logic Hub.</span>
                 </h1>
-                <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
+                <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
                   The minimalist control center for creative developers. Chain AI logic, optimize assets, and preview content in one snappy interface.
                 </p>
                 
-                <div className="flex flex-wrap gap-4">
-                  <Button size="lg" className="rounded-full px-8 h-12 text-base shadow-lg shadow-primary/10" asChild>
+                <div className="flex flex-wrap gap-4 pt-2">
+                  <Button size="lg" className="rounded-full px-10 h-14 text-base font-bold shadow-2xl shadow-primary/20" asChild>
                     <Link href="/signup">Get Started Now</Link>
                   </Button>
-                  <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base" asChild>
+                  <Button size="lg" variant="outline" className="rounded-full px-10 h-14 text-base font-bold border-primary/10 hover:bg-secondary/50" asChild>
                     <Link href="/faq">How it works</Link>
                   </Button>
                 </div>
-              </div>
+              </StaggeredFadeUp>
 
               {/* Real-time Stats Section */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-card/50 backdrop-blur-sm border border-primary/5 p-6 rounded-3xl shadow-sm space-y-2">
+              <StaggeredFadeUp className="grid grid-cols-1 sm:grid-cols-2 gap-4" delayStep={120} initialDelay={300}>
+                <div className="bg-card/40 backdrop-blur-xl border border-primary/5 p-8 rounded-[2rem] shadow-sm space-y-3 group hover:border-primary/20 transition-all duration-500">
                   <div className="flex items-center gap-3 text-blue-500">
-                    <Users className="w-5 h-5" />
-                    <span className="text-xs font-bold uppercase tracking-widest opacity-60">Total Users</span>
+                    <div className="p-2 bg-blue-500/10 rounded-xl">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Total Users</span>
                   </div>
-                  <div className="text-4xl font-headline font-bold">
+                  <div className="text-5xl font-headline font-bold tracking-tighter">
                     {statsLoading ? "..." : (stats?.totalUsers ?? "0")}
                   </div>
-                  <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3 text-green-500" /> +12% from last week
+                  <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
+                    <TrendingUp className="w-3 h-3 text-emerald-500" /> <span className="text-emerald-500">+12%</span> from last week
                   </div>
                 </div>
 
-                <div className="bg-card/50 backdrop-blur-sm border border-primary/5 p-6 rounded-3xl shadow-sm space-y-2">
+                <div className="bg-card/40 backdrop-blur-xl border border-primary/5 p-8 rounded-[2rem] shadow-sm space-y-3 group hover:border-primary/20 transition-all duration-500">
                   <div className="flex items-center gap-3 text-purple-500">
-                    <MousePointer2 className="w-5 h-5" />
-                    <span className="text-xs font-bold uppercase tracking-widest opacity-60">Visitors</span>
+                    <div className="p-2 bg-purple-500/10 rounded-xl">
+                      <MousePointer2 className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Visitors</span>
                   </div>
-                  <div className="text-4xl font-headline font-bold">
+                  <div className="text-5xl font-headline font-bold tracking-tighter">
                     {statsLoading ? "..." : (stats?.totalVisitors ?? "0")}
                   </div>
-                  <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3 text-green-500" /> +5% in last 24h
+                  <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
+                    <TrendingUp className="w-3 h-3 text-emerald-500" /> <span className="text-emerald-500">+5%</span> in last 24h
                   </div>
                 </div>
 
-                <div className="bg-card/50 backdrop-blur-sm border border-primary/5 p-6 rounded-3xl shadow-sm space-y-2 sm:col-span-2">
+                <div className="bg-card/40 backdrop-blur-xl border border-primary/5 p-8 rounded-[2rem] shadow-sm space-y-3 sm:col-span-2 group hover:border-primary/20 transition-all duration-500">
                   <div className="flex items-center gap-3 text-orange-500">
-                    <UserPlus className="w-5 h-5" />
-                    <span className="text-xs font-bold uppercase tracking-widest opacity-60">Registrations Today</span>
+                    <div className="p-2 bg-orange-500/10 rounded-xl">
+                      <UserPlus className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Registrations Today</span>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-headline font-bold">
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-5xl font-headline font-bold tracking-tighter">
                       {statsLoading ? "..." : (stats?.registrationsToday ?? "0")}
                     </span>
-                    <span className="text-sm text-muted-foreground">new accounts</span>
+                    <span className="text-sm text-muted-foreground font-medium uppercase tracking-widest opacity-40">New Accounts</span>
                   </div>
                 </div>
-              </div>
+              </StaggeredFadeUp>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-8 animate-fade-in-up [animation-delay:600ms]">
               <div className="flex items-center justify-between">
-                <h2 className="font-headline text-2xl font-semibold flex items-center gap-2">
-                  <LayoutGrid className="w-6 h-6" /> Intelligent Tool Hub
+                <h2 className="font-headline text-2xl font-bold flex items-center gap-3">
+                  <div className="p-2 bg-primary/5 rounded-xl">
+                    <LayoutGrid className="w-6 h-6 text-primary/40" />
+                  </div> 
+                  Intelligent Tool Hub
                 </h2>
               </div>
               <ToolHub onSelect={setActiveTool} />
             </div>
 
-            <div className="pt-8 animate-fade-in-up [animation-delay:200ms]">
+            <div className="pt-8 animate-fade-in-up [animation-delay:800ms]">
                <AIAssistant />
             </div>
           </div>
         ) : (
-          <div className="max-w-5xl mx-auto space-y-6">
+          <div className="max-w-6xl mx-auto space-y-8">
             <button 
               onClick={() => setActiveTool(null)}
-              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-all group"
+              className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-all group px-4 py-2 rounded-full hover:bg-secondary/50 w-fit"
             >
               <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
             </button>
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up">
-              <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in-up">
+              <div className="lg:col-span-8 space-y-8">
                 {renderTool()}
               </div>
-              <div className="space-y-6">
-                <div className={`bg-card rounded-2xl border border-primary/5 shadow-sm p-6 bg-card/50`}>
-                   <h3 className="font-headline font-semibold mb-4">Quick Insights</h3>
-                   <div className="space-y-4">
-                      <div className="flex justify-between items-center text-sm">
+              <div className="lg:col-span-4 space-y-6">
+                <div className={`bg-card/50 backdrop-blur-xl rounded-[2rem] border border-primary/5 shadow-sm p-8`}>
+                   <h3 className="font-headline font-bold text-lg mb-6">Quick Insights</h3>
+                   <div className="space-y-6">
+                      <div className="flex justify-between items-center text-sm font-medium">
                         <span className="text-muted-foreground">Status</span>
-                        <span className="flex items-center gap-1.5 text-green-500">
-                          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Live
+                        <span className="flex items-center gap-2 text-emerald-500">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Live
                         </span>
                       </div>
-                      <div className="flex justify-between items-center text-sm">
+                      <div className="flex justify-between items-center text-sm font-medium">
                         <span className="text-muted-foreground">AI Token Use</span>
-                        <span>12.4k</span>
+                        <span>12,482</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm">
+                      <div className="flex justify-between items-center text-sm font-medium">
                         <span className="text-muted-foreground">Session ID</span>
-                        <span className="font-mono">nx-7721</span>
+                        <span className="font-mono text-[10px] bg-secondary px-2 py-1 rounded-md uppercase tracking-wider">nx-7721</span>
                       </div>
                    </div>
                 </div>
