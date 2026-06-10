@@ -88,7 +88,7 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/10 p-0 overflow-hidden border border-white/10">
                     <Avatar className="h-full w-full">
-                      <AvatarImage src={user.photoURL || ""} alt={user.displayName || ""} />
+                      <AvatarImage src={user.photoURL || undefined} alt={user.displayName || ""} />
                       <AvatarFallback className="bg-primary-foreground/10 text-primary-foreground">
                         {user.displayName?.charAt(0) || user.email?.charAt(0)}
                       </AvatarFallback>
