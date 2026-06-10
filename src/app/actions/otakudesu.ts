@@ -26,7 +26,11 @@ export async function fetchOtakudesu(input: any) {
       {
         timeout: 45000,
         validateStatus: () => true,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Origin": "https://code.rifkyshre.biz.id",
+          "Referer": "https://code.rifkyshre.biz.id/",
+        },
       }
     );
 
