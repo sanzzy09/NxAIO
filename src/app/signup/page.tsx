@@ -7,7 +7,7 @@ import { useAuth, useFirestore, useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, increment, updateDoc } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { logActivity } from "@/lib/activity";
@@ -43,6 +43,9 @@ export default function SignUpPage() {
 
   const initUserProfile = async (uid: string, email: string, displayName: string, photoURL: string) => {
     const userRef = doc(db, "users", uid);
+    const statsRef = doc(db, "system", "stats");
+
+    // Create Profile
     await setDoc(userRef, {
       uid,
       email,
@@ -55,6 +58,19 @@ export default function SignUpPage() {
         operation: "write",
         requestResourceData: { uid, email, displayName }
       }));
+    });
+
+    // Update Global Stats
+    updateDoc(statsRef, {
+      totalUsers: increment(1),
+      registrationsToday: increment(1)
+    }).catch(() => {
+      // If doc doesn't exist, initialize it
+      setDoc(statsRef, {
+        totalUsers: 1,
+        registrationsToday: 1,
+        totalVisitors: 1
+      }, { merge: true });
     });
   };
 

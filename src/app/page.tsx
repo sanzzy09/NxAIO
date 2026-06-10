@@ -1,6 +1,7 @@
+
 "use client"
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ToolHub } from '@/components/dashboard/ToolHub';
 import { AIAssistant } from '@/components/dashboard/AIAssistant';
 import { SnippetManager } from '@/components/dashboard/SnippetManager';
@@ -23,7 +24,7 @@ import { StaggeredFadeUp } from '@/components/ui/staggered-fade-up';
 import { SkeletonStats } from '@/components/ui/skeleton-stats';
 import Link from 'next/link';
 import { useFirestore, useDoc } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, increment, setDoc, updateDoc } from 'firebase/firestore';
 
 export default function Home() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -32,6 +33,31 @@ export default function Home() {
   // Real-time statistics from Firestore
   const statsRef = useMemo(() => doc(db, 'system', 'stats'), [db]);
   const { data: stats, loading: statsLoading } = useDoc(statsRef);
+
+  // Track real-time visitors
+  useEffect(() => {
+    if (!db) return;
+    
+    const trackVisitor = async () => {
+      const hasVisited = sessionStorage.getItem('nx_visitor_logged');
+      if (!hasVisited) {
+        const sRef = doc(db, 'system', 'stats');
+        updateDoc(sRef, {
+          totalVisitors: increment(1)
+        }).catch(() => {
+          // Initialize if it doesn't exist
+          setDoc(sRef, {
+            totalVisitors: 1,
+            totalUsers: 0,
+            registrationsToday: 0
+          }, { merge: true });
+        });
+        sessionStorage.setItem('nx_visitor_logged', 'true');
+      }
+    };
+    
+    trackVisitor();
+  }, [db]);
 
   const renderTool = () => {
     switch (activeTool) {
