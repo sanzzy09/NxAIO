@@ -9,23 +9,30 @@ import * as cheerio from 'cheerio';
  */
 
 const BASE_URL = 'https://movieku.rest';
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
 
 export async function fetchMovieku(input: { mode: 'search' | 'detail' | 'home'; query?: string; url?: string }) {
   try {
     if (input.mode === 'home') {
       const res = await axios.get(BASE_URL, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
+          'User-Agent': USER_AGENT,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        },
+        timeout: 15000
       });
       const $ = cheerio.load(res.data);
       const results: any[] = [];
 
-      $('article').each((_, el) => {
-        const title = $(el).find('.entry-title a').text().trim();
-        const url = $(el).find('.entry-title a').attr('href');
-        const posterImg = $(el).find('img').first();
-        let thumbnail = posterImg.attr('data-src') || posterImg.attr('src');
+      // Improved selectors for Movieku grid items
+      $('article, .box-item, .items article').each((_, el) => {
+        const $el = $(el);
+        const titleLink = $el.find('.entry-title a, .title a, h2 a').first();
+        const title = titleLink.text().trim();
+        const url = titleLink.attr('href');
+        
+        const posterImg = $el.find('img').first();
+        let thumbnail = posterImg.attr('data-src') || posterImg.attr('data-lazy-src') || posterImg.attr('src');
         
         if (thumbnail && thumbnail.startsWith('/')) {
           thumbnail = `${BASE_URL}${thumbnail}`;
@@ -43,7 +50,7 @@ export async function fetchMovieku(input: { mode: 'search' | 'detail' | 'home'; 
 
       return {
         status: true,
-        data: results.slice(0, 16)
+        data: results.slice(0, 24)
       };
     }
 
@@ -57,12 +64,14 @@ export async function fetchMovieku(input: { mode: 'search' | 'detail' | 'home'; 
           headers: { 
             'Content-Type': 'application/x-www-form-urlencoded', 
             'X-Requested-With': 'XMLHttpRequest',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-          } 
+            'User-Agent': USER_AGENT,
+            'Origin': BASE_URL,
+            'Referer': BASE_URL
+          },
+          timeout: 15000
         }
       );
 
-      // movieku returns an array of categories, we want the "all" results from the first one
       const results = res.data.post?.[0]?.all || [];
       return {
         status: true,
@@ -80,15 +89,16 @@ export async function fetchMovieku(input: { mode: 'search' | 'detail' | 'home'; 
       
       const res = await axios.get(input.url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
+          'User-Agent': USER_AGENT,
+          'Referer': BASE_URL
+        },
+        timeout: 15000
       });
       const $ = cheerio.load(res.data);
 
       const title = $('h1').first().text().trim();
-      const synopsis = $('.entry-content p').first().text().trim();
+      const synopsis = $('.entry-content p, .sinopsis p').first().text().trim();
       
-      // Improved poster selection
       const posterImg = $('.post-thumbnail img, .thumb img, img[src*="wp-content/uploads"]').first();
       let poster = posterImg.attr('data-src') || posterImg.attr('src') || null;
       
@@ -110,7 +120,7 @@ export async function fetchMovieku(input: { mode: 'search' | 'detail' | 'home'; 
         if (text.startsWith('Stars:')) detail.stars = $(el).find('a').map((_, a) => $(a).text()).get().join(', ');
       });
 
-      const stream = $('a[href*="abyssplayer"]').first().attr('href') || null;
+      const stream = $('a[href*="abyssplayer"], a[href*="acefile.co/player/"]').first().attr('href') || null;
 
       const downloads: any = {};
       $('strong').each((_, el) => {
@@ -118,10 +128,11 @@ export async function fetchMovieku(input: { mode: 'search' | 'detail' | 'home'; 
         if (['1080p', '720p', '480p', '360p'].includes(label)) {
           downloads[label] = [];
           $(el).parent().find('a').each((_, a) => {
-            downloads[label].push({
-              name: $(a).text().trim(),
-              url: $(a).attr('href')
-            });
+            const host = $(a).text().trim();
+            const link = $(a).attr('href');
+            if (host && link) {
+              downloads[label].push({ name: host, url: link });
+            }
           });
         }
       });
