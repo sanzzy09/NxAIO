@@ -1,4 +1,3 @@
-
 "use client"
 
 import React from 'react';
@@ -12,7 +11,8 @@ import {
   DownloadCloud,
   Maximize,
   Tv,
-  Clapperboard
+  Clapperboard,
+  Waves
 } from "lucide-react";
 
 interface Tool {
@@ -24,6 +24,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "donghua",
+    name: "Donghua Stream Explorer",
+    description: "Premium Chinese animation hub with multi-server streaming.",
+    icon: <Waves className="size-6" />,
+    color: "bg-blue-50 text-blue-600"
+  },
   {
     id: "optimizer",
     name: "Ultra-Fast Image Optimizer",
