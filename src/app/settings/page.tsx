@@ -144,22 +144,22 @@ export default function SettingsPage() {
                 <div className="p-2 bg-primary/5 rounded-xl">
                   <Shield className="w-5 h-5 text-primary/40" />
                 </div>
-                <CardTitle className="text-3xl font-bold font-headline tracking-tight leading-none">Account Settings</CardTitle>
+                <CardTitle className="text-3xl font-bold font-headline tracking-tight leading-none">Settings</CardTitle>
               </div>
-              <CardDescription>Manage your profile appearance, notifications, and billing.</CardDescription>
+              <CardDescription>Manage your profile, notifications, and platform preferences.</CardDescription>
             </CardHeader>
 
             <CardContent className="p-0">
               <Tabs defaultValue="profile" className="w-full">
-                <div className="px-8 sm:px-12 mb-6">
-                  <TabsList className="bg-secondary/50 p-1 h-12 rounded-full border border-primary/5">
-                    <TabsTrigger value="profile" className="rounded-full gap-2 text-xs font-bold uppercase tracking-wider px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <div className="px-8 sm:px-12 mb-8">
+                  <TabsList className="bg-secondary/20 p-1.5 h-14 rounded-full border border-primary/5 w-full grid grid-cols-3">
+                    <TabsTrigger value="profile" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm transition-all duration-300">
                       <User className="size-4" /> Profile
                     </TabsTrigger>
-                    <TabsTrigger value="notifications" className="rounded-full gap-2 text-xs font-bold uppercase tracking-wider px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <TabsTrigger value="notifications" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm transition-all duration-300">
                       <Bell className="size-4" /> Notifications
                     </TabsTrigger>
-                    <TabsTrigger value="billing" className="rounded-full gap-2 text-xs font-bold uppercase tracking-wider px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <TabsTrigger value="billing" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm transition-all duration-300">
                       <CreditCard className="size-4" /> Billing
                     </TabsTrigger>
                   </TabsList>
@@ -275,7 +275,7 @@ export default function SettingsPage() {
                         className="h-14 px-10 rounded-2xl font-bold shadow-xl shadow-primary/10 gap-2 transition-all hover:scale-[1.02]"
                       >
                         {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                        Save Settings
+                        Save Profile
                       </Button>
                     </div>
                   </TabsContent>
