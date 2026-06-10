@@ -25,9 +25,10 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
   const containerSize = sizeClasses[size];
 
   const renderFrameOverlay = () => {
-    // Standardize SVG props for all frames
+    if (frameId === 'none') return null;
+
     const svgProps = {
-      className: "absolute -inset-[20%] w-[140%] h-[140%] pointer-events-none overflow-visible z-10",
+      className: "absolute inset-[-15%] w-[130%] h-[130%] pointer-events-none overflow-visible z-10",
       viewBox: "0 0 100 100",
       fill: "none",
       preserveAspectRatio: "xMidYMid meet"
@@ -114,7 +115,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
       {renderFrameOverlay()}
       <Avatar className="w-full h-full z-0 overflow-hidden ring-offset-background">
         <AvatarImage src={src || undefined} className="object-cover" />
-        <AvatarFallback className="bg-primary/5 text-primary/40 font-headline font-bold text-xs">
+        <AvatarFallback className="bg-primary/5 text-primary/40 font-headline font-bold text-xs uppercase">
           {fallback || '?'}
         </AvatarFallback>
       </Avatar>

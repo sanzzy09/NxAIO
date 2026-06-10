@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth, useFirestore, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,13 +88,13 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
             {!authLoading && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 p-0 overflow-visible">
-                    <AvatarFrame 
-                      src={profileData?.photoURL || user.photoURL}
-                      fallback={profileData?.displayName?.charAt(0) || user.displayName?.charAt(0) || user.email?.charAt(0)}
-                      frameId={(profileData?.frameId as FrameId) || 'none'}
-                      size="sm"
-                    />
+                  <Button variant="ghost" className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 p-0">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={profileData?.photoURL || user.photoURL || undefined} className="object-cover" />
+                      <AvatarFallback className="bg-white/10 text-xs font-bold">
+                        {(profileData?.displayName || user.displayName || user.email || "?").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 mt-4 rounded-2xl bg-primary text-primary-foreground border-white/10 shadow-2xl" align="end" forceMount>
