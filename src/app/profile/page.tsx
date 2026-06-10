@@ -4,15 +4,16 @@
 import React, { useMemo } from 'react';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
+import { doc, collection, query, orderBy, limit } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, User, LogOut, Layout, Settings, Activity, ArrowUpRight, Sparkles } from "lucide-react";
+import { Loader2, User, LogOut, Layout, Settings, Activity, ArrowUpRight, Sparkles, LogIn, UserPlus, Heart, HeartOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
 import Link from 'next/link';
+import { logActivity } from '@/lib/activity';
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
@@ -21,6 +22,40 @@ export default function ProfilePage() {
 
   const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
   const { data: profileData, loading: profileLoading } = useDoc(userRef);
+
+  // Real-time Activity Logs
+  const activitiesQuery = useMemo(() => {
+    if (!db || !user) return null;
+    return query(
+      collection(db, "users", user.uid, "activities"),
+      orderBy("timestamp", "desc"),
+      limit(10)
+    );
+  }, [db, user]);
+
+  const { data: activities, loading: activitiesLoading } = useCollection(activitiesQuery);
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'login': return <LogIn className="w-5 h-5" />;
+      case 'signup': return <UserPlus className="w-5 h-5" />;
+      case 'profile_update': return <Settings className="w-5 h-5" />;
+      case 'follow': return <Heart className="w-5 h-5 text-emerald-500" />;
+      case 'unfollow': return <HeartOff className="w-5 h-5 text-destructive" />;
+      default: return <Activity className="w-5 h-5" />;
+    }
+  };
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'login': return 'bg-blue-500/10 text-blue-500';
+      case 'signup': return 'bg-emerald-500/10 text-emerald-500';
+      case 'profile_update': return 'bg-purple-500/10 text-purple-500';
+      case 'follow': return 'bg-emerald-500/10 text-emerald-500';
+      case 'unfollow': return 'bg-destructive/10 text-destructive';
+      default: return 'bg-secondary text-muted-foreground';
+    }
+  };
 
   if (authLoading || profileLoading) {
     return (
@@ -34,6 +69,13 @@ export default function ProfilePage() {
     router.push("/login");
     return null;
   }
+
+  const handleSignOut = async () => {
+    const { auth } = require('@/firebase');
+    logActivity(db, user.uid, 'logout', 'Logged out of the session.');
+    await auth.signOut();
+    router.push('/');
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/10">
@@ -101,11 +143,7 @@ export default function ProfilePage() {
               <Button 
                 variant="outline" 
                 className="w-full h-14 rounded-2xl border-primary/5 hover:bg-destructive/5 hover:text-destructive hover:border-destructive/20 transition-all font-bold gap-3 shadow-sm bg-card"
-                onClick={async () => {
-                  const { auth } = require('@/firebase');
-                  await auth.signOut();
-                  router.push('/');
-                }}
+                onClick={handleSignOut}
               >
                 <LogOut className="w-4 h-4" /> Sign Out
               </Button>
@@ -120,57 +158,49 @@ export default function ProfilePage() {
                       <Activity className="w-5 h-5 text-primary/40" />
                       <h3 className="text-2xl font-bold font-headline">Recent Activity</h3>
                     </div>
-                    <p className="text-muted-foreground text-sm">Your recent actions and updates on NxAIO.</p>
+                    <p className="text-muted-foreground text-sm">Real-time logs of your actions on the platform.</p>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  {/* Mock Activity Items */}
-                  <div className="group flex items-center justify-between p-6 rounded-3xl border border-primary/5 hover:border-primary/10 hover:bg-secondary/30 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                        <Layout className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold font-headline">Updated profile banner</p>
-                        <p className="text-xs text-muted-foreground">Synchronized new custom assets.</p>
-                      </div>
+                  {activitiesLoading ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground/30">
+                      <Loader2 className="w-8 h-8 animate-spin mb-4" />
+                      <p className="text-xs font-bold uppercase tracking-widest">Synchronizing Logs...</p>
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">2h ago</span>
-                  </div>
-
-                  <div className="group flex items-center justify-between p-6 rounded-3xl border border-primary/5 hover:border-primary/10 hover:bg-secondary/30 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
-                        <Sparkles className="w-5 h-5" />
+                  ) : activities.length > 0 ? (
+                    activities.map((activity: any) => (
+                      <div key={activity.id} className="group flex items-center justify-between p-6 rounded-3xl border border-primary/5 hover:border-primary/10 hover:bg-secondary/30 transition-all animate-fade-in-up">
+                        <div className="flex items-center gap-4">
+                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", getActivityColor(activity.type))}>
+                            {getActivityIcon(activity.type)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold font-headline">{activity.description}</p>
+                            <p className="text-xs text-muted-foreground opacity-60">
+                              {activity.type.replace('_', ' ')} event
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
+                          {activity.timestamp ? new Date(activity.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'just now'}
+                        </span>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold font-headline">Equipped "Tech Core" frame</p>
-                        <p className="text-xs text-muted-foreground">Avatar presentation updated.</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground/20 italic">
+                      <p>No activity logs found.</p>
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">1d ago</span>
-                  </div>
-
-                  <div className="group flex items-center justify-between p-6 rounded-3xl border border-primary/5 hover:border-primary/10 hover:bg-secondary/30 transition-all opacity-50 grayscale">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground">
-                        <User className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold font-headline">Account established</p>
-                        <p className="text-xs text-muted-foreground">Joined the NxAIO platform.</p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Oct 2024</span>
-                  </div>
+                  )}
                 </div>
 
-                <div className="mt-12 flex justify-center">
-                  <Button variant="ghost" className="text-muted-foreground text-xs font-bold uppercase tracking-widest gap-2">
-                    View full history <ArrowUpRight className="w-3 h-3" />
-                  </Button>
-                </div>
+                {activities.length > 0 && (
+                  <div className="mt-12 flex justify-center">
+                    <Button variant="ghost" className="text-muted-foreground text-xs font-bold uppercase tracking-widest gap-2">
+                      View full history <ArrowUpRight className="w-3 h-3" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -54,6 +54,18 @@
         "uid": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
       }
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "Record of a user action.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["login", "logout", "signup", "profile_update", "follow", "unfollow"] },
+        "description": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      },
+      "required": ["type", "description", "timestamp"]
     }
   },
   "auth": {
@@ -75,6 +87,10 @@
     "/users/{userId}/following/{followedId}": {
       "schema": "FollowRecord",
       "description": "Record of who this user follows."
+    },
+    "/users/{userId}/activities/{activityId}": {
+      "schema": "ActivityLog",
+      "description": "User specific activity logs."
     }
   }
 }

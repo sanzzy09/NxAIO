@@ -1,11 +1,13 @@
+
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
 import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from "firebase/auth";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { logActivity } from "@/lib/activity";
 
 const GoogleIcon = (
   <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
@@ -24,6 +26,7 @@ const GithubIcon = (
 
 export default function LoginPage() {
   const auth = useAuth();
+  const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -32,7 +35,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      logActivity(db, result.user.uid, 'login', 'Signed in using Google account.');
       toast({
         title: "Signed in successfully",
         description: "Welcome back to NxAIO!",
@@ -71,7 +75,8 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      logActivity(db, userCredential.user.uid, 'login', 'Signed in using email and password.');
       toast({
         title: "Signed in successfully",
         description: "Welcome back to NxAIO!",

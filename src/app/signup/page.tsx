@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
@@ -9,6 +10,7 @@ import { useState } from "react";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { logActivity } from "@/lib/activity";
 
 const GoogleIcon = (
   <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
@@ -34,7 +36,7 @@ export default function SignUpPage() {
 
   const initUserProfile = async (uid: string, email: string, displayName: string, photoURL: string) => {
     const userRef = doc(db, "users", uid);
-    setDoc(userRef, {
+    await setDoc(userRef, {
       uid,
       email,
       displayName,
@@ -60,6 +62,7 @@ export default function SignUpPage() {
         result.user.displayName || "New User", 
         result.user.photoURL || ""
       );
+      logActivity(db, result.user.uid, 'signup', 'Account created via Google authentication.');
       toast({
         title: "Account created",
         description: "Welcome to NxAIO!",
@@ -102,6 +105,7 @@ export default function SignUpPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
       await initUserProfile(userCredential.user.uid, email, name, "");
+      logActivity(db, userCredential.user.uid, 'signup', 'Account created via email and password.');
       
       toast({
         title: "Account created",

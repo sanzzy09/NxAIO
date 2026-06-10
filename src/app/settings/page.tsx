@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
+import { logActivity } from '@/lib/activity';
 
 const AVAILABLE_FRAMES: { id: FrameId; name: string; color: string }[] = [
   { id: 'none', name: 'None', color: 'bg-muted' },
@@ -78,7 +79,7 @@ export default function SettingsPage() {
         photoURL: formData.photoURL
       });
 
-      setDoc(userRef, {
+      await setDoc(userRef, {
         displayName: formData.displayName,
         photoURL: formData.photoURL,
         bannerURL: formData.bannerURL,
@@ -96,6 +97,8 @@ export default function SettingsPage() {
           requestResourceData: formData
         }));
       });
+
+      logActivity(db, user.uid, 'profile_update', 'Updated profile configuration and preferences.');
 
       toast({
         title: "Settings synchronized",
