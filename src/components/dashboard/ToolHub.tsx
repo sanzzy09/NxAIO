@@ -14,7 +14,8 @@ import {
   Clapperboard,
   Waves,
   Mic,
-  ScanText
+  ScanText,
+  Sparkles
 } from "lucide-react";
 
 interface Tool {
@@ -26,6 +27,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "anichin",
+    name: "Anichin Explorer",
+    description: "Premium anime database with high-speed streaming and downloads.",
+    icon: <Sparkles className="size-6" />,
+    color: "bg-orange-50 text-orange-600"
+  },
   {
     id: "ocr",
     name: "AI OCR Extractor",
