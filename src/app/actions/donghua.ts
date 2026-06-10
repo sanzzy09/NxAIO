@@ -15,7 +15,9 @@ async function fetchPage(url: string) {
   const res = await axios.get(url, {
     headers: { ...HEADERS, Referer: BASE_URL },
     timeout: 15000,
+    validateStatus: (status) => status < 500, // Handle 404s manually
   });
+  if (res.status === 404) return null;
   return cheerio.load(res.data);
 }
 
@@ -30,6 +32,7 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
 
     if (mode === 'home') {
       const $ = await fetchPage(BASE_URL);
+      if (!$) return { status: false, error: 'Failed to load homepage' };
       
       const latest_episodes: any[] = [];
       $('.listupd .bsx').each((_, el) => {
@@ -37,7 +40,6 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
         const link = $el.find('a').attr('href') || '';
         const title = $el.find('.tt h2').text().trim();
         const episode = $el.find('.epx').text().trim();
-        // Support data-src for lazy loaded images
         const thumbnail = $el.find('img').attr('data-src') || $el.find('img').attr('src') || '';
         
         if (link) {
@@ -68,6 +70,7 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
 
     if (mode === 'search') {
       const $ = await fetchPage(`${BASE_URL}/?s=${encodeURIComponent(query!)}`);
+      if (!$) return { status: false, error: 'Search failed' };
       const results: any[] = [];
       $('.listupd .bsx').each((_, el) => {
         const $el = $(el);
@@ -86,21 +89,25 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
       let currentSlug = slug;
       let $ = await fetchPage(`${BASE_URL}/anime/${currentSlug}/`);
       
-      // If direct series lookup fails, try fetching as an episode slug to find parent series
-      if ($('.infox h1').text().trim() === '') {
-        const $ep = await fetchPage(`${BASE_URL}/${slug}`);
-        const seriesLink = $ep('#singlepisode .det h3 a').attr('href');
-        if (seriesLink) {
-          const resolvedSlug = seriesLink.split('/').filter(Boolean).pop();
-          if (resolvedSlug) {
-            currentSlug = resolvedSlug;
-            $ = await fetchPage(`${BASE_URL}/anime/${currentSlug}/`);
+      // If direct anime lookup fails or title is missing, it might be an episode slug
+      if (!$ || $('.infox h1').text().trim() === '') {
+        const $ep = await fetchPage(`${BASE_URL}/${slug}/`);
+        if ($ep) {
+          const seriesLink = $ep('#singlepisode .det h3 a').attr('href') || $ep('.breadcrumb a[href*="/anime/"]').attr('href');
+          if (seriesLink) {
+            const resolvedSlug = seriesLink.split('/').filter(Boolean).pop();
+            if (resolvedSlug) {
+              currentSlug = resolvedSlug;
+              $ = await fetchPage(`${BASE_URL}/anime/${currentSlug}/`);
+            }
           }
         }
       }
 
+      if (!$) return { status: false, error: 'Series not found (404)' };
+
       const title = $('.infox h1').text().trim();
-      if (!title) return { status: false, error: 'Series not found' };
+      if (!title) return { status: false, error: 'Series metadata not found' };
 
       let status = '';
       let total_episodes = '';
@@ -133,7 +140,8 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
     }
 
     if (mode === 'watch') {
-      const $ = await fetchPage(`${BASE_URL}/${slug}`);
+      const $ = await fetchPage(`${BASE_URL}/${slug}/`);
+      if (!$) return { status: false, error: 'Watch page not found' };
       const title = $('h1.entry-title').text().trim();
       
       let video_url = $('#embed_holder iframe').attr('src') || $('#embed_holder iframe').attr('data-src');
@@ -176,6 +184,7 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
 
     if (mode === 'schedule') {
       const $ = await fetchPage(`${BASE_URL}/schedule/`);
+      if (!$) return { status: false, error: 'Schedule page not found' };
       const schedule: any[] = [];
       $('.schedule-item, .episode-list li').each((_, el) => {
         const day = $(el).find('.day').text().trim();
