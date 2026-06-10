@@ -185,8 +185,15 @@ export function AnichinExplorer() {
                   );
                 })}
                 <div className="flex flex-wrap gap-2 pt-2">
-                  {data.genre?.length > 0 ? data.genre.map((g: string, i: number) => (
-                    <Badge key={i} variant="secondary" className="bg-primary/5 text-primary/60 border-none px-3 py-1 rounded-lg text-[9px] uppercase font-bold tracking-wider">{g}</Badge>
+                  {data.genre?.length > 0 ? data.genre.map((g: { name: string; slug: string }, i: number) => (
+                    <Badge 
+                      key={i} 
+                      variant="secondary" 
+                      onClick={() => handleFetch({ mode: 'genre_browse', slug: g.slug })}
+                      className="bg-primary/5 text-primary/60 border-none px-3 py-1 rounded-lg text-[9px] uppercase font-bold tracking-wider hover:bg-orange-500/10 hover:text-orange-600 cursor-pointer transition-colors"
+                    >
+                      {g.name}
+                    </Badge>
                   )) : (
                     <span className="text-[10px] text-muted-foreground italic">No genres listed</span>
                   )}

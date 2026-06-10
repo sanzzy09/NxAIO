@@ -113,6 +113,14 @@ export async function fetchAnichin(input: { mode: string; query?: string; slug?:
       return { status: true, data: { results: cards, page } };
     }
 
+    if (mode === 'genre_browse') {
+      const url = page > 1 ? `${BASE_URL}/anime/page/${page}/?genre[]=${slug}` : `${BASE_URL}/anime/?genre[]=${slug}`;
+      const res = await axios.get(url, { headers: buildHeaders(), timeout: 15000 });
+      const $ = cheerio.load(res.data);
+      const cards = parseCards($, "div.bixbox, div.listupd");
+      return { status: true, data: { results: cards, page, slug } };
+    }
+
     if (mode === 'detail') {
       const url = resolveUrl(slug!);
       const res = await axios.get(url, { headers: buildHeaders(), timeout: 15000 });
@@ -125,10 +133,12 @@ export async function fetchAnichin(input: { mode: string; query?: string; slug?:
       const thumbImg = $("div.thumb img, div.poster img").first();
       const thumbnail = thumbImg.attr("data-lazy-src") || thumbImg.attr("data-src") || thumbImg.attr("src") || "";
       
-      const genres: string[] = [];
+      const genres: { name: string; slug: string }[] = [];
       $("div.genxed a, .genre-info a").each((_, a) => { 
         const g = $(a).text().trim(); 
-        if (g) genres.push(g); 
+        const href = $(a).attr('href') || "";
+        const gSlug = extractSlug(href);
+        if (g) genres.push({ name: g, slug: gSlug }); 
       });
       
       const infoDetails = parseInfoDetails($);
