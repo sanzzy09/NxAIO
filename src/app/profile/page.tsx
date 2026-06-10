@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo } from 'react';
@@ -18,7 +19,8 @@ import {
   LogIn, 
   UserPlus, 
   Heart, 
-  HeartOff 
+  HeartOff,
+  Crown
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
@@ -34,6 +36,12 @@ export default function ProfilePage() {
 
   const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
   const { data: profileData, loading: profileLoading } = useDoc(userRef);
+
+  // Subscription Logic
+  const role = profileData?.role || 'free';
+  const subEnd = profileData?.subscriptionEnd ? new Date(profileData.subscriptionEnd) : null;
+  const isSubActive = !subEnd || subEnd > new Date();
+  const isPro = role !== 'free' && isSubActive;
 
   // Real-time Activity Logs
   const activitiesQuery = useMemo(() => {
@@ -94,9 +102,9 @@ export default function ProfilePage() {
       <Navbar />
 
       <main className="pb-16 lg:pb-24">
-        {/* Immersive Full-Width Banner */}
+        {/* Immersive Full-Width Banner - Only for Pro */}
         <div className="w-full h-64 md:h-80 lg:h-[400px] bg-secondary/30 relative overflow-hidden group shadow-inner">
-          {profileData?.bannerURL ? (
+          {isPro && profileData?.bannerURL ? (
             <Image 
               src={profileData.bannerURL} 
               alt="Banner" 
@@ -106,7 +114,14 @@ export default function ProfilePage() {
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-tr from-primary/5 to-primary/10 flex items-center justify-center">
-              <Layout className="w-12 h-12 text-primary/10" />
+              {isPro ? (
+                <Layout className="w-12 h-12 text-primary/10" />
+              ) : (
+                <div className="text-center space-y-2">
+                   <Crown className="w-10 h-10 text-primary/5 mx-auto" />
+                   <p className="text-[10px] font-bold uppercase tracking-widest text-primary/10">Banner restricted to Pro</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -119,7 +134,7 @@ export default function ProfilePage() {
                 <AvatarFrame 
                   src={profileData?.photoURL || user.photoURL}
                   fallback={profileData?.displayName?.charAt(0) || user.email?.charAt(0)}
-                  frameId={(profileData?.frameId as FrameId) || 'none'}
+                  frameId={isPro ? ((profileData?.frameId as FrameId) || 'none') : 'none'}
                   size="xl"
                 />
                 
@@ -139,9 +154,16 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <Badge variant="secondary" className="bg-primary/5 text-primary/60 border-none px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                  Professional Plan
+                <Badge variant="secondary" className={cn(
+                  "border-none px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
+                  role === 'sultan' ? "bg-yellow-500/10 text-yellow-600" : role === 'pro' ? "bg-indigo-500/10 text-indigo-600" : "bg-primary/5 text-primary/60"
+                )}>
+                  {isPro ? `${role} Identity` : 'Free Identity'}
                 </Badge>
+
+                {!isPro && (
+                  <p className="text-[9px] text-muted-foreground font-medium italic opacity-60 px-4">GIFs and Banners are locked for your identity.</p>
+                )}
 
                 <div className="w-full pt-4 space-y-3">
                   <Button asChild className="w-full h-12 rounded-2xl font-bold gap-2 shadow-lg shadow-primary/10">

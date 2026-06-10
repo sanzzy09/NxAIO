@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
@@ -10,13 +10,18 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { Check, Mail, Zap, Shield } from "lucide-react";
+import { Check, Mail, Zap, Shield, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
+import { useUser, useFirestore } from "@/firebase";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
+import { logActivity } from "@/lib/activity";
 
 const plans = [
   {
+    id: "free",
     name: "Starter",
     description: "For individuals & trial",
     price: "0",
@@ -32,6 +37,7 @@ const plans = [
     ]
   },
   {
+    id: "pro",
     name: "Pro",
     description: "For frequent explorers",
     price: "29",
@@ -42,12 +48,17 @@ const plans = [
         items: ["25 new identities per day", "Priority mailbox nodes", "Extended session life"]
       },
       {
+        category: "Premium Identity",
+        items: ["Profile Banners enabled", "Avatar Frames enabled", "GIF profile photos support"]
+      },
+      {
         category: "Advanced Features",
-        items: ["Full AI suite access", "50GB hosting storage", "Priority email support", "Custom avatar frames"]
+        items: ["Full AI suite access", "50GB hosting storage", "Priority email support"]
       }
     ]
   },
   {
+    id: "sultan",
     name: "Sultan",
     description: "For power users",
     price: "99",
@@ -57,14 +68,62 @@ const plans = [
         items: ["50 new identities per day", "Private dedicated nodes", "Unlimited history sync"]
       },
       {
+        category: "Elite Identity",
+        items: ["Exclusive Avatar Frames", "Badge of Sultanate", "Priority Beta Access"]
+      },
+      {
         category: "Exclusive Access",
-        items: ["Unlimited hosting storage", "Beta tool early access", "Dedicated account manager", "SSO & Team billing"]
+        items: ["Unlimited hosting storage", "Beta tool early access", "Dedicated account manager"]
       }
     ]
   }
 ];
 
 export default function PricingPage() {
+  const { user } = useUser();
+  const db = useFirestore();
+  const { toast } = useToast();
+  const [upgrading, setUpgrading] = useState<string | null>(null);
+
+  const handleUpgrade = async (planId: string) => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Session required",
+        description: "Please sign in to select an identity tier.",
+      });
+      return;
+    }
+
+    setUpgrading(planId);
+    try {
+      const userRef = doc(db, "users", user.uid);
+      // Simulate subscription end 1 year from now for Pro/Sultan
+      const subEnd = planId === 'free' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
+      await updateDoc(userRef, {
+        role: planId,
+        subscriptionEnd: subEnd,
+        updatedAt: serverTimestamp()
+      });
+
+      logActivity(db, user.uid, 'profile_update', `Identity upgraded to ${planId.toUpperCase()} tier.`);
+
+      toast({
+        title: "Identity Refreshed",
+        description: `Your identity has been successfully upgraded to ${planId.toUpperCase()}.`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Upgrade Failed",
+        description: error.message,
+      });
+    } finally {
+      setUpgrading(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/10">
       <Navbar />
@@ -113,7 +172,7 @@ export default function PricingPage() {
               </div>
 
               <div className="flex-1 space-y-4">
-                <Accordion type="multiple" defaultValue={["item-0"]} className="space-y-3">
+                <Accordion type="multiple" defaultValue={["item-0", "item-1"]} className="space-y-3">
                   {plan.features.map((section, idx) => (
                     <AccordionItem 
                       key={idx} 
@@ -137,6 +196,8 @@ export default function PricingPage() {
               </div>
 
               <Button 
+                onClick={() => handleUpgrade(plan.id)}
+                disabled={upgrading !== null}
                 className={cn(
                   "w-full h-14 rounded-2xl mt-10 font-bold text-sm transition-all duration-300",
                   plan.popular 
@@ -144,7 +205,11 @@ export default function PricingPage() {
                     : "bg-secondary text-secondary-foreground border border-primary/5 hover:bg-secondary/80"
                 )}
               >
-                {plan.name === "Starter" ? "Start Now" : `Upgrade to ${plan.name}`}
+                {upgrading === plan.id ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  plan.name === "Starter" ? "Get Started" : `Upgrade to ${plan.name}`
+                )}
               </Button>
             </div>
           ))}

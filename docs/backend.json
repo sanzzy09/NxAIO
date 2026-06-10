@@ -34,6 +34,7 @@
         "frameId": { "type": "string", "description": "The ID of the selected avatar frame." },
         "isPrivate": { "type": "boolean", "default": false, "description": "Whether the profile is hidden from public view." },
         "role": { "type": "string", "enum": ["free", "pro", "sultan"], "default": "free" },
+        "subscriptionEnd": { "type": "string", "format": "date-time", "description": "When the pro subscription expires." },
         "tempMailUsage": {
           "type": "object",
           "properties": {

@@ -25,7 +25,8 @@ import {
   Layout,
   TriangleAlert,
   Trash2,
-  Lock
+  Lock,
+  Crown
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -71,6 +72,12 @@ export default function SettingsPage() {
   const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
   const { data: profileData, loading: profileLoading } = useDoc(userRef);
 
+  // Subscription Logic
+  const role = profileData?.role || 'free';
+  const subEnd = profileData?.subscriptionEnd ? new Date(profileData.subscriptionEnd) : null;
+  const isSubActive = !subEnd || subEnd > new Date();
+  const isPro = role !== 'free' && isSubActive;
+
   const [formData, setFormData] = useState({
     displayName: "",
     photoURL: "",
@@ -100,6 +107,34 @@ export default function SettingsPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !userRef) return;
+
+    // Validation
+    if (!isPro) {
+      if (formData.photoURL?.toLowerCase().endsWith('.gif')) {
+        toast({
+          variant: "destructive",
+          title: "Identity restriction",
+          description: "GIF profile photos require a Pro subscription.",
+        });
+        return;
+      }
+      if (formData.bannerURL) {
+        toast({
+          variant: "destructive",
+          title: "Identity restriction",
+          description: "Profile banners require a Pro subscription.",
+        });
+        return;
+      }
+      if (formData.frameId !== 'none') {
+        toast({
+          variant: "destructive",
+          title: "Identity restriction",
+          description: "Avatar frames require a Pro subscription.",
+        });
+        return;
+      }
+    }
 
     setSaving(true);
     try {
@@ -227,20 +262,29 @@ export default function SettingsPage() {
                 <form onSubmit={handleUpdate}>
                   <TabsContent value="profile" className="p-8 sm:p-12 pt-0 space-y-12">
                     <div className="space-y-4">
-                      <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                        <Sparkles className="w-3 h-3" /> Avatar Frame
-                      </label>
+                      <div className="flex items-center justify-between">
+                         <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                           <Sparkles className="w-3 h-3" /> Avatar Frame
+                         </label>
+                         {!isPro && (
+                           <Badge variant="outline" className="border-indigo-500/20 text-indigo-600 bg-indigo-500/5 text-[9px] font-bold gap-1 rounded-lg">
+                             <Crown className="size-2" /> Pro Feature
+                           </Badge>
+                         )}
+                      </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {AVAILABLE_FRAMES.map((frame) => (
                           <button
                             key={frame.id}
                             type="button"
+                            disabled={!isPro && frame.id !== 'none'}
                             onClick={() => setFormData(prev => ({ ...prev, frameId: frame.id }))}
                             className={cn(
                               "relative group p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-3",
                               formData.frameId === frame.id 
                                 ? "border-primary bg-primary/5 shadow-lg scale-[1.02]" 
-                                : "border-primary/5 bg-secondary/20 hover:border-primary/10 hover:bg-secondary/40"
+                                : "border-primary/5 bg-secondary/20 hover:border-primary/10 hover:bg-secondary/40",
+                              (!isPro && frame.id !== 'none') && "opacity-40 grayscale cursor-not-allowed border-dashed"
                             )}
                           >
                             <AvatarFrame 
@@ -252,6 +296,9 @@ export default function SettingsPage() {
                             <span className="text-[10px] font-bold uppercase tracking-wider">{frame.name}</span>
                             {formData.frameId === frame.id && (
                               <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
+                            )}
+                            {(!isPro && frame.id !== 'none') && (
+                               <Lock className="absolute top-2 left-2 size-3 text-muted-foreground/50" />
                             )}
                           </button>
                         ))}
@@ -303,7 +350,10 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Avatar Image URL</Label>
+                      <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center justify-between">
+                        <span>Avatar Image URL</span>
+                        {!isPro && <span className="text-[8px] text-indigo-600/60 uppercase font-bold tracking-widest">No GIFs allowed</span>}
+                      </Label>
                       <div className="relative group">
                         <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
                         <Input 
@@ -316,14 +366,25 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Profile Banner URL</Label>
+                      <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center justify-between">
+                        <span>Profile Banner URL</span>
+                        {!isPro && (
+                           <Badge variant="outline" className="border-indigo-500/20 text-indigo-600 bg-indigo-500/5 text-[9px] font-bold gap-1 rounded-lg">
+                             <Lock className="size-2" /> Locked for Pro
+                           </Badge>
+                         )}
+                      </Label>
                       <div className="relative group">
                         <Layout className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
                         <Input 
                           value={formData.bannerURL}
+                          disabled={!isPro}
                           onChange={(e) => setFormData(prev => ({ ...prev, bannerURL: e.target.value }))}
-                          placeholder="https://images.unsplash.com/..." 
-                          className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20"
+                          placeholder={isPro ? "https://images.unsplash.com/..." : "Unlock with Pro Identity"} 
+                          className={cn(
+                            "h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20",
+                            !isPro && "opacity-50 cursor-not-allowed bg-muted/50 border-dashed"
+                          )}
                         />
                       </div>
                     </div>
@@ -335,7 +396,7 @@ export default function SettingsPage() {
                         className="h-14 px-10 rounded-2xl font-bold shadow-xl shadow-primary/10 gap-2 transition-all hover:scale-[1.02]"
                       >
                         {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                        Save Profile
+                        Save Settings
                       </Button>
                     </div>
 
@@ -454,29 +515,36 @@ export default function SettingsPage() {
                   </TabsContent>
 
                   <TabsContent value="billing" className="p-8 sm:p-12 pt-0 space-y-6">
-                    <div className="flex items-center justify-between rounded-[2rem] border border-primary/20 bg-primary text-primary-foreground p-8">
+                    <div className={cn(
+                      "flex items-center justify-between rounded-[2rem] border p-8 transition-all",
+                      role === 'free' ? "bg-secondary/20 border-primary/5" : "bg-primary text-primary-foreground border-primary/20"
+                    )}>
                       <div className="flex flex-col gap-2">
-                        <span className="text-lg font-bold font-headline">Pro Plan</span>
-                        <span className="text-primary-foreground/60 text-xs uppercase tracking-widest font-medium">
-                          $29 per month · Renews Oct 12, 2025
+                        <span className="text-lg font-bold font-headline capitalize">{role} Identity</span>
+                        <span className={cn(
+                          "text-xs uppercase tracking-widest font-medium opacity-60",
+                          role === 'free' ? "text-muted-foreground" : "text-primary-foreground"
+                        )}>
+                          {isPro ? `Active Subscription · Expires Oct 2025` : 'Standard Identity · Free Forever'}
                         </span>
                       </div>
-                      <Button variant="outline" className="rounded-full bg-white/10 border-white/20 text-white hover:bg-white/20 px-8 font-bold">
-                        Manage
+                      <Button variant={role === 'free' ? "default" : "outline"} asChild className={cn(
+                        "rounded-full px-8 font-bold",
+                        role !== 'free' && "bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      )}>
+                        <Link href="/pricing">{role === 'free' ? "Upgrade" : "Manage"}</Link>
                       </Button>
                     </div>
                     
-                    <div className="p-8 rounded-[2rem] border border-primary/5 bg-secondary/10 space-y-4">
-                       <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/40">Recent Transactions</h4>
-                       <div className="flex justify-between items-center text-sm py-2 border-b border-primary/5">
-                          <span className="text-muted-foreground font-medium">Subscription Renewal</span>
-                          <span className="font-mono text-xs opacity-60">Sept 12, 2024</span>
-                       </div>
-                       <div className="flex justify-between items-center text-sm py-2">
-                          <span className="text-muted-foreground font-medium">Add-on: AI Tokens Tier 2</span>
-                          <span className="font-mono text-xs opacity-60">Aug 28, 2024</span>
-                       </div>
-                    </div>
+                    {isPro && (
+                      <div className="p-8 rounded-[2rem] border border-primary/5 bg-secondary/10 space-y-4">
+                         <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/40">Recent Transactions</h4>
+                         <div className="flex justify-between items-center text-sm py-2 border-b border-primary/5">
+                            <span className="text-muted-foreground font-medium">Identity Upgrade: {role}</span>
+                            <span className="font-mono text-xs opacity-60">Just now</span>
+                         </div>
+                      </div>
+                    )}
                   </TabsContent>
                 </form>
               </Tabs>
