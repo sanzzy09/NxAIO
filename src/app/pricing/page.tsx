@@ -10,7 +10,7 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { Check, Mail, Zap, Shield, Loader2 } from "lucide-react";
+import { Check, Mail, Zap, Shield, Loader2, Star, Crown } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
@@ -23,57 +23,102 @@ const plans = [
   {
     id: "free",
     name: "Starter",
-    description: "For individuals & trial",
+    description: "For individuals & casual trial",
     price: "0",
     features: [
       {
-        category: "Daily Limits",
-        items: ["3 Temp-Mail Identities", "3 AI Background Removals", "5 AI Music Tracks / week"]
+        category: "Daily & Weekly Quotas",
+        items: [
+          "3 Temp-Mail Identities / day", 
+          "3 AI Background Removals / day", 
+          "5 AI Music Tracks / week"
+        ]
       },
       {
         category: "Core Features",
-        items: ["Basic AI tools access", "5GB hosting storage", "Community support"]
+        items: [
+          "Standard AI tools access", 
+          "5GB file hosting storage", 
+          "Public identity profile",
+          "Community support access"
+        ]
+      },
+      {
+        category: "Restrictions",
+        items: [
+          "No Profile GIFs / Banners",
+          "No Avatar Frames",
+          "Standard processing priority"
+        ]
       }
     ]
   },
   {
     id: "pro",
     name: "Pro",
-    description: "For frequent explorers",
+    description: "For creators & frequent builders",
     price: "29",
     popular: true,
     features: [
       {
         category: "Enhanced Quotas",
-        items: ["25 Temp-Mail Identities", "10 AI Background Removals", "15 AI Music Tracks / week"]
+        items: [
+          "25 Temp-Mail Identities / day", 
+          "10 AI Background Removals / day", 
+          "15 AI Music Tracks / week"
+        ]
       },
       {
         category: "Premium Identity",
-        items: ["Profile Banners enabled", "Avatar Frames enabled", "GIF profile photos support"]
+        items: [
+          "Profile Banners enabled", 
+          "GIF profile photos support",
+          "Unlock Premium Avatar Frames",
+          "Ad-free tool experience"
+        ]
       },
       {
-        category: "Advanced Features",
-        items: ["Full AI suite access", "50GB hosting storage", "Priority email support"]
+        category: "Advanced Access",
+        items: [
+          "50GB high-speed hosting", 
+          "Priority AI processing queue",
+          "Private profile toggle",
+          "Priority email support"
+        ]
       }
     ]
   },
   {
     id: "sultan",
     name: "Sultan",
-    description: "For power users",
+    description: "For power users & agencies",
     price: "99",
     features: [
       {
-        category: "Max Quotas",
-        items: ["50 Temp-Mail Identities", "20 AI Background Removals", "30 AI Music Tracks / week"]
+        category: "Maximum Quotas",
+        items: [
+          "50 Temp-Mail Identities / day", 
+          "20 AI Background Removals / day", 
+          "30 AI Music Tracks / week"
+        ]
       },
       {
         category: "Elite Identity",
-        items: ["Exclusive Avatar Frames", "Badge of Sultanate", "Priority Beta Access"]
+        items: [
+          "Exclusive Sultan Frames", 
+          "Official 'Sultanate' Badge",
+          "Animated identity assets",
+          "Custom profile vanity links"
+        ]
       },
       {
-        category: "Exclusive Access",
-        items: ["Unlimited hosting storage", "Beta tool early access", "Dedicated account manager"]
+        category: "Enterprise Scale",
+        items: [
+          "Unlimited hosting storage", 
+          "Beta tool early access", 
+          "API access for logic hub",
+          "Dedicated account manager"
+        ]
       }
     ]
   }
@@ -133,15 +178,15 @@ export default function PricingPage() {
         <div className="text-center space-y-6 mb-20 animate-fade-in-up">
           <div className="flex justify-center">
             <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
-              Pricing & Tiers
+              Identity Tiers
             </Badge>
           </div>
           <h1 className="text-4xl lg:text-7xl font-bold font-headline tracking-tight leading-tight">
-            Choose your <br />
-            <span className="text-muted-foreground/60">power level.</span>
+            Elevate your <br />
+            <span className="text-muted-foreground/60">creative power.</span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Scale your daily identities and tool capabilities based on your needs.
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Choose the plan that fits your workflow. Scale your daily tool identities and AI processing capacity.
           </p>
         </div>
 
@@ -156,8 +201,14 @@ export default function PricingPage() {
               )}
             >
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xl">
-                  Most Popular
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xl flex items-center gap-2">
+                  <Star className="size-3 fill-current" /> Most Popular
+                </div>
+              )}
+              
+              {plan.id === 'sultan' && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-yellow-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xl flex items-center gap-2">
+                  <Crown className="size-3 fill-current" /> Elite Tier
                 </div>
               )}
 
@@ -172,21 +223,21 @@ export default function PricingPage() {
               </div>
 
               <div className="flex-1 space-y-4">
-                <Accordion type="multiple" defaultValue={["item-0", "item-1"]} className="space-y-3">
+                <Accordion type="multiple" defaultValue={["item-0", "item-1", "item-2"]} className="space-y-3">
                   {plan.features.map((section, idx) => (
                     <AccordionItem 
                       key={idx} 
                       value={`item-${idx}`} 
                       className="border-none bg-secondary/30 rounded-2xl px-4 overflow-hidden"
                     >
-                      <AccordionTrigger className="hover:no-underline py-4 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground group-data-[state=open]:text-primary transition-colors">
+                      <AccordionTrigger className="hover:no-underline py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground group-data-[state=open]:text-primary transition-colors">
                         {section.category}
                       </AccordionTrigger>
                       <AccordionContent className="pb-4 space-y-3">
                         {section.items.map((item, i) => (
                           <div key={i} className="flex items-start gap-3 text-sm text-muted-foreground animate-fade-in-up">
-                            <Check className="w-4 h-4 text-primary/40 mt-0.5" />
-                            <span>{item}</span>
+                            <Check className="w-4 h-4 text-primary/40 mt-0.5 shrink-0" />
+                            <span className="text-xs font-medium leading-relaxed">{item}</span>
                           </div>
                         ))}
                       </AccordionContent>
@@ -202,35 +253,43 @@ export default function PricingPage() {
                   "w-full h-14 rounded-2xl mt-10 font-bold text-sm transition-all duration-300",
                   plan.popular 
                     ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/10" 
+                    : plan.id === 'sultan' 
+                    ? "bg-yellow-600 text-white hover:bg-yellow-700 shadow-xl shadow-yellow-500/10"
                     : "bg-secondary text-secondary-foreground border border-primary/5 hover:bg-secondary/80"
                 )}
               >
                 {upgrading === plan.id ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
-                  plan.name === "Starter" ? "Get Started" : `Upgrade to ${plan.name}`
+                  plan.id === 'free' ? "Current Vibe" : `Upgrade to ${plan.name}`
                 )}
               </Button>
             </div>
           ))}
         </div>
 
-        {/* Support Section */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-           <div className="p-8 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 flex flex-col items-center text-center gap-4">
-              <Mail className="size-8 text-indigo-600" />
-              <h4 className="font-headline font-bold text-lg">Identity Freedom</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">Scale up to 50 identities per day with our Sultan package for maximum workflow efficiency.</p>
+        {/* Global Benefits Info */}
+        <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-12">
+           <div className="space-y-4">
+              <div className="size-12 bg-indigo-500/10 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner">
+                <Mail className="size-6" />
+              </div>
+              <h4 className="font-headline font-bold text-xl">Identity Freedom</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">Rotate up to 50 temporary identities per day with our Sultan tier. Perfect for large scale testing and anonymous workflows.</p>
            </div>
-           <div className="p-8 rounded-[2rem] bg-yellow-500/5 border border-yellow-500/10 flex flex-col items-center text-center gap-4">
-              <Zap className="size-8 text-yellow-600" />
-              <h4 className="font-headline font-bold text-lg">Instant Logic</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">Our premium tiers include higher AI quotas and faster processing for all logic chains.</p>
+           <div className="space-y-4">
+              <div className="size-12 bg-yellow-500/10 text-yellow-600 rounded-2xl flex items-center justify-center shadow-inner">
+                <Zap className="size-6" />
+              </div>
+              <h4 className="font-headline font-bold text-xl">Instant Composition</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">Higher tiers grant you priority access to our AI Music Engine and Background Removal servers, significantly reducing wait times.</p>
            </div>
-           <div className="p-8 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 flex flex-col items-center text-center gap-4">
-              <Shield className="size-8 text-emerald-600" />
-              <h4 className="font-headline font-bold text-lg">Pro Security</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">Encrypted data processing and private nodes ensure your creative work remains yours.</p>
+           <div className="space-y-4">
+              <div className="size-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
+                <Shield className="size-6" />
+              </div>
+              <h4 className="font-headline font-bold text-xl">Pro Privacy</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">Unlock private profile modes and encrypted identity logs to ensure your creative exploration remains strictly confidential.</p>
            </div>
         </div>
       </main>
