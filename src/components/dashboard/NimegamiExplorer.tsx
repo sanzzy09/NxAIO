@@ -276,6 +276,8 @@ export function NimegamiExplorer() {
                       src={activeVideo} 
                       className="w-full h-full border-none" 
                       allowFullScreen
+                      allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
+                      referrerPolicy="no-referrer"
                     />
                  </div>
               </div>

@@ -163,7 +163,10 @@ export function VidboxExplorer() {
         <div className="lg:col-span-8 space-y-8">
            <div className="space-y-4">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-                <Info className="size-3" /> Overview
+                <span className="p-1 bg-primary/5 rounded">
+                  <Info className="size-3" />
+                </span> 
+                Overview
               </h4>
               <p className="text-lg text-muted-foreground leading-relaxed font-medium">
                 {selectedMedia.description || "No synopsis available for this title."}
@@ -263,6 +266,8 @@ export function VidboxExplorer() {
                src={activeServer || ''} 
                className="w-full h-full border-none" 
                allowFullScreen
+               allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
+               referrerPolicy="no-referrer"
              />
            )}
         </div>

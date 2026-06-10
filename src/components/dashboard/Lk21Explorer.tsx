@@ -231,7 +231,7 @@ export function Lk21Explorer() {
               value={activeTab} 
               onValueChange={(v) => {
                 setActiveTab(v as MediaType);
-                setView('home');
+                fetchHome(v as MediaType);
               }}
               className="bg-secondary/30 p-1 rounded-full border border-primary/5"
             >

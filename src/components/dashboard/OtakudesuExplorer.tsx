@@ -279,6 +279,8 @@ export function OtakudesuExplorer() {
             src={data.stream_url} 
             className="w-full h-full border-none" 
             allowFullScreen
+            allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
+            referrerPolicy="no-referrer"
           />
         </div>
       )}
