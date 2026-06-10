@@ -92,11 +92,11 @@ export function AuthLayout({
   } = labels;
 
   return (
-    <section className={cn("h-screen w-full bg-background text-foreground selection:bg-primary/10 overflow-hidden", className)}>
-      <div className="grid h-full lg:grid-cols-2">
+    <section className={cn("h-svh w-full bg-background text-foreground selection:bg-primary/10 overflow-hidden relative", className)}>
+      <div className="grid h-full lg:grid-cols-2 overflow-hidden">
         <div
           className={cn(
-            "flex flex-col items-center justify-center px-6 py-8 md:px-12 md:py-12 animate-fade-in-up h-full overflow-y-auto lg:overflow-hidden",
+            "flex flex-col items-center justify-center px-6 py-8 md:px-12 md:py-12 animate-fade-in-up h-full overflow-y-auto lg:overflow-hidden relative z-10 bg-background",
             mediaPosition === "left" ? "lg:order-2" : "lg:order-1"
           )}
         >
@@ -240,7 +240,7 @@ export function AuthLayout({
               src={showcase.image.src}
               alt={showcase.image.alt}
               fill
-              className="object-cover scale-105"
+              className="object-cover"
               priority
             />
             {/* Subtle Overlay Gradients */}
