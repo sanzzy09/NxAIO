@@ -40,9 +40,15 @@ export default function Home() {
           </div>
           
           <nav className="hidden md:flex items-center gap-6">
-            <button className="text-sm font-medium hover:text-primary transition-colors">Tools</button>
-            <Link href="/changelog" className="text-sm font-medium hover:text-primary transition-colors text-muted-foreground hover:text-primary transition-colors">Changelog</Link>
-            <button className="text-sm font-medium hover:text-primary transition-colors">Enterprise</button>
+            <button 
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setActiveTool(null)}
+            >
+              Dashboard
+            </button>
+            <Link href="/faq" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">FAQ</Link>
+            <Link href="/changelog" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Changelog</Link>
+            <button className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Enterprise</button>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -50,10 +56,10 @@ export default function Home() {
               <Github className="w-5 h-5" />
             </Button>
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" asChild className="rounded-full px-5">
+              <Button variant="ghost" size="sm" asChild className="rounded-full px-5 text-muted-foreground hover:text-primary">
                 <Link href="/login">Sign In</Link>
               </Button>
-              <Button size="sm" asChild className="rounded-full px-5">
+              <Button size="sm" asChild className="rounded-full px-5 shadow-lg shadow-primary/10">
                 <Link href="/signup">Get Started</Link>
               </Button>
             </div>
@@ -79,7 +85,7 @@ export default function Home() {
                   <Link href="/signup">Get Started Now</Link>
                 </Button>
                 <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base" asChild>
-                  <Link href="/changelog">What's New in v3.0</Link>
+                  <Link href="/faq">How it works</Link>
                 </Button>
               </div>
             </div>
@@ -153,9 +159,9 @@ export default function Home() {
               <div>
                 <h4 className="font-headline font-bold mb-4 uppercase text-xs tracking-widest text-muted-foreground">Product</h4>
                 <ul className="space-y-2 text-sm">
-                  <li><Link href="/" className="hover:text-primary transition-colors">Tool Hub</Link></li>
+                  <li><button onClick={() => setActiveTool(null)} className="hover:text-primary transition-colors">Tool Hub</button></li>
+                  <li><Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link></li>
                   <li><Link href="/changelog" className="hover:text-primary transition-colors">Changelog</Link></li>
-                  <li><button className="hover:text-primary transition-colors">Documentation</button></li>
                 </ul>
               </div>
               <div>
@@ -168,7 +174,7 @@ export default function Home() {
               </div>
            </div>
            <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-primary/5 text-xs text-muted-foreground">
-              <p>© 2024 NxAIO Studio. Built for speed.</p>
+              <p>© 2025 NxAIO Studio. Built for speed.</p>
               <div className="flex gap-6 mt-4 md:mt-0">
                 <button className="hover:text-primary transition-colors">Privacy Policy</button>
                 <button className="hover:text-primary transition-colors">Terms of Service</button>
