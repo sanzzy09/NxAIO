@@ -4,40 +4,21 @@ import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
-  Boxes, 
   Zap, 
-  Wrench, 
-  TrendingUp, 
-  ChevronLeft,
   Sparkles,
   Code2,
-  Image as ImageIcon,
   Cpu
 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
+import { Navbar } from "@/components/layout/Navbar";
 import Link from 'next/link';
 
 export default function ChangelogPage() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/10">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-primary/5">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground group-hover:rotate-12 transition-transform">
-              <Boxes className="w-5 h-5" />
-            </div>
-            <span className="font-headline font-bold text-xl tracking-tight">NxAIO</span>
-          </Link>
-          <div className="flex items-center gap-4">
-             <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-primary rounded-full">
-               <Link href="/">Back to Home</Link>
-             </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
-      <main className="container mx-auto px-4 py-16 lg:py-24 max-w-6xl">
+      <main className="container mx-auto px-4 pt-32 pb-16 lg:py-24 max-w-6xl">
         {/* Header Section */}
         <div className="space-y-6 mb-20 animate-fade-in-up">
           <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest">

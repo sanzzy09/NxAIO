@@ -6,9 +6,10 @@ import { AIAssistant } from '@/components/dashboard/AIAssistant';
 import { ImageOptimizer } from '@/components/dashboard/ImageOptimizer';
 import { SnippetManager } from '@/components/dashboard/SnippetManager';
 import { LivePreviewer } from '@/components/dashboard/LivePreviewer';
-import { LayoutGrid, Boxes, ChevronLeft, Github } from 'lucide-react';
+import { LayoutGrid, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
+import { Navbar } from '@/components/layout/Navbar';
 import Link from 'next/link';
 
 export default function Home() {
@@ -26,49 +27,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-primary/5">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div 
-            className="flex items-center gap-2 cursor-pointer group"
-            onClick={() => setActiveTool(null)}
-          >
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground group-hover:rotate-12 transition-transform">
-              <Boxes className="w-5 h-5" />
-            </div>
-            <span className="font-headline font-bold text-xl tracking-tight">NxAIO</span>
-          </div>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <button 
-              className="text-sm font-medium hover:text-primary transition-colors"
-              onClick={() => setActiveTool(null)}
-            >
-              Dashboard
-            </button>
-            <Link href="/faq" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">FAQ</Link>
-            <Link href="/changelog" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Changelog</Link>
-            <button className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Enterprise</button>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Github className="w-5 h-5" />
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" asChild className="rounded-full px-5 text-muted-foreground hover:text-primary">
-                <Link href="/login">Sign In</Link>
-              </Button>
-              <Button size="sm" asChild className="rounded-full px-5 shadow-lg shadow-primary/10">
-                <Link href="/signup">Get Started</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar onDashboardClick={() => setActiveTool(null)} />
 
       {/* Hero / Main Area */}
-      <main className="flex-1 container mx-auto px-4 py-8 lg:py-12">
+      <main className="flex-1 container mx-auto px-4 pt-32 pb-8 lg:pb-12">
         {!activeTool ? (
           <div className="space-y-12">
             <div className="max-w-2xl animate-fade-in-up">

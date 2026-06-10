@@ -9,9 +9,9 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { Boxes, ChevronLeft, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
-import Link from 'next/link';
+import { Navbar } from "@/components/layout/Navbar";
 import { cn } from '@/lib/utils';
 
 const faqs = [
@@ -47,24 +47,9 @@ export default function FAQPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/10">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-primary/5">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground group-hover:rotate-12 transition-transform">
-              <Boxes className="w-5 h-5" />
-            </div>
-            <span className="font-headline font-bold text-xl tracking-tight">NxAIO</span>
-          </Link>
-          <div className="flex items-center gap-4">
-             <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-primary rounded-full">
-               <Link href="/">Back to Dashboard</Link>
-             </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
-      <main className="container mx-auto px-4 py-16 lg:py-24 max-w-4xl">
+      <main className="container mx-auto px-4 pt-32 pb-16 lg:pb-24 max-w-4xl">
         {/* Header Section */}
         <div className="text-center space-y-6 mb-16 animate-fade-in-up">
           <div className="flex justify-center">
