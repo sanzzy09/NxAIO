@@ -13,18 +13,21 @@ import {
   Star, 
   Info, 
   ListOrdered, 
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Home as HomeIcon,
-  Download,
-  Library,
-  TrendingUp,
-  LayoutGrid,
-  AlertCircle,
-  Clock,
-  ExternalLink,
-  Tag
+  ChevronLeft, 
+  ChevronRight, 
+  Calendar, 
+  Home as HomeIcon, 
+  Download, 
+  Library, 
+  TrendingUp, 
+  LayoutGrid, 
+  AlertCircle, 
+  Clock, 
+  ExternalLink, 
+  Tag,
+  PlayCircle,
+  MonitorPlay,
+  X
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -40,11 +43,13 @@ export function NimegamiExplorer() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleFetch = async (params: { mode: string; url?: string; page?: number; query?: string }) => {
     setLoading(true);
     setError(null);
+    setActiveVideo(null); // Clear video when switching content
     try {
       const res = await fetchNimegami(params);
       if (!res.status) throw new Error(res.error);
@@ -192,66 +197,127 @@ export function NimegamiExplorer() {
     </div>
   );
 
-  const renderDetail = () => (
-    <div className="space-y-10 animate-fade-in-up">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div className="lg:col-span-4 space-y-6">
-          <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
-            <Image src={data.thumbnail} alt={data.title} fill className="object-cover" unoptimized />
+  const renderDetail = () => {
+    const isPlayable = (host: string) => {
+      const h = host.toLowerCase();
+      return h.includes('kraken') || h.includes('streaming') || h.includes('halahgan');
+    };
+
+    const getEmbedUrl = (host: string, link: string) => {
+      if (host.toLowerCase().includes('kraken')) {
+        const code = link.split('/view/')[1]?.split('/')[0];
+        if (code) return `https://krakenfiles.com/embed-video/${code}`;
+      }
+      return link;
+    };
+
+    return (
+      <div className="space-y-10 animate-fade-in-up">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="lg:col-span-4 space-y-6">
+            <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
+              <Image src={data.thumbnail} alt={data.title} fill className="object-cover" unoptimized />
+            </div>
+            <div className="bg-secondary/20 p-8 rounded-[2rem] border border-primary/5 space-y-6">
+               <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Series Info</h5>
+               <div className="space-y-4">
+                  {Object.entries(data.info || {}).map(([key, val]: [string, any]) => (
+                    <div key={key} className="flex flex-col gap-1">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider">{key.replace(/_/g, ' ')}</span>
+                      <span className="text-sm font-bold">{val}</span>
+                    </div>
+                  ))}
+               </div>
+            </div>
           </div>
-          <div className="bg-secondary/20 p-8 rounded-[2rem] border border-primary/5 space-y-6">
-             <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Series Info</h5>
-             <div className="space-y-4">
-                {Object.entries(data.info).map(([key, val]: [string, any]) => (
-                  <div key={key} className="flex flex-col gap-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider">{key.replace(/_/g, ' ')}</span>
-                    <span className="text-sm font-bold">{val}</span>
+
+          <div className="lg:col-span-8 space-y-10">
+            <h2 className="text-4xl font-bold font-headline leading-tight tracking-tight">{data.title}</h2>
+            
+            {/* Integrated Video Player */}
+            {activeVideo && (
+              <div className="space-y-4 animate-fade-in-up">
+                 <div className="flex items-center justify-between px-2">
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-600 flex items-center gap-2">
+                      <MonitorPlay className="size-3" /> Now Streaming
+                    </h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setActiveVideo(null)} 
+                      className="h-6 px-2 rounded-lg text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-destructive gap-1.5"
+                    >
+                       <X className="size-3" /> Stop Player
+                    </Button>
+                 </div>
+                 <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5">
+                    <iframe 
+                      src={activeVideo} 
+                      className="w-full h-full border-none" 
+                      allowFullScreen
+                    />
+                 </div>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
+                <Info className="size-3" /> Synopsis
+              </h4>
+              <p className="text-muted-foreground leading-relaxed text-base">{data.synopsis}</p>
+            </div>
+
+            <div className="space-y-6">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
+                <Download className="size-4" /> Downloads & Streaming
+              </h4>
+              <div className="space-y-8 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                {data.downloads?.map((ep: any, i: number) => (
+                  <div key={i} className="p-6 rounded-[2rem] bg-secondary/30 border border-primary/5 space-y-4">
+                     <h5 className="text-sm font-bold font-headline border-b border-primary/10 pb-2">{ep.episode}</h5>
+                     <div className="grid grid-cols-1 gap-4">
+                        {Object.entries(ep.resolutions || {}).map(([res, links]: [string, any]) => (
+                          <div key={res} className="space-y-2">
+                             <span className="text-[10px] font-bold uppercase text-purple-600 tracking-widest">{res}</span>
+                             <div className="flex flex-wrap gap-2">
+                                {links.map((link: any, idx: number) => (
+                                  <div key={idx} className="flex items-center gap-1.5">
+                                    <Button asChild variant="outline" size="sm" className="h-9 px-4 rounded-xl text-[9px] font-bold border-primary/10 hover:bg-purple-500/10 hover:text-purple-600 shadow-sm">
+                                      <a href={link.link} target="_blank" rel="noopener noreferrer">{link.host}</a>
+                                    </Button>
+                                    {isPlayable(link.host) && (
+                                      <Button 
+                                        variant="secondary" 
+                                        size="icon" 
+                                        className="size-9 rounded-xl bg-purple-600/10 text-purple-600 hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+                                        onClick={() => {
+                                          const embed = getEmbedUrl(link.host, link.link);
+                                          setActiveVideo(embed);
+                                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                                          toast({
+                                            title: "Player Activated",
+                                            description: `Streaming from ${link.host} source.`,
+                                          });
+                                        }}
+                                      >
+                                        <PlayCircle className="size-4" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                ))}
+                             </div>
+                          </div>
+                        ))}
+                     </div>
                   </div>
                 ))}
-             </div>
-          </div>
-        </div>
-
-        <div className="lg:col-span-8 space-y-10">
-          <h2 className="text-4xl font-bold font-headline leading-tight tracking-tight">{data.title}</h2>
-          
-          <div className="space-y-4">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-              <Info className="size-3" /> Synopsis
-            </h4>
-            <p className="text-muted-foreground leading-relaxed text-base">{data.synopsis}</p>
-          </div>
-
-          <div className="space-y-6">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-              <Download className="size-4" /> Downloads
-            </h4>
-            <div className="space-y-8 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-              {data.downloads?.map((ep: any, i: number) => (
-                <div key={i} className="p-6 rounded-[2rem] bg-secondary/30 border border-primary/5 space-y-4">
-                   <h5 className="text-sm font-bold font-headline border-b border-primary/10 pb-2">{ep.episode}</h5>
-                   <div className="grid grid-cols-1 gap-4">
-                      {Object.entries(ep.resolutions).map(([res, links]: [string, any]) => (
-                        <div key={res} className="space-y-2">
-                           <span className="text-[10px] font-bold uppercase text-purple-600 tracking-widest">{res}</span>
-                           <div className="flex flex-wrap gap-2">
-                              {links.map((link: any, idx: number) => (
-                                <Button key={idx} asChild variant="outline" size="sm" className="h-8 rounded-lg text-[9px] font-bold border-primary/10 hover:bg-purple-500/10 hover:text-purple-600">
-                                  <a href={link.link} target="_blank" rel="noopener noreferrer">{link.host}</a>
-                                </Button>
-                              ))}
-                           </div>
-                        </div>
-                      ))}
-                   </div>
-                </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
