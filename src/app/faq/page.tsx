@@ -92,7 +92,8 @@ export default function FAQPage() {
             {faqs.map((faq) => {
               const itemValue = `item-${faq.number}`;
               const isOpen = openItem === itemValue;
-              const isBlurred = openItem !== undefined && !isOpen;
+              // Only blur if an item is actively open and it's not THIS item
+              const isBlurred = !!openItem && openItem !== "" && !isOpen;
 
               return (
                 <AccordionItem 
