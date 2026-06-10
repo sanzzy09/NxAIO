@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -17,7 +18,8 @@ import {
   Eraser,
   Film,
   Music,
-  Video
+  Video,
+  Mail
 } from "lucide-react";
 
 interface Tool {
@@ -29,6 +31,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "tempmail",
+    name: "Disposable Temp-Mail",
+    description: "Instant anonymous mailbox with real-time sync and OTP auto-extraction.",
+    icon: <Mail className="size-6" />,
+    color: "bg-indigo-50 text-indigo-600"
+  },
   {
     id: "snippets",
     name: "Interactive Snippet Manager",
