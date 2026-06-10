@@ -12,6 +12,7 @@ import { AnimeExplorer } from '@/components/dashboard/AnimeExplorer';
 import { Lk21Explorer } from '@/components/dashboard/Lk21Explorer';
 import { DonghuaExplorer } from '@/components/dashboard/DonghuaExplorer';
 import { TranscribeTool } from '@/components/dashboard/TranscribeTool';
+import { OCRTool } from '@/components/dashboard/OCRTool';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -41,6 +42,7 @@ export default function Home() {
       case "lk21": return <Lk21Explorer />;
       case "donghua": return <DonghuaExplorer />;
       case "transcribe": return <TranscribeTool />;
+      case "ocr": return <OCRTool />;
       case "logic": return <AIAssistant />;
       default: return null;
     }

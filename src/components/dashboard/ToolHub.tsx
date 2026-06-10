@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React from 'react';
 import { SpotlightCard } from "@/components/ui/spotlight-card";
@@ -13,7 +13,8 @@ import {
   Tv,
   Clapperboard,
   Waves,
-  Mic
+  Mic,
+  ScanText
 } from "lucide-react";
 
 interface Tool {
@@ -25,6 +26,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "ocr",
+    name: "AI OCR Extractor",
+    description: "Extract clean text from screenshots, photos, and PDF files.",
+    icon: <ScanText className="size-6" />,
+    color: "bg-cyan-50 text-cyan-600"
+  },
   {
     id: "transcribe",
     name: "AI Media Transcriber",
