@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from 'react';
@@ -10,7 +11,8 @@ import {
   ArrowRight,
   DownloadCloud,
   Maximize,
-  Tv
+  Tv,
+  Clapperboard
 } from "lucide-react";
 
 interface Tool {
@@ -35,6 +37,13 @@ const tools: Tool[] = [
     description: "Enhance and upscale images up to 16K resolution with AI.",
     icon: <Maximize className="size-6" />,
     color: "bg-purple-50 text-purple-600"
+  },
+  {
+    id: "lk21",
+    name: "LK21 & Drama Explorer",
+    description: "Search and stream latest movies and series via LK21.",
+    icon: <Clapperboard className="size-6" />,
+    color: "bg-red-50 text-red-600"
   },
   {
     id: "previewer",

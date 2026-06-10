@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useMemo } from 'react';
@@ -9,6 +10,7 @@ import { LivePreviewer } from '@/components/dashboard/LivePreviewer';
 import { AIODownloader } from '@/components/dashboard/AIODownloader';
 import { ImageUpscaler } from '@/components/dashboard/ImageUpscaler';
 import { AnimeExplorer } from '@/components/dashboard/AnimeExplorer';
+import { Lk21Explorer } from '@/components/dashboard/Lk21Explorer';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -35,6 +37,7 @@ export default function Home() {
       case "downloader": return <AIODownloader />;
       case "upscaler": return <ImageUpscaler />;
       case "anime": return <AnimeExplorer />;
+      case "lk21": return <Lk21Explorer />;
       case "logic": return <AIAssistant />;
       default: return null;
     }
