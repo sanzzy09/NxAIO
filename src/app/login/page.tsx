@@ -1,7 +1,7 @@
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from "firebase/auth";
 import { useAuth } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -54,6 +54,40 @@ export default function LoginPage() {
     }
   };
 
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Missing fields",
+        description: "Please enter both email and password.",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Signed in successfully",
+        description: "Welcome back to NxAIO!",
+      });
+      router.push("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: error.message || "Invalid credentials.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const socialProviders: SocialProvider[] = [
     { label: "Google", icon: GoogleIcon, onClick: handleGoogleSignIn },
     { label: "GitHub", icon: GithubIcon, href: "#" },
@@ -62,12 +96,13 @@ export default function LoginPage() {
   return (
     <AuthLayout
       loading={loading}
+      onSubmit={handleEmailSignIn}
       heading="Welcome back."
       description="Enter your credentials to access your NxAIO tools."
       socialProviders={socialProviders}
       fields={[
-        { label: "Registered Email", placeholder: "you@example.com", type: "email" },
-        { label: "Secure Password", placeholder: "Enter your password", type: "password" },
+        { label: "Registered Email", placeholder: "you@example.com", type: "email", name: "email" },
+        { label: "Secure Password", placeholder: "Enter your password", type: "password", name: "password" },
       ]}
       forgotPasswordHref="/forgot-password"
       alternatePrompt={{

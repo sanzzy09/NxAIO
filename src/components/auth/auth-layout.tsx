@@ -27,6 +27,7 @@ export interface AuthField {
   label: string;
   placeholder: string;
   type?: string;
+  name?: string;
 }
 
 export interface AuthLayoutProps {
@@ -149,6 +150,7 @@ export function AuthLayout({
                             <div className="relative group/input">
                               <Input
                                 id={inputId}
+                                name={field.name}
                                 type={showPassword ? "text" : "password"}
                                 placeholder={field.placeholder}
                                 className="h-11 pr-11 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30 transition-all hover:bg-secondary/50"
@@ -182,6 +184,7 @@ export function AuthLayout({
                         ) : (
                           <Input
                             id={inputId}
+                            name={field.name}
                             type={field.type ?? "text"}
                             placeholder={field.placeholder}
                             className="h-11 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30 transition-all hover:bg-secondary/50"

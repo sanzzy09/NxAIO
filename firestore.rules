@@ -2,6 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Global stats are publicly readable for the landing page hero section
+    // Re-applying this rule to ensure it is correctly deployed to the backend.
     match /system/stats {
       allow read: if true;
       allow write: if false; // Stats should only be updated by server-side processes or admins

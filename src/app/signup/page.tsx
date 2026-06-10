@@ -1,7 +1,7 @@
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useAuth } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -54,6 +54,42 @@ export default function SignUpPage() {
     }
   };
 
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const name = formData.get("name") as string;
+
+    if (!email || !password || !name) {
+      toast({
+        variant: "destructive",
+        title: "Missing fields",
+        description: "Please fill in all required fields.",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      toast({
+        title: "Account created",
+        description: "Welcome to NxAIO!",
+      });
+      router.push("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Signup failed",
+        description: error.message || "Could not create account.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const socialProviders: SocialProvider[] = [
     { label: "Google", icon: GoogleIcon, onClick: handleGoogleSignIn },
     { label: "GitHub", icon: GithubIcon, href: "#" },
@@ -62,13 +98,14 @@ export default function SignUpPage() {
   return (
     <AuthLayout
       loading={loading}
+      onSubmit={handleEmailSignUp}
       heading="Start for free."
       description="Join 10,000+ engineers building the future. No credit card required."
       socialProviders={socialProviders}
       fields={[
-        { label: "Full Name", placeholder: "Jane Cooper", type: "text" },
-        { label: "Email Address", placeholder: "you@example.com", type: "email" },
-        { label: "Secure Password", placeholder: "Create a password", type: "password" },
+        { label: "Full Name", placeholder: "Jane Cooper", type: "text", name: "name" },
+        { label: "Email Address", placeholder: "you@example.com", type: "email", name: "email" },
+        { label: "Secure Password", placeholder: "Create a password", type: "password", name: "password" },
       ]}
       alternatePrompt={{
         text: "Already a member?",
