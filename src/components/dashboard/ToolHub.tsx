@@ -4,7 +4,6 @@ import React from 'react';
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { 
   Zap, 
-  Eye, 
   Code2, 
   ArrowRight,
   DownloadCloud,
@@ -104,13 +103,6 @@ const tools: Tool[] = [
     description: "Search and browse latest movies and series via LK21.",
     icon: <Clapperboard className="size-6" />,
     color: "bg-red-50 text-red-600"
-  },
-  {
-    id: "previewer",
-    name: "Live Creative Previewer",
-    description: "Real-time mockups for your processed content.",
-    icon: <Eye className="size-6" />,
-    color: "bg-purple-50 text-purple-600"
   },
   {
     id: "downloader",

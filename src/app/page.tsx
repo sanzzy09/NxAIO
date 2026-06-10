@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import { ToolHub } from '@/components/dashboard/ToolHub';
 import { AIAssistant } from '@/components/dashboard/AIAssistant';
 import { SnippetManager } from '@/components/dashboard/SnippetManager';
-import { LivePreviewer } from '@/components/dashboard/LivePreviewer';
 import { AIODownloader } from '@/components/dashboard/AIODownloader';
 import { AnimeExplorer } from '@/components/dashboard/AnimeExplorer';
 import { Lk21Explorer } from '@/components/dashboard/Lk21Explorer';
@@ -41,7 +40,6 @@ export default function Home() {
       case "hosting": return <FileHosting />;
       case "bypass": return <AdlinkBypasser />;
       case "anichin": return <AnichinExplorer />;
-      case "previewer": return <LivePreviewer />;
       case "snippets": return <SnippetManager />;
       case "downloader": return <AIODownloader />;
       case "anime": return <AnimeExplorer />;
