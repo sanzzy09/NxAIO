@@ -1,7 +1,6 @@
-
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import {
   ListOrdered, 
   ExternalLink,
   ChevronLeft,
+  ChevronRight,
   Calendar,
   Flag,
   Building2,
@@ -56,12 +56,22 @@ interface AnimeDetail {
   }[];
 }
 
+const EPISODES_PER_PAGE = 20;
+
 export function AnimeExplorer() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<AnimeSearchResult[] | null>(null);
   const [detailData, setDetailData] = useState<AnimeDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    // Reset page to 1 whenever new detail data is loaded
+    if (detailData) {
+      setCurrentPage(1);
+    }
+  }, [detailData]);
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -105,6 +115,11 @@ export function AnimeExplorer() {
     setSearchResults(null);
     setQuery("");
   };
+
+  const totalPages = detailData ? Math.ceil(detailData.episodes.length / EPISODES_PER_PAGE) : 0;
+  const paginatedEpisodes = detailData 
+    ? detailData.episodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE) 
+    : [];
 
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
@@ -194,10 +209,10 @@ export function AnimeExplorer() {
           <div className="space-y-10 animate-fade-in-up">
             <Button 
               variant="ghost" 
-              onClick={() => handleSearch()} 
+              onClick={() => setSearchResults([]) /* Trigger last search state? Simple go back */} 
               className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-orange-600 -ml-2"
             >
-              <ChevronLeft className="w-3 h-3" /> Back to results
+              <ChevronLeft className="w-3 h-3" /> Back
             </Button>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -276,24 +291,51 @@ export function AnimeExplorer() {
                 </div>
 
                 <div className="space-y-6 pt-4">
-                  <div className="flex items-center justify-between border-b border-primary/5 pb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-primary/5 pb-4 gap-4">
                     <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
                       <ListOrdered className="w-3 h-3" /> Episode List ({detailData.totalEpisode})
                     </h4>
+                    
+                    {totalPages > 1 && (
+                      <div className="flex items-center gap-2 bg-secondary/30 rounded-full px-3 py-1 border border-primary/5">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="size-7 rounded-full hover:bg-orange-500/10 text-muted-foreground hover:text-orange-600 disabled:opacity-20"
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        >
+                          <ChevronLeft className="size-4" />
+                        </Button>
+                        <span className="text-[10px] font-bold font-mono min-w-[3rem] text-center">
+                          {currentPage} / {totalPages}
+                        </span>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="size-7 rounded-full hover:bg-orange-500/10 text-muted-foreground hover:text-orange-600 disabled:opacity-20"
+                          disabled={currentPage === totalPages}
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        >
+                          <ChevronRight className="size-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                    {detailData.episodes.map((ep, i) => (
+                  <div className="grid grid-cols-1 gap-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    {paginatedEpisodes.map((ep, i) => (
                       <Button 
                         key={i} 
                         variant="outline" 
                         asChild 
-                        className="h-16 rounded-[1.25rem] border-primary/5 hover:bg-orange-500/5 hover:border-orange-500/20 justify-between px-6 transition-all group shadow-sm hover:shadow-md"
+                        className="h-16 rounded-[1.25rem] border-primary/5 hover:bg-orange-500/5 hover:border-orange-500/20 justify-between px-6 transition-all group shadow-sm hover:shadow-md animate-fade-in-up"
+                        style={{ animationDelay: `${i * 30}ms` }}
                       >
                         <a href={ep.url} target="_blank" rel="noopener noreferrer">
                           <div className="flex items-center gap-4">
                              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-all">
-                               {ep.episode || (detailData.episodes.length - i)}
+                               {ep.episode || "EP"}
                              </div>
                              <span className="text-base font-bold font-headline">Episode {ep.episode}</span>
                           </div>
@@ -307,6 +349,42 @@ export function AnimeExplorer() {
                       </Button>
                     ))}
                   </div>
+
+                  {totalPages > 1 && (
+                    <div className="flex justify-center pt-4">
+                       <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                          {Array.from({ length: totalPages }).map((_, i) => {
+                            const pageNum = i + 1;
+                            // Only show current, first, last, and pages around current
+                            if (
+                              pageNum === 1 || 
+                              pageNum === totalPages || 
+                              (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                            ) {
+                              return (
+                                <Button
+                                  key={pageNum}
+                                  variant={currentPage === pageNum ? "default" : "outline"}
+                                  size="sm"
+                                  className={cn(
+                                    "size-8 rounded-lg text-[10px] font-bold font-mono",
+                                    currentPage === pageNum ? "bg-orange-600 hover:bg-orange-700" : "border-primary/5 hover:border-orange-500/20"
+                                  )}
+                                  onClick={() => setCurrentPage(pageNum)}
+                                >
+                                  {pageNum}
+                                </Button>
+                              );
+                            }
+                            // Show ellipsis for gaps
+                            if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                              return <span key={pageNum} className="text-muted-foreground/30 px-1">...</span>;
+                            }
+                            return null;
+                          })}
+                       </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
