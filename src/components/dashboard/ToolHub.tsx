@@ -1,4 +1,3 @@
-
 "use client"
 
 import React from 'react';
@@ -9,7 +8,8 @@ import {
   Code2, 
   Image as ImageIcon,
   ArrowRight,
-  DownloadCloud
+  DownloadCloud,
+  Maximize
 } from "lucide-react";
 
 interface Tool {
@@ -27,6 +27,13 @@ const tools: Tool[] = [
     description: "Drag-and-drop compression and social-ready cropping.",
     icon: <ImageIcon className="size-6" />,
     color: "bg-blue-50 text-blue-600"
+  },
+  {
+    id: "upscaler",
+    name: "AI Image Upscaler",
+    description: "Enhance and upscale images up to 16K resolution with AI.",
+    icon: <Maximize className="size-6" />,
+    color: "bg-purple-50 text-purple-600"
   },
   {
     id: "previewer",
