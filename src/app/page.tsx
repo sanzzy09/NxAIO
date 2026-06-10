@@ -191,7 +191,7 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="max-w-6xl mx-auto space-y-8">
+          <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up">
             <button 
               onClick={() => setActiveTool(null)}
               className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-all group px-4 py-2 rounded-full hover:bg-secondary/50 w-fit"
@@ -199,32 +199,8 @@ export default function Home() {
               <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
             </button>
             
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in-up">
-              <div className="lg:col-span-8 space-y-8">
-                {renderTool()}
-              </div>
-              <div className="lg:col-span-4 space-y-6">
-                <div className={`bg-card/50 backdrop-blur-xl rounded-[2rem] border border-primary/5 shadow-sm p-8`}>
-                   <h3 className="font-headline font-bold text-lg mb-6">Quick Insights</h3>
-                   <div className="space-y-6">
-                      <div className="flex justify-between items-center text-sm font-medium">
-                        <span className="text-muted-foreground">Status</span>
-                        <span className="flex items-center gap-2 text-emerald-500">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Live
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm font-medium">
-                        <span className="text-muted-foreground">AI Token Use</span>
-                        <span>12,482</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm font-medium">
-                        <span className="text-muted-foreground">Session ID</span>
-                        <span className="font-mono text-[10px] bg-secondary px-2 py-1 rounded-md uppercase tracking-wider">nx-7721</span>
-                      </div>
-                   </div>
-                </div>
-                <AIAssistant />
-              </div>
+            <div className="space-y-8">
+              {renderTool()}
             </div>
           </div>
         )}
