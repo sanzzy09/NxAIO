@@ -44,6 +44,13 @@ const tools: Tool[] = [
     color: "bg-orange-50 text-orange-600"
   },
   {
+    id: "movieku",
+    name: "Movieku Explorer",
+    description: "Premium movie directory with high-speed download mirrors and streaming.",
+    icon: <Film className="size-6" />,
+    color: "bg-indigo-50 text-indigo-600"
+  },
+  {
     id: "vidbox",
     name: "Vidbox Explorer",
     description: "Cinematic search engine for movies & series with multi-CDN mirrors.",

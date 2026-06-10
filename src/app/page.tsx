@@ -17,6 +17,7 @@ import { BackgroundRemover } from '@/components/dashboard/BackgroundRemover';
 import { NimegamiExplorer } from '@/components/dashboard/NimegamiExplorer';
 import { MusicGenerator } from '@/components/dashboard/MusicGenerator';
 import { VidboxExplorer } from '@/components/dashboard/VidboxExplorer';
+import { MoviekuExplorer } from '@/components/dashboard/MoviekuExplorer';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -62,6 +63,7 @@ export default function Home() {
 
   const renderTool = () => {
     switch (activeTool) {
+      case "movieku": return <MoviekuExplorer />;
       case "vidbox": return <VidboxExplorer />;
       case "music": return <MusicGenerator />;
       case "nimegami": return <NimegamiExplorer />;
