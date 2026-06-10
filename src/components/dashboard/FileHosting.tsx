@@ -1,6 +1,7 @@
+
 "use client"
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,9 @@ import {
   ShieldCheck,
   Zap,
   FolderOpen,
-  Search
+  Search,
+  History,
+  ChevronRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { uploadToHosting, getBucket } from "@/app/actions/filegoat";
@@ -27,6 +30,11 @@ import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useUser, useFirestore, useCollection } from "@/firebase";
+import { doc, setDoc, collection, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { logActivity } from "@/lib/activity";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface FileDetail {
   name: string;
@@ -37,16 +45,29 @@ interface FileDetail {
 }
 
 export function FileHosting() {
+  const { user } = useUser();
+  const db = useFirestore();
+  const { toast } = useToast();
+  
   const [files, setFiles] = useState<File[]>([]);
   const [days, setDays] = useState("7");
   const [extendOnView, setExtendOnView] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [result, setResult] = useState<any>(null);
-  const [searchSlug, setSearchSearchSlug] = useState("");
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+
+  // Fetch History from Firestore
+  const historyQuery = useMemo(() => {
+    if (!db || !user) return null;
+    return query(
+      collection(db, "users", user.uid, "uploads"),
+      orderBy("timestamp", "desc")
+    );
+  }, [db, user]);
+
+  const { data: history, loading: historyLoading } = useCollection(historyQuery);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -76,13 +97,36 @@ export function FileHosting() {
     files.forEach(f => formData.append('files', f));
 
     try {
-      // Small delays for UI feel
-      setTimeout(() => setStatus("Synchronizing with OVH S3..."), 1000);
-      
       const res = await uploadToHosting(formData, { days: parseInt(days), extendOnView });
       if (!res.status) throw new Error(res.error);
 
       setResult(res.data);
+      
+      // Save to history if logged in
+      if (user) {
+        const uploadId = res.data.slug;
+        const uploadRef = doc(db, "users", user.uid, "uploads", uploadId);
+        const record = {
+          slug: res.data.slug,
+          url: res.data.url,
+          expires: parseInt(days),
+          timestamp: serverTimestamp(),
+          fileCount: res.data.files.length,
+          totalSize: files.reduce((acc, f) => acc + f.size, 0),
+          status: "active"
+        };
+
+        setDoc(uploadRef, record).catch(e => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: uploadRef.path,
+            operation: 'write',
+            requestResourceData: record
+          }));
+        });
+
+        logActivity(db, user.uid, 'file_upload', `Uploaded ${res.data.files.length} files to bucket ${res.data.slug}.`, { slug: res.data.slug });
+      }
+
       toast({
         title: "Bucket Created",
         description: "Your files are now live and accessible.",
@@ -95,18 +139,15 @@ export function FileHosting() {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchSlug.trim()) return;
-
+  const handleFetchFromHistory = async (slug: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getBucket(searchSlug);
+      const res = await getBucket(slug);
       if (!res.status) throw new Error(res.error);
       setResult(res.data);
     } catch (err: any) {
-      setError("Bucket not found or has expired.");
+      setError("Failed to retrieve bucket data. It may have expired.");
     } finally {
       setLoading(false);
     }
@@ -162,8 +203,8 @@ export function FileHosting() {
             <TabsTrigger value="upload" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all">
               <CloudUpload className="size-3" /> New Upload
             </TabsTrigger>
-            <TabsTrigger value="find" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all">
-              <Search className="size-3" /> Find Bucket
+            <TabsTrigger value="history" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all">
+              <History className="size-3" /> My History
             </TabsTrigger>
           </TabsList>
 
@@ -320,7 +361,7 @@ export function FileHosting() {
                    <div className="flex items-center gap-4 p-5 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
                       <Info className="size-4 text-indigo-600" />
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        This bucket will expire in <span className="font-bold text-indigo-600">{result.expires} days</span>. Share the slug with team members to let them fetch these files directly.
+                        This bucket will expire in <span className="font-bold text-indigo-600">{result.expires} days</span>. Check "My History" to access this bucket later.
                       </p>
                    </div>
                 </div>
@@ -328,30 +369,66 @@ export function FileHosting() {
             )}
           </TabsContent>
 
-          <TabsContent value="find" className="space-y-6 mt-0 animate-fade-in-up">
-            <form onSubmit={handleSearch} className="space-y-4">
-               <div className="relative group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground opacity-40 group-focus-within:text-indigo-600 transition-colors" />
-                  <Input 
-                    value={searchSlug}
-                    onChange={(e) => setSearchSearchSlug(e.target.value)}
-                    placeholder="Enter bucket slug (e.g., 4fb2...)" 
-                    className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-indigo-500/20"
-                  />
+          <TabsContent value="history" className="space-y-6 mt-0 animate-fade-in-up">
+            {historyLoading ? (
+               <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                 <Loader2 className="size-10 animate-spin text-indigo-500/20" />
+                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Synchronizing History...</p>
                </div>
-               <Button type="submit" disabled={!searchSlug.trim() || loading} className="w-full h-14 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-500/10">
-                  {loading ? <Loader2 className="size-5 animate-spin" /> : "Fetch Bucket Data"}
-               </Button>
-            </form>
-
-            {error && (
-              <div className="p-5 rounded-[1.5rem] bg-destructive/5 border border-destructive/10 flex items-start gap-3">
-                <Info className="size-5 text-destructive mt-0.5" />
-                <p className="text-sm text-destructive font-bold">{error}</p>
+            ) : !user ? (
+              <div className="p-12 text-center bg-secondary/10 rounded-[2.5rem] border border-dashed border-primary/5 space-y-4">
+                 <ShieldCheck className="size-10 text-muted-foreground/20 mx-auto" />
+                 <p className="text-sm text-muted-foreground font-medium">History requires an active account session.</p>
+              </div>
+            ) : history && history.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3">
+                {history.map((record: any) => (
+                  <button 
+                    key={record.id}
+                    onClick={() => handleFetchFromHistory(record.slug)}
+                    disabled={loading}
+                    className="flex items-center justify-between p-6 rounded-2xl bg-secondary/20 border border-primary/5 hover:border-indigo-500/30 hover:bg-secondary/40 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-5">
+                      <div className="size-12 rounded-xl bg-indigo-500/5 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FolderOpen className="size-6" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold uppercase tracking-wider">{record.slug}</p>
+                        <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">
+                          <span>{record.fileCount} Files</span>
+                          <span>·</span>
+                          <span>{formatSize(record.totalSize || 0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                       <span className="text-[9px] font-bold uppercase text-muted-foreground/40 bg-background/50 px-2 py-1 rounded-lg">
+                         Expires in {record.expires}d
+                       </span>
+                       <ChevronRight className="size-4 text-muted-foreground opacity-20 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="p-12 text-center bg-secondary/10 rounded-[2.5rem] border border-dashed border-primary/5 space-y-4">
+                 <FolderOpen className="size-10 text-muted-foreground/20 mx-auto" />
+                 <p className="text-sm text-muted-foreground font-medium italic">No uploads found in your history.</p>
               </div>
             )}
           </TabsContent>
         </Tabs>
+
+        {error && (
+          <div className="p-5 rounded-[1.5rem] bg-destructive/5 border border-destructive/10 flex items-start gap-3 animate-fade-in-up">
+            <Info className="size-5 text-destructive mt-0.5" />
+            <div className="space-y-1">
+               <p className="text-sm text-destructive font-bold">Operation Failed</p>
+               <p className="text-xs text-destructive/80 font-medium leading-relaxed">{error}</p>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deployment Sync Trigger: v7 - Added profile privacy rules.
+    // Deployment Sync Trigger: v8 - Added file upload history rules.
     
     // Global stats are publicly readable
     match /system/stats {
@@ -33,6 +33,11 @@ service cloud.firestore {
 
       // Activity logs: only the owner can read and write their logs
       match /activities/{activityId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // File uploads: only the owner can read and write their upload history
+      match /uploads/{uploadId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }

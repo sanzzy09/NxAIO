@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "GlobalStats": {
@@ -61,12 +60,27 @@
       "description": "Record of a user action.",
       "type": "object",
       "properties": {
-        "type": { "type": "string", "enum": ["login", "logout", "signup", "profile_update", "follow", "unfollow"] },
+        "type": { "type": "string", "enum": ["login", "logout", "signup", "profile_update", "follow", "unfollow", "file_upload"] },
         "description": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
         "metadata": { "type": "object" }
       },
       "required": ["type", "description", "timestamp"]
+    },
+    "FileUploadRecord": {
+      "title": "FileUploadRecord",
+      "description": "Record of a file bucket uploaded by the user.",
+      "type": "object",
+      "properties": {
+        "slug": { "type": "string" },
+        "url": { "type": "string" },
+        "expires": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "fileCount": { "type": "number" },
+        "totalSize": { "type": "number" },
+        "status": { "type": "string", "default": "active" }
+      },
+      "required": ["slug", "url", "timestamp"]
     }
   },
   "auth": {
@@ -92,6 +106,10 @@
     "/users/{userId}/activities/{activityId}": {
       "schema": "ActivityLog",
       "description": "User specific activity logs."
+    },
+    "/users/{userId}/uploads/{uploadId}": {
+      "schema": "FileUploadRecord",
+      "description": "History of user file uploads."
     }
   }
 }
