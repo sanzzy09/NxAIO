@@ -2,8 +2,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deployment Sync Trigger: v2 - Following system added.
+    // Deployment Sync Trigger: v3 - Resolved permission issues for public profile reads.
     
+    // Global stats are publicly readable
     match /system/stats {
       allow read: if true;
       allow write: if false;
@@ -11,24 +12,28 @@ service cloud.firestore {
 
     // Profiles are publicly readable so users can find each other
     match /users/{userId} {
+      // Explicitly allow get and list for public visibility
       allow read: if true;
+      
+      // Only the owner can update their own profile
       allow write: if request.auth != null && request.auth.uid == userId;
 
       // Follower management
       match /followers/{followerId} {
         allow read: if true;
-        // A user can only 'add themselves' to someone else's followers if they are the follower
+        // Anyone can see who follows whom, but only the follower can create the record
         allow write: if request.auth != null && request.auth.uid == followerId;
       }
 
       // Following management
       match /following/{followedId} {
         allow read: if true;
-        // A user can only manage their own 'following' list
+        // Anyone can see who a user follows, but only the user can manage their list
         allow write: if request.auth != null && request.auth.uid == userId;
       }
     }
     
+    // Default deny for everything else
     match /{document=**} {
       allow read, write: if false;
     }
