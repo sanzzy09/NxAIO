@@ -11,6 +11,8 @@ import { ImageUpscaler } from '@/components/dashboard/ImageUpscaler';
 import { AnimeExplorer } from '@/components/dashboard/AnimeExplorer';
 import { Lk21Explorer } from '@/components/dashboard/Lk21Explorer';
 import { DonghuaExplorer } from '@/components/dashboard/DonghuaExplorer';
+import { ShinigamiExplorer } from '@/components/dashboard/ShinigamiExplorer';
+import { SinhalaSubExplorer } from '@/components/dashboard/SinhalaSubExplorer';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -39,6 +41,8 @@ export default function Home() {
       case "anime": return <AnimeExplorer />;
       case "lk21": return <Lk21Explorer />;
       case "donghua": return <DonghuaExplorer />;
+      case "shinigami": return <ShinigamiExplorer />;
+      case "sinhalasub": return <SinhalaSubExplorer />;
       case "logic": return <AIAssistant />;
       default: return null;
     }
