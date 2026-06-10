@@ -12,7 +12,8 @@ import {
   Maximize,
   Tv,
   Clapperboard,
-  Waves
+  Waves,
+  BookOpen
 } from "lucide-react";
 
 interface Tool {
@@ -24,6 +25,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "shinigami",
+    name: "Shinigami Library",
+    description: "Premium manga & manhwa directory with high-speed vertical reader.",
+    icon: <BookOpen className="size-6" />,
+    color: "bg-emerald-50 text-emerald-600"
+  },
   {
     id: "donghua",
     name: "Donghua Stream Explorer",
