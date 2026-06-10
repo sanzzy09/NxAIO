@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useMemo } from 'react';
@@ -69,14 +70,17 @@ export default function Home() {
               ) : (
                 <StaggeredFadeUp className="grid grid-cols-1 sm:grid-cols-2 gap-4" delayStep={120} initialDelay={300}>
                   <div className="bg-card/40 backdrop-blur-xl border border-primary/5 p-8 rounded-[2rem] shadow-sm space-y-3 group hover:border-primary/20 transition-all duration-500">
-                    <div className="flex items-center gap-3 text-blue-500">
-                      <div className="p-2 bg-blue-500/10 rounded-xl">
-                        <Users className="w-5 h-5" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-blue-500">
+                        <div className="p-2 bg-blue-500/10 rounded-xl">
+                          <Users className="w-5 h-5" />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Total Users</span>
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Total Users</span>
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                     </div>
                     <div className="text-5xl font-headline font-bold tracking-tighter min-h-[3.75rem] flex items-center">
-                      {stats?.totalUsers ?? "0"}
+                      {stats?.totalUsers?.toLocaleString() ?? "0"}
                     </div>
                     <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
                       <TrendingUp className="w-3 h-3 text-emerald-500" /> <span className="text-emerald-500">+12%</span> from last week
@@ -84,14 +88,17 @@ export default function Home() {
                   </div>
 
                   <div className="bg-card/40 backdrop-blur-xl border border-primary/5 p-8 rounded-[2rem] shadow-sm space-y-3 group hover:border-primary/20 transition-all duration-500">
-                    <div className="flex items-center gap-3 text-purple-500">
-                      <div className="p-2 bg-purple-500/10 rounded-xl">
-                        <MousePointer2 className="w-5 h-5" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-purple-500">
+                        <div className="p-2 bg-purple-500/10 rounded-xl">
+                          <MousePointer2 className="w-5 h-5" />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Visitors</span>
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Visitors</span>
+                      <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                     </div>
                     <div className="text-5xl font-headline font-bold tracking-tighter min-h-[3.75rem] flex items-center">
-                      {stats?.totalVisitors ?? "0"}
+                      {stats?.totalVisitors?.toLocaleString() ?? "0"}
                     </div>
                     <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
                       <TrendingUp className="w-3 h-3 text-emerald-500" /> <span className="text-emerald-500">+5%</span> in last 24h
@@ -99,15 +106,18 @@ export default function Home() {
                   </div>
 
                   <div className="bg-card/40 backdrop-blur-xl border border-primary/5 p-8 rounded-[2rem] shadow-sm space-y-3 sm:col-span-2 group hover:border-primary/20 transition-all duration-500">
-                    <div className="flex items-center gap-3 text-orange-500">
-                      <div className="p-2 bg-orange-500/10 rounded-xl">
-                        <UserPlus className="w-5 h-5" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-orange-500">
+                        <div className="p-2 bg-orange-500/10 rounded-xl">
+                          <UserPlus className="w-5 h-5" />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Registrations Today</span>
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Registrations Today</span>
+                      <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
                     </div>
                     <div className="flex items-baseline gap-3 min-h-[3.75rem] items-center">
                       <span className="text-5xl font-headline font-bold tracking-tighter">
-                        {stats?.registrationsToday ?? "0"}
+                        {stats?.registrationsToday?.toLocaleString() ?? "0"}
                       </span>
                       <span className="text-sm text-muted-foreground font-medium uppercase tracking-widest opacity-40">New Accounts</span>
                     </div>
