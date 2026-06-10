@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
@@ -93,30 +92,30 @@ export function AuthLayout({
   } = labels;
 
   return (
-    <section className={cn("min-h-screen bg-background text-foreground selection:bg-primary/10 overflow-hidden", className)}>
-      <div className="grid min-h-screen lg:grid-cols-2">
+    <section className={cn("h-screen w-full bg-background text-foreground selection:bg-primary/10 overflow-hidden", className)}>
+      <div className="grid h-full lg:grid-cols-2">
         <div
           className={cn(
-            "flex items-center justify-center px-6 py-12 md:px-12 md:py-24 animate-fade-in-up",
+            "flex flex-col items-center justify-center px-6 py-8 md:px-12 md:py-12 animate-fade-in-up h-full overflow-y-auto lg:overflow-hidden",
             mediaPosition === "left" ? "lg:order-2" : "lg:order-1"
           )}
         >
-          <div className="w-full max-w-sm space-y-8">
-            <div className="space-y-3">
-              {heading && <h1 className="text-3xl sm:text-4xl font-bold font-headline tracking-tight leading-tight">{heading}</h1>}
-              {description && <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">{description}</p>}
+          <div className="w-full max-w-sm space-y-6">
+            <div className="space-y-2">
+              {heading && <h1 className="text-3xl font-bold font-headline tracking-tight leading-tight">{heading}</h1>}
+              {description && <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>}
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               {socialProviders.length > 0 && (
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   {socialProviders.map((provider, index) => (
                     <Button 
                       key={index} 
                       variant="outline" 
                       size="lg" 
                       asChild={!!provider.href} 
-                      className="rounded-2xl border-primary/5 hover:bg-secondary/50 h-12 transition-all font-semibold"
+                      className="rounded-2xl border-primary/5 hover:bg-secondary/50 h-11 transition-all font-semibold text-sm"
                       onClick={provider.onClick}
                     >
                       {provider.href ? (
@@ -135,24 +134,24 @@ export function AuthLayout({
                 </div>
               )}
 
-              {dividerLabel && <FieldSeparator className="text-[10px] text-muted-foreground/50">{dividerLabel}</FieldSeparator>}
+              {dividerLabel && <FieldSeparator className="text-[10px] text-muted-foreground/50 py-1">{dividerLabel}</FieldSeparator>}
 
-              <form onSubmit={onSubmit || ((e) => e.preventDefault())} className="space-y-5">
-                <FieldGroup className="space-y-4">
+              <form onSubmit={onSubmit || ((e) => e.preventDefault())} className="space-y-4">
+                <FieldGroup className="space-y-3">
                   {fields.map((field, index) => {
                     const isPassword = field.type === "password";
                     const inputId = `${fieldId}-${index}`;
                     return (
-                      <Field key={index} className="space-y-2">
-                        <FieldLabel htmlFor={inputId} className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/70">{field.label}</FieldLabel>
+                      <Field key={index} className="space-y-1.5">
+                        <FieldLabel htmlFor={inputId} className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/70">{field.label}</FieldLabel>
                         {isPassword ? (
-                          <div className="space-y-2">
+                          <div className="space-y-1.5">
                             <div className="relative group/input">
                               <Input
                                 id={inputId}
                                 type={showPassword ? "text" : "password"}
                                 placeholder={field.placeholder}
-                                className="h-12 pr-11 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30 transition-all hover:bg-secondary/50"
+                                className="h-11 pr-11 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30 transition-all hover:bg-secondary/50"
                               />
                               <Button
                                 type="button"
@@ -160,7 +159,7 @@ export function AuthLayout({
                                 size="icon"
                                 aria-label={passwordToggleLabel}
                                 onClick={() => setShowPassword((value) => !value)}
-                                className="absolute right-1 top-1/2 size-10 -translate-y-1/2 text-muted-foreground/40 hover:text-primary transition-colors"
+                                className="absolute right-1 top-1/2 size-9 -translate-y-1/2 text-muted-foreground/40 hover:text-primary transition-colors"
                               >
                                 {showPassword ? (
                                   <EyeOff className="size-4" />
@@ -173,7 +172,7 @@ export function AuthLayout({
                               <div className="flex justify-end">
                                 <Link 
                                   href={forgotPasswordHref} 
-                                  className="text-[11px] font-bold uppercase tracking-wider text-primary/40 hover:text-primary transition-colors"
+                                  className="text-[10px] font-bold uppercase tracking-wider text-primary/40 hover:text-primary transition-colors"
                                 >
                                   Forgot password?
                                 </Link>
@@ -185,7 +184,7 @@ export function AuthLayout({
                             id={inputId}
                             type={field.type ?? "text"}
                             placeholder={field.placeholder}
-                            className="h-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30 transition-all hover:bg-secondary/50"
+                            className="h-11 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30 transition-all hover:bg-secondary/50"
                           />
                         )}
                       </Field>
@@ -193,11 +192,11 @@ export function AuthLayout({
                   })}
 
                   {termsLabel && (
-                    <Field orientation="horizontal" className="items-center gap-3 pt-2">
+                    <Field orientation="horizontal" className="items-center gap-3 py-1">
                       <Checkbox id={`${fieldId}-terms`} className="rounded-md border-primary/20" />
                       <FieldLabel
                         htmlFor={`${fieldId}-terms`}
-                        className="font-medium text-[11px] text-muted-foreground leading-snug [&_a]:text-primary [&_a]:underline underline-offset-4"
+                        className="font-medium text-[10px] text-muted-foreground leading-snug [&_a]:text-primary [&_a]:underline underline-offset-4"
                         dangerouslySetInnerHTML={{ __html: termsLabel }}
                       />
                     </Field>
@@ -208,7 +207,7 @@ export function AuthLayout({
                       type="submit" 
                       size="lg" 
                       disabled={loading}
-                      className="w-full h-12 rounded-2xl text-sm font-bold shadow-xl shadow-primary/10 mt-2"
+                      className="w-full h-11 rounded-2xl text-sm font-bold shadow-xl shadow-primary/10 mt-1"
                     >
                       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : submitLabel}
                     </Button>
@@ -218,7 +217,7 @@ export function AuthLayout({
             </div>
 
             {alternatePrompt && (
-              <div className="text-center pt-2">
+              <div className="text-center pt-1">
                 <p className="text-sm text-muted-foreground">
                   {alternatePrompt.text}{" "}
                   <Link href={alternatePrompt.href} className="font-bold text-primary hover:underline underline-offset-4 transition-all">
@@ -233,7 +232,7 @@ export function AuthLayout({
         {showcase && (
           <div
             className={cn(
-              "relative hidden lg:block overflow-hidden",
+              "relative hidden lg:block overflow-hidden h-full",
               mediaPosition === "left" ? "lg:order-1" : "lg:order-2"
             )}
           >
@@ -241,23 +240,23 @@ export function AuthLayout({
               src={showcase.image.src}
               alt={showcase.image.alt}
               fill
-              className="object-cover scale-105 group-hover:scale-100 transition-transform duration-700"
+              className="object-cover scale-105"
               priority
             />
             {/* Subtle Overlay Gradients */}
             <div className="absolute inset-0 bg-primary/30 backdrop-blur-[1px] mix-blend-overlay" />
             <div className="absolute inset-0 bg-gradient-to-tr from-background via-background/20 to-transparent opacity-80" />
             
-            <div className="absolute inset-x-0 bottom-0 p-16 xl:p-24 space-y-8 animate-fade-in-up">
+            <div className="absolute inset-x-0 bottom-0 p-12 xl:p-16 space-y-6 animate-fade-in-up">
               {showcase.quote && (
-                <blockquote className="text-3xl xl:text-4xl font-bold font-headline text-foreground leading-[1.15] tracking-tight">
+                <blockquote className="text-2xl xl:text-3xl font-bold font-headline text-foreground leading-[1.2] tracking-tight">
                   “{showcase.quote}”
                 </blockquote>
               )}
               {showcase.author && (
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-4">
                   {showcase.author.avatar && (
-                    <Avatar className="size-14 border-2 border-primary/10 shadow-2xl">
+                    <Avatar className="size-12 border-2 border-primary/10 shadow-2xl">
                       <AvatarImage
                         src={showcase.author.avatar.src}
                         alt={showcase.author.avatar.alt}
@@ -272,8 +271,8 @@ export function AuthLayout({
                     </Avatar>
                   )}
                   <div>
-                    <p className="font-bold text-foreground text-lg tracking-tight">{showcase.author.name}</p>
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">{showcase.author.title}</p>
+                    <p className="font-bold text-foreground text-base tracking-tight">{showcase.author.name}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{showcase.author.title}</p>
                   </div>
                 </div>
               )}
