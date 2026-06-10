@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useRef } from 'react';
@@ -9,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { 
   CloudUpload, 
   Loader2, 
-  CheckCircle2, 
   FileIcon, 
   ExternalLink,
   Copy,
@@ -21,8 +19,7 @@ import {
   ShieldCheck,
   Zap,
   FolderOpen,
-  Search,
-  ChevronRight
+  Search
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { uploadToHosting, getBucket } from "@/app/actions/filegoat";
@@ -79,9 +76,9 @@ export function FileHosting() {
     files.forEach(f => formData.append('files', f));
 
     try {
-      setTimeout(() => setStatus("Synchronizing with OVH S3..."), 2000);
-      setTimeout(() => setStatus("Finalizing bucket manifest..."), 5000);
-
+      // Small delays for UI feel
+      setTimeout(() => setStatus("Synchronizing with OVH S3..."), 1000);
+      
       const res = await uploadToHosting(formData, { days: parseInt(days), extendOnView });
       if (!res.status) throw new Error(res.error);
 
@@ -172,7 +169,7 @@ export function FileHosting() {
 
           <TabsContent value="upload" className="space-y-8 mt-0 animate-fade-in-up">
             {!result ? (
-              <>
+              <div className="space-y-8">
                 <div 
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={handleDrop}
@@ -270,7 +267,7 @@ export function FileHosting() {
                     </div>
                   )}
                 </Button>
-              </>
+              </div>
             ) : (
               <div className="space-y-8 animate-fade-in-up">
                 <div className="p-8 rounded-[2.5rem] bg-secondary/30 border border-indigo-500/10 space-y-6">
@@ -353,7 +350,7 @@ export function FileHosting() {
                 <p className="text-sm text-destructive font-bold">{error}</p>
               </div>
             )}
-          </div>
+          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
