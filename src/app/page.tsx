@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
 import { StaggeredFadeUp } from '@/components/ui/staggered-fade-up';
+import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useFirestore, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -34,7 +35,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/10">
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/10 overflow-x-hidden">
       <Navbar onDashboardClick={() => setActiveTool(null)} />
 
       <main className="flex-1 container mx-auto px-4 pt-32 pb-8 lg:pb-12">
@@ -69,8 +70,12 @@ export default function Home() {
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Total Users</span>
                   </div>
-                  <div className="text-5xl font-headline font-bold tracking-tighter">
-                    {statsLoading ? "..." : (stats?.totalUsers ?? "0")}
+                  <div className="text-5xl font-headline font-bold tracking-tighter min-h-[3.75rem] flex items-center">
+                    {statsLoading ? (
+                      <Skeleton className="h-10 w-24 rounded-lg bg-primary/5" />
+                    ) : (
+                      stats?.totalUsers ?? "0"
+                    )}
                   </div>
                   <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
                     <TrendingUp className="w-3 h-3 text-emerald-500" /> <span className="text-emerald-500">+12%</span> from last week
@@ -84,8 +89,12 @@ export default function Home() {
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Visitors</span>
                   </div>
-                  <div className="text-5xl font-headline font-bold tracking-tighter">
-                    {statsLoading ? "..." : (stats?.totalVisitors ?? "0")}
+                  <div className="text-5xl font-headline font-bold tracking-tighter min-h-[3.75rem] flex items-center">
+                    {statsLoading ? (
+                      <Skeleton className="h-10 w-24 rounded-lg bg-primary/5" />
+                    ) : (
+                      stats?.totalVisitors ?? "0"
+                    )}
                   </div>
                   <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
                     <TrendingUp className="w-3 h-3 text-emerald-500" /> <span className="text-emerald-500">+5%</span> in last 24h
@@ -99,11 +108,17 @@ export default function Home() {
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Registrations Today</span>
                   </div>
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-5xl font-headline font-bold tracking-tighter">
-                      {statsLoading ? "..." : (stats?.registrationsToday ?? "0")}
-                    </span>
-                    <span className="text-sm text-muted-foreground font-medium uppercase tracking-widest opacity-40">New Accounts</span>
+                  <div className="flex items-baseline gap-3 min-h-[3.75rem] items-center">
+                    {statsLoading ? (
+                      <Skeleton className="h-10 w-24 rounded-lg bg-primary/5" />
+                    ) : (
+                      <span className="text-5xl font-headline font-bold tracking-tighter">
+                        {stats?.registrationsToday ?? "0"}
+                      </span>
+                    )}
+                    {!statsLoading && (
+                      <span className="text-sm text-muted-foreground font-medium uppercase tracking-widest opacity-40">New Accounts</span>
+                    )}
                   </div>
                 </div>
               </StaggeredFadeUp>
