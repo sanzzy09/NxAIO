@@ -40,7 +40,6 @@ export function OtakudesuExplorer() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [history, setHistory] = useState<any[]>([]);
 
   const fetchData = async (input: any, mode?: Mode) => {
     setLoading(true);
@@ -74,7 +73,6 @@ export function OtakudesuExplorer() {
   };
 
   const handleNavigate = (url: string) => {
-    // Determine if it's detail or episode based on URL
     const mode = url.includes('/episode/') ? 'episode' : 'detail';
     fetchData({ url }, mode);
   };
@@ -89,7 +87,7 @@ export function OtakudesuExplorer() {
         >
           <div className="relative aspect-[3/4] w-full bg-black/5">
             <Image 
-              src={anime.thumb} 
+              src={anime.thumb || anime.thumbnail} 
               alt={anime.title} 
               fill 
               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -120,11 +118,11 @@ export function OtakudesuExplorer() {
       <h3 className="text-lg font-bold font-headline px-2">{data?.message}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {data?.results?.map((anime: any, i: number) => {
-          // Robust genre handling to avoid .split() error if genres is an array or missing
-          const genreList = typeof anime.genres === 'string' 
-            ? anime.genres.split(', ') 
-            : Array.isArray(anime.genres) 
-              ? anime.genres 
+          // Enhanced genre handling
+          const genreList = Array.isArray(anime.genres) 
+            ? anime.genres 
+            : typeof anime.genres === 'string' 
+              ? anime.genres.split(', ') 
               : [];
 
           return (
@@ -135,7 +133,7 @@ export function OtakudesuExplorer() {
             >
               <div className="relative aspect-[3/4] w-full bg-black/5">
                 <Image 
-                  src={anime.thumb} 
+                  src={anime.thumbnail || anime.thumb} 
                   alt={anime.title} 
                   fill 
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -150,11 +148,13 @@ export function OtakudesuExplorer() {
                 <h4 className="font-headline font-bold text-sm line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
                   {anime.title}
                 </h4>
-                <div className="flex flex-wrap gap-1">
-                  {genreList.map((g: string, idx: number) => (
-                    <span key={idx} className="text-[9px] text-muted-foreground bg-primary/5 px-2 py-0.5 rounded-full">{g}</span>
-                  ))}
-                </div>
+                {genreList.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {genreList.map((g: string, idx: number) => (
+                      <span key={idx} className="text-[9px] text-muted-foreground bg-primary/5 px-2 py-0.5 rounded-full">{g}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             </button>
           );
@@ -190,11 +190,10 @@ export function OtakudesuExplorer() {
   const renderDetail = () => (
     <div className="space-y-10 animate-fade-in-up">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Poster Column */}
         <div className="lg:col-span-4 space-y-6">
           <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
             <Image 
-              src={data.thumb} 
+              src={data.thumb || data.thumbnail} 
               alt={data.title} 
               fill 
               className="object-cover"
@@ -211,7 +210,6 @@ export function OtakudesuExplorer() {
           </div>
         </div>
 
-        {/* Info Column */}
         <div className="lg:col-span-8 space-y-8">
           <h2 className="text-4xl font-bold font-headline leading-tight">{data.title}</h2>
           <div className="space-y-4">
@@ -388,7 +386,6 @@ export function OtakudesuExplorer() {
               {currentMode === 'detail' && renderDetail()}
               {currentMode === 'episode' && renderEpisode()}
               
-              {/* Pagination for list modes */}
               {(currentMode === 'ongoing' || currentMode === 'completed') && (
                 <div className="space-y-10">
                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -399,7 +396,7 @@ export function OtakudesuExplorer() {
                           className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-blue-500/30 transition-all hover:shadow-xl"
                         >
                           <div className="relative aspect-[3/4] w-full">
-                            <Image src={anime.thumb} alt={anime.title} fill className="object-cover" unoptimized />
+                            <Image src={anime.thumb || anime.thumbnail} alt={anime.title} fill className="object-cover" unoptimized />
                           </div>
                           <div className="p-4 space-y-1">
                             <h4 className="font-headline font-bold text-sm line-clamp-2">{anime.title}</h4>
