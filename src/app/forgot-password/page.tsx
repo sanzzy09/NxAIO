@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Key, ChevronLeft, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { Lock, ChevronLeft, Mail, Loader2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center space-y-6">
           <div className="flex justify-center">
             <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl backdrop-blur-sm group hover:rotate-6 transition-all duration-500">
-              <Key className="w-7 h-7 text-white/40 group-hover:text-white transition-colors" />
+              <Lock className="w-7 h-7 text-white/40 group-hover:text-white transition-colors" />
             </div>
           </div>
 
