@@ -13,16 +13,12 @@ import {
   Star, 
   Info, 
   ListOrdered, 
-  ExternalLink,
   ChevronLeft,
   ChevronRight,
   Calendar,
   PlayCircle,
-  Download,
   Home as HomeIcon,
   Clock,
-  ArrowRight,
-  Maximize2,
   Copy
 } from "lucide-react";
 import Image from 'next/image';
@@ -105,7 +101,8 @@ export function DonghuaExplorer() {
           {data?.latest_episodes?.map((item: any, i: number) => (
             <button 
               key={i} 
-              onClick={() => handleFetch({ mode: 'watch', slug: item.slug })}
+              // Changed from 'watch' to 'detail' per user request to see detail first
+              onClick={() => handleFetch({ mode: 'detail', slug: item.slug })}
               className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-blue-500/30 transition-all hover:shadow-xl"
             >
               <div className="relative aspect-[3/4] w-full bg-black/5">

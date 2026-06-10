@@ -37,9 +37,17 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
         const link = $el.find('a').attr('href') || '';
         const title = $el.find('.tt h2').text().trim();
         const episode = $el.find('.epx').text().trim();
-        const thumbnail = $el.find('img').attr('src') || '';
+        // Support data-src for lazy loaded images
+        const thumbnail = $el.find('img').attr('data-src') || $el.find('img').attr('src') || '';
+        
         if (link) {
-          latest_episodes.push({ title, episode, url: link, thumbnail, slug: link.split('/').filter(Boolean).pop() });
+          latest_episodes.push({ 
+            title, 
+            episode, 
+            url: link, 
+            thumbnail, 
+            slug: link.split('/').filter(Boolean).pop() 
+          });
         }
       });
 
@@ -49,7 +57,7 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
         const title = $el.find('.ellipsis a').text().trim();
         const url = $el.find('.ellipsis a').attr('href') || '';
         const summary = $el.find('.excerpt .story p').text().trim();
-        const thumbnail = $el.find('.poster img').attr('src') || '';
+        const thumbnail = $el.find('.poster img').attr('data-src') || $el.find('.poster img').attr('src') || '';
         if (title) {
           slider.push({ title, url, summary: summary.substring(0, 200) + '...', thumbnail, slug: url.split('/').filter(Boolean).pop() });
         }
@@ -65,7 +73,7 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
         const $el = $(el);
         const link = $el.find('a').attr('href') || '';
         const title = $el.find('.tt h2').text().trim();
-        const thumbnail = $el.find('img').attr('src') || '';
+        const thumbnail = $el.find('img').attr('data-src') || $el.find('img').attr('src') || '';
         const episode = $el.find('.epx').text().trim();
         if (link && title) {
           results.push({ title, url: link, thumbnail, episode, slug: link.split('/').filter(Boolean).pop() });
@@ -75,7 +83,22 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
     }
 
     if (mode === 'detail') {
-      const $ = await fetchPage(`${BASE_URL}/anime/${slug}/`);
+      let currentSlug = slug;
+      let $ = await fetchPage(`${BASE_URL}/anime/${currentSlug}/`);
+      
+      // If direct series lookup fails, try fetching as an episode slug to find parent series
+      if ($('.infox h1').text().trim() === '') {
+        const $ep = await fetchPage(`${BASE_URL}/${slug}`);
+        const seriesLink = $ep('#singlepisode .det h3 a').attr('href');
+        if (seriesLink) {
+          const resolvedSlug = seriesLink.split('/').filter(Boolean).pop();
+          if (resolvedSlug) {
+            currentSlug = resolvedSlug;
+            $ = await fetchPage(`${BASE_URL}/anime/${currentSlug}/`);
+          }
+        }
+      }
+
       const title = $('.infox h1').text().trim();
       if (!title) return { status: false, error: 'Series not found' };
 
@@ -91,7 +114,7 @@ export async function fetchDonghua(input: { mode: string; query?: string; slug?:
       $('.genxed a').each((_, el) => { genres.push($(el).text().trim()); });
 
       const synopsis = $('.entry-content p').first().text().trim();
-      const poster = $('.thumb img').attr('src') || '';
+      const poster = $('.thumb img').attr('data-src') || $('.thumb img').attr('src') || '';
       const rating = $('.rating strong').text().replace('Rating', '').trim();
 
       const episodes: any[] = [];
