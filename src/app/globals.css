@@ -36,15 +36,25 @@
     
     --radius: 0.75rem;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+
+  html {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tight;
   }
