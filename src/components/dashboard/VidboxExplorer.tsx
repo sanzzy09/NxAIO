@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,22 +25,41 @@ import {
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
-import { vidboxSearch, fetchSeriesDetails } from "@/app/actions/vidbox";
+import { vidboxSearch, fetchSeriesDetails, vidboxTrending } from "@/app/actions/vidbox";
 import { useToast } from "@/hooks/use-toast";
 
-type View = 'search' | 'detail' | 'watch';
+type View = 'search' | 'detail' | 'watch' | 'trending';
 
 export function VidboxExplorer() {
-  const [view, setView] = useState<View>('search');
+  const [view, setView] = useState<View>('trending');
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [trending, setTrending] = useState<any[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
   const [activeServer, setActiveServer] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState(1);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadTrending();
+  }, []);
+
+  const loadTrending = async () => {
+    setLoading(true);
+    try {
+      const res = await vidboxTrending();
+      if (res.status) {
+        setTrending(res.data.results);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,9 +108,9 @@ export function VidboxExplorer() {
     }
   };
 
-  const renderGrid = () => (
+  const renderGrid = (items: any[]) => (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">
-      {results.map((media, i) => (
+      {items.map((media, i) => (
         <div 
           key={i} 
           onClick={() => handleSelectMedia(media)}
@@ -344,40 +363,48 @@ export function VidboxExplorer() {
       </CardHeader>
       
       <CardContent className="p-8 sm:p-12 pt-0 space-y-10">
-        {view !== 'search' && (
+        {(view !== 'trending' && view !== 'search') && (
           <Button 
             variant="ghost" 
-            onClick={() => setView('search')} 
+            onClick={() => setView(query ? 'search' : 'trending')} 
             className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary -ml-4"
           >
-            <ChevronLeft className="size-3" /> Back to Search Results
+            <ChevronLeft className="size-3" /> Back to Dashboard
           </Button>
         )}
 
-        {loading && view === 'search' ? (
+        {loading && (view === 'trending' || view === 'search') ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
             <Loader2 className="size-12 animate-spin text-primary/20" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Polling TMDB cluster...</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Polling cinematic database...</p>
           </div>
         ) : error ? (
           <div className="p-16 text-center bg-destructive/5 rounded-[3rem] border border-destructive/10 space-y-4 animate-fade-in-up">
              <AlertCircle className="size-12 text-destructive mx-auto opacity-30" />
              <p className="text-sm font-bold text-destructive">Operation Interrupted</p>
              <p className="text-xs text-destructive/60 font-medium">{error}</p>
-             <Button variant="outline" size="sm" onClick={() => setView('search')} className="rounded-full px-8 h-10 font-bold uppercase text-[10px] tracking-widest">Acknowledge</Button>
+             <Button variant="outline" size="sm" onClick={() => setView('trending')} className="rounded-full px-8 h-10 font-bold uppercase text-[10px] tracking-widest">Acknowledge</Button>
           </div>
         ) : (
           <div className="min-h-[400px]">
-            {view === 'search' && results.length > 0 && renderGrid()}
-            {view === 'search' && results.length === 0 && !loading && (
-              <div className="py-32 text-center space-y-6 animate-fade-in-up">
-                 <div className="w-20 h-20 bg-background rounded-3xl flex items-center justify-center mx-auto border border-primary/5 shadow-inner">
-                    <Film className="size-10 text-muted-foreground/20" />
-                 </div>
-                 <div className="space-y-1">
-                    <p className="text-lg font-bold font-headline text-muted-foreground">Ready for exploration?</p>
-                    <p className="text-sm text-muted-foreground/40 font-medium">Enter a title above to search the global cinematic database.</p>
-                 </div>
+            {view === 'trending' && trending.length > 0 && (
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 px-2">
+                  <TrendingUp className="size-4 text-primary/40" />
+                  <h3 className="text-lg font-bold font-headline uppercase tracking-widest">Trending Today</h3>
+                </div>
+                {renderGrid(trending)}
+              </div>
+            )}
+            {view === 'search' && (
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 px-2">
+                  <Search className="size-4 text-primary/40" />
+                  <h3 className="text-lg font-bold font-headline">Results for "{query}"</h3>
+                </div>
+                {results.length > 0 ? renderGrid(results) : (
+                  <div className="py-20 text-center text-muted-foreground">No matches found.</div>
+                )}
               </div>
             )}
             {view === 'detail' && selectedMedia && renderDetail()}

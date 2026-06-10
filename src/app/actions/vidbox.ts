@@ -2,7 +2,7 @@
 
 /**
  * Server action for Vidbox Explorer.
- * Integrates TMDB search and builds streaming server links.
+ * Integrates TMDB search, trending, and builds streaming server links.
  */
 
 const TMDB = "cc62b52e2d5f4ea112a698f20c090b13";
@@ -121,6 +121,46 @@ export async function vidboxSearch(query: string, options: { limit?: number; sea
     };
   } catch (error: any) {
     console.error("Vidbox Action Error:", error.message);
+    return { status: false, error: error.message };
+  }
+}
+
+export async function vidboxTrending(options: { limit?: number } = {}) {
+  try {
+    const { limit = 12 } = options;
+    const data = await tj(`https://api.themoviedb.org/3/trending/all/day?api_key=${TMDB}`);
+    const hits = (data?.results || []).filter((r: any) => r.media_type === "movie" || r.media_type === "tv").slice(0, limit);
+
+    const results = await Promise.all(hits.map(async (r: any) => {
+        const type = r.media_type;
+        const ext = await tj(`https://api.themoviedb.org/3/${type}/${r.id}/external_ids?api_key=${TMDB}`).catch(() => null);
+        const imdb = ext?.imdb_id || null;
+        const servers = buildServers(type, r.id, imdb, 1, 1);
+        
+        return {
+            id: r.id,
+            type,
+            title: r.title || r.name,
+            year: (r.release_date || r.first_air_date || "").slice(0, 4) || null,
+            description: r.overview || null,
+            rating: r.vote_average ?? null,
+            votes: r.vote_count ?? null,
+            popularity: r.popularity ?? null,
+            imdb,
+            poster: r.poster_path ? "https://image.tmdb.org/t/p/w500" + r.poster_path : null,
+            backdrop: r.backdrop_path ? "https://image.tmdb.org/t/p/original" + r.backdrop_path : null,
+            url: `https://vidbox.pages.dev/watch/${type}/${r.id}`,
+            embed: servers[0]?.url || null,
+            servers
+        };
+    }));
+
+    return { 
+      status: true,
+      data: { results }
+    };
+  } catch (error: any) {
+    console.error("Vidbox Trending Action Error:", error.message);
     return { status: false, error: error.message };
   }
 }

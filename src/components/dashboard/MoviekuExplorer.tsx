@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,24 +23,44 @@ import {
   MonitorPlay,
   X,
   Layers,
-  ArrowRight
+  ArrowRight,
+  TrendingUp
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { fetchMovieku } from "@/app/actions/movieku";
 import { useToast } from "@/hooks/use-toast";
 
-type View = 'search' | 'detail';
+type View = 'search' | 'detail' | 'home';
 
 export function MoviekuExplorer() {
-  const [view, setView] = useState<View>('search');
+  const [view, setView] = useState<View>('home');
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [homeResults, setHomeResults] = useState<any[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadHome();
+  }, []);
+
+  const loadHome = async () => {
+    setLoading(true);
+    try {
+      const res = await fetchMovieku({ mode: 'home' });
+      if (res.status) {
+        setHomeResults(res.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,9 +120,9 @@ export function MoviekuExplorer() {
     return url.includes('acefile.co/f/') || url.includes('abyssplayer.com');
   };
 
-  const renderGrid = () => (
+  const renderGrid = (items: any[]) => (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">
-      {results.map((item, i) => (
+      {items.map((item, i) => (
         <div 
           key={i} 
           onClick={() => handleDetail(item)}
@@ -377,17 +397,17 @@ export function MoviekuExplorer() {
       </CardHeader>
       
       <CardContent className="p-8 sm:p-12 pt-0 space-y-10">
-        {view !== 'search' && (
+        {(view !== 'home' && view !== 'search') && (
           <Button 
             variant="ghost" 
-            onClick={() => setView('search')} 
+            onClick={() => setView(query ? 'search' : 'home')} 
             className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-indigo-600 -ml-4"
           >
-            <ChevronLeft className="size-3" /> Back to Results
+            <ChevronLeft className="size-3" /> Back to Dashboard
           </Button>
         )}
 
-        {loading && view === 'search' ? (
+        {loading && (view === 'home' || view === 'search') ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
             <Loader2 className="size-12 animate-spin text-indigo-500/20" />
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Synchronizing database content...</p>
@@ -397,20 +417,28 @@ export function MoviekuExplorer() {
              <AlertCircle className="size-12 text-destructive mx-auto opacity-30" />
              <p className="text-sm font-bold text-destructive">Operation Interrupted</p>
              <p className="text-xs text-destructive/60 font-medium">{error}</p>
-             <Button variant="outline" size="sm" onClick={() => setView('search')} className="rounded-full px-8 h-10 font-bold uppercase text-[10px] tracking-widest">Acknowledge</Button>
+             <Button variant="outline" size="sm" onClick={() => setView('home')} className="rounded-full px-8 h-10 font-bold uppercase text-[10px] tracking-widest">Acknowledge</Button>
           </div>
         ) : (
           <div className="min-h-[400px]">
-            {view === 'search' && results.length > 0 && renderGrid()}
-            {view === 'search' && results.length === 0 && !loading && (
-              <div className="py-32 text-center space-y-6 animate-fade-in-up">
-                 <div className="w-24 h-24 bg-background rounded-[2rem] flex items-center justify-center mx-auto border border-primary/5 shadow-inner">
-                    <Film className="size-10 text-muted-foreground/20" />
-                 </div>
-                 <div className="space-y-2">
-                    <p className="text-xl font-bold font-headline text-muted-foreground">Search your favorite films</p>
-                    <p className="text-sm text-muted-foreground/40 font-medium">Enter a title above to explore the Movieku collection.</p>
-                 </div>
+            {view === 'home' && homeResults.length > 0 && (
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 px-2">
+                  <TrendingUp className="size-4 text-indigo-600/40" />
+                  <h3 className="text-lg font-bold font-headline uppercase tracking-widest">Discover Trending</h3>
+                </div>
+                {renderGrid(homeResults)}
+              </div>
+            )}
+            {view === 'search' && (
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 px-2">
+                  <Search className="size-4 text-indigo-600/40" />
+                  <h3 className="text-lg font-bold font-headline">Results for "{query}"</h3>
+                </div>
+                {results.length > 0 ? renderGrid(results) : (
+                  <div className="py-20 text-center text-muted-foreground">No matches found.</div>
+                )}
               </div>
             )}
             {view === 'detail' && selectedMedia && renderDetail()}

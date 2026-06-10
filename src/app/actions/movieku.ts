@@ -10,8 +10,43 @@ import * as cheerio from 'cheerio';
 
 const BASE_URL = 'https://movieku.rest';
 
-export async function fetchMovieku(input: { mode: 'search' | 'detail'; query?: string; url?: string }) {
+export async function fetchMovieku(input: { mode: 'search' | 'detail' | 'home'; query?: string; url?: string }) {
   try {
+    if (input.mode === 'home') {
+      const res = await axios.get(BASE_URL, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+      const $ = cheerio.load(res.data);
+      const results: any[] = [];
+
+      $('article').each((_, el) => {
+        const title = $(el).find('.entry-title a').text().trim();
+        const url = $(el).find('.entry-title a').attr('href');
+        const posterImg = $(el).find('img').first();
+        let thumbnail = posterImg.attr('data-src') || posterImg.attr('src');
+        
+        if (thumbnail && thumbnail.startsWith('/')) {
+          thumbnail = `${BASE_URL}${thumbnail}`;
+        }
+
+        if (title && url) {
+          results.push({
+            id: url.split('/').filter(Boolean).pop(),
+            title,
+            url,
+            thumbnail
+          });
+        }
+      });
+
+      return {
+        status: true,
+        data: results.slice(0, 16)
+      };
+    }
+
     if (input.mode === 'search') {
       if (!input.query) throw new Error('Search query is required');
       
