@@ -21,6 +21,7 @@ export interface SocialProvider {
   label: string;
   icon: React.ReactNode;
   href?: string;
+  onClick?: () => void;
 }
 
 export interface AuthField {
@@ -107,11 +108,25 @@ export function AuthLayout({
                 {socialProviders.length > 0 && (
                   <div className="grid grid-cols-2 gap-4">
                     {socialProviders.map((provider, index) => (
-                      <Button key={index} variant="outline" size="lg" asChild className="rounded-xl">
-                        <Link href={provider.href ?? "#"}>
-                          {provider.icon}
-                          {provider.label}
-                        </Link>
+                      <Button 
+                        key={index} 
+                        variant="outline" 
+                        size="lg" 
+                        asChild={!!provider.href} 
+                        className="rounded-xl"
+                        onClick={provider.onClick}
+                      >
+                        {provider.href ? (
+                          <Link href={provider.href}>
+                            {provider.icon}
+                            {provider.label}
+                          </Link>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            {provider.icon}
+                            {provider.label}
+                          </div>
+                        )}
                       </Button>
                     ))}
                   </div>

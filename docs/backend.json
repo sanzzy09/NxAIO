@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "GlobalStats": {
+      "title": "GlobalStats",
+      "description": "Aggregated statistics for the platform.",
+      "type": "object",
+      "properties": {
+        "totalUsers": {
+          "type": "number",
+          "description": "The total number of registered users."
+        },
+        "totalVisitors": {
+          "type": "number",
+          "description": "The total number of unique visits."
+        },
+        "registrationsToday": {
+          "type": "number",
+          "description": "Number of users registered today."
+        }
+      },
+      "required": ["totalUsers", "totalVisitors", "registrationsToday"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Information about a registered user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/system/stats": {
+      "schema": "GlobalStats",
+      "description": "Real-time platform statistics."
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Individual user profile data."
+    }
+  }
+}

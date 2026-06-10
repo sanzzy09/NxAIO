@@ -1,6 +1,10 @@
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useAuth } from "@/firebase";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const GoogleIcon = (
   <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
@@ -17,12 +21,34 @@ const GithubIcon = (
   </svg>
 );
 
-const socialProviders: SocialProvider[] = [
-  { label: "Google", icon: GoogleIcon, href: "#" },
-  { label: "GitHub", icon: GithubIcon, href: "#" },
-];
-
 export default function LoginPage() {
+  const auth = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      toast({
+        title: "Signed in successfully",
+        description: "Welcome back to NxAIO!",
+      });
+      router.push("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Authentication failed",
+        description: error.message || "Could not sign in with Google.",
+      });
+    }
+  };
+
+  const socialProviders: SocialProvider[] = [
+    { label: "Google", icon: GoogleIcon, onClick: handleGoogleSignIn },
+    { label: "GitHub", icon: GithubIcon, href: "#" },
+  ];
+
   return (
     <AuthLayout
       heading="Welcome back"
