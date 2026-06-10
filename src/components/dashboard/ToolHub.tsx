@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -17,7 +16,8 @@ import {
   Mic,
   ScanText,
   Sparkles,
-  CloudUpload
+  CloudUpload,
+  Eraser
 } from "lucide-react";
 
 interface Tool {
@@ -42,6 +42,13 @@ const tools: Tool[] = [
     description: "Decentralized file storage with custom expiration buckets.",
     icon: <CloudUpload className="size-6" />,
     color: "bg-indigo-50 text-indigo-600"
+  },
+  {
+    id: "remover",
+    name: "AI Background Remover",
+    description: "Isolate subjects with high precision using intelligent edge detection.",
+    icon: <Eraser className="size-6" />,
+    color: "bg-pink-50 text-pink-600"
   },
   {
     id: "anichin",
