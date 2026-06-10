@@ -14,7 +14,8 @@ import {
   Music, 
   ExternalLink,
   Info,
-  CheckCircle2
+  CheckCircle2,
+  Download
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -161,35 +162,45 @@ export function AIODownloader() {
                     <CheckCircle2 className="w-3 h-3" /> Available Downloads
                   </h4>
                   
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-3">
                     {result.medias?.map((media, idx) => {
                       const isAudio = media.type === 'audio' || media.extension === 'mp3';
                       const isVideo = media.type === 'video' || media.extension === 'mp4';
                       const Icon = isAudio ? Music : isVideo ? PlayCircle : ImageIcon;
                       
                       return (
-                        <Button 
-                          key={idx}
-                          asChild
-                          variant="outline"
-                          className="h-14 rounded-2xl justify-between px-6 border-primary/5 hover:bg-secondary/50 transition-all font-bold group"
-                        >
-                          <a href={media.url} target="_blank" rel="noopener noreferrer">
-                            <div className="flex items-center gap-3">
-                              <div className={cn(
-                                "p-2 rounded-xl transition-colors",
-                                isAudio ? "bg-purple-500/10 text-purple-500" : "bg-blue-500/10 text-blue-500"
-                              )}>
-                                <Icon className="w-4 h-4" />
+                        <div key={idx} className="flex gap-2">
+                          <Button 
+                            asChild
+                            variant="outline"
+                            className="h-14 flex-1 rounded-2xl justify-between px-6 border-primary/5 hover:bg-secondary/50 transition-all font-bold group"
+                          >
+                            <a href={media.url} target="_blank" rel="noopener noreferrer">
+                              <div className="flex items-center gap-3">
+                                <div className={cn(
+                                  "p-2 rounded-xl transition-colors",
+                                  isAudio ? "bg-purple-500/10 text-purple-500" : "bg-blue-500/10 text-blue-500"
+                                )}>
+                                  <Icon className="w-4 h-4" />
+                                </div>
+                                <div className="text-left">
+                                  <span className="block text-sm">{media.quality || media.extension?.toUpperCase() || "Media Content"}</span>
+                                  <span className="block text-[10px] text-muted-foreground font-medium opacity-60">Source File {media.extension}</span>
+                                </div>
                               </div>
-                              <div className="text-left">
-                                <span className="block text-sm">{media.quality || media.extension?.toUpperCase() || "Media Content"}</span>
-                                <span className="block text-[10px] text-muted-foreground font-medium opacity-60">Source File {media.extension}</span>
-                              </div>
-                            </div>
-                            <ExternalLink className="w-4 h-4 opacity-20 group-hover:opacity-100 transition-opacity" />
-                          </a>
-                        </Button>
+                              <ExternalLink className="w-4 h-4 opacity-20 group-hover:opacity-100 transition-opacity" />
+                            </a>
+                          </Button>
+                          <Button 
+                            asChild
+                            className="h-14 w-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-500/10 flex-shrink-0 transition-transform hover:scale-105 active:scale-95"
+                            title="Download Now"
+                          >
+                            <a href={media.url} download target="_blank" rel="noopener noreferrer">
+                               <Download className="w-5 h-5" />
+                            </a>
+                          </Button>
+                        </div>
                       );
                     })}
                   </div>
