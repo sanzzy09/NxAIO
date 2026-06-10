@@ -12,7 +12,8 @@ import {
   Maximize,
   Tv,
   Clapperboard,
-  Waves
+  Waves,
+  Mic
 } from "lucide-react";
 
 interface Tool {
@@ -24,6 +25,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "transcribe",
+    name: "AI Media Transcriber",
+    description: "TikTok, Reels, and YouTube audio to text conversion.",
+    icon: <Mic className="size-6" />,
+    color: "bg-emerald-50 text-emerald-600"
+  },
   {
     id: "donghua",
     name: "Donghua Stream Explorer",
