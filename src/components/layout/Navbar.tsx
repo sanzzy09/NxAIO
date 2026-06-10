@@ -20,9 +20,9 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
 
   const navLinks = [
     { label: 'Dashboard', href: '/', onClick: onDashboardClick },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'FAQ', href: '/faq' },
     { label: 'Changelog', href: '/changelog' },
-    { label: 'Enterprise', href: '#' },
   ];
 
   return (
