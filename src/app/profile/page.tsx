@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -8,12 +7,25 @@ import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
 import { doc, collection, query, orderBy, limit } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, User, LogOut, Layout, Settings, Activity, ArrowUpRight, Sparkles, LogIn, UserPlus, Heart, HeartOff } from "lucide-react";
+import { 
+  Loader2, 
+  LogOut, 
+  Layout, 
+  Settings, 
+  Activity, 
+  ArrowUpRight, 
+  Sparkles, 
+  LogIn, 
+  UserPlus, 
+  Heart, 
+  HeartOff 
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
 import Link from 'next/link';
 import { logActivity } from '@/lib/activity';
+import { cn } from "@/lib/utils";
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
@@ -168,8 +180,8 @@ export default function ProfilePage() {
                       <Loader2 className="w-8 h-8 animate-spin mb-4" />
                       <p className="text-xs font-bold uppercase tracking-widest">Synchronizing Logs...</p>
                     </div>
-                  ) : activities.length > 0 ? (
-                    activities.map((activity: any) => (
+                  ) : (activities?.length || 0) > 0 ? (
+                    activities?.map((activity: any) => (
                       <div key={activity.id} className="group flex items-center justify-between p-6 rounded-3xl border border-primary/5 hover:border-primary/10 hover:bg-secondary/30 transition-all animate-fade-in-up">
                         <div className="flex items-center gap-4">
                           <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", getActivityColor(activity.type))}>
@@ -194,7 +206,7 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {activities.length > 0 && (
+                {(activities?.length || 0) > 0 && (
                   <div className="mt-12 flex justify-center">
                     <Button variant="ghost" className="text-muted-foreground text-xs font-bold uppercase tracking-widest gap-2">
                       View full history <ArrowUpRight className="w-3 h-3" />
