@@ -1,6 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Deployment Sync Trigger: Force redeployment of rules.
+    
     // Explicitly allow public read access for global platform statistics
     // Used by the hero section on the landing page
     match /system/stats {
