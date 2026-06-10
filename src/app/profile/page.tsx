@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,16 +58,16 @@ export default function ProfilePage() {
         photoURL: formData.photoURL
       });
 
-      // Update Firestore
-      updateDoc(userRef, {
+      // Update Firestore using setDoc with merge: true for better reliability
+      setDoc(userRef, {
         displayName: formData.displayName,
         photoURL: formData.photoURL,
         bannerURL: formData.bannerURL,
         updatedAt: new Date().toISOString()
-      }).catch(async (error) => {
+      }, { merge: true }).catch(async (error) => {
         errorEmitter.emit("permission-error", new FirestorePermissionError({
           path: userRef.path,
-          operation: "update",
+          operation: "write",
           requestResourceData: formData
         }));
       });
@@ -167,9 +167,9 @@ export default function ProfilePage() {
               <Button 
                 variant="outline" 
                 className="w-full h-14 rounded-2xl border-primary/5 hover:bg-destructive/5 hover:text-destructive hover:border-destructive/20 transition-all font-bold gap-3 shadow-sm bg-card"
-                onClick={() => {
+                onClick={async () => {
                   const { auth } = require('@/firebase');
-                  auth.signOut();
+                  await auth.signOut();
                   router.push('/');
                 }}
               >

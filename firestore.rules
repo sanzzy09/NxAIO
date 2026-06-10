@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deployment Sync Trigger: v4 - Forced synchronization with project nex-aio.
+    // Deployment Sync Trigger: v5 - Refined profile and follow rules for project nex-aio.
     
     // Global stats are publicly readable
     match /system/stats {
@@ -14,16 +14,16 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
       
-      // Only the owner can update their own profile
+      // Only the owner can update their own profile (create, update, delete)
       allow write: if request.auth != null && request.auth.uid == userId;
 
-      // Follower management
+      // Follower management: anyone can read, only the follower can write their own record
       match /followers/{followerId} {
         allow read: if true;
         allow write: if request.auth != null && request.auth.uid == followerId;
       }
 
-      // Following management
+      // Following management: anyone can read, only the user can manage who they follow
       match /following/{followedId} {
         allow read: if true;
         allow write: if request.auth != null && request.auth.uid == userId;
