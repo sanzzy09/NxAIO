@@ -31,6 +31,7 @@
         "displayName": { "type": "string" },
         "photoURL": { "type": "string", "description": "URL to profile image, supports GIF." },
         "bannerURL": { "type": "string", "description": "URL to profile background banner." },
+        "frameId": { "type": "string", "description": "The ID of the selected avatar frame." },
         "followersCount": { "type": "number", "default": 0 },
         "followingCount": { "type": "number", "default": 0 },
         "createdAt": { "type": "string", "format": "date-time" }

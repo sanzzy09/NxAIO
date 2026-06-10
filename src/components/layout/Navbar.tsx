@@ -1,12 +1,14 @@
+
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Boxes, Github, Menu, X, User as UserIcon, LogOut, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useUser, useAuth } from '@/firebase';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useUser, useAuth, useFirestore, useDoc } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,8 +21,12 @@ import {
 export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, loading } = useUser();
+  const { user, loading: authLoading } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
+
+  const userDocRef = useMemo(() => user ? doc(db, 'users', user.uid) : null, [db, user]);
+  const { data: profileData } = useDoc(userDocRef);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,7 +54,6 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
         "bg-primary text-primary-foreground shadow-2xl shadow-primary/20 border border-white/10 backdrop-blur-md",
         scrolled ? "scale-[0.98] md:scale-100" : "scale-100"
       )}>
-        {/* Logo */}
         <Link 
           href="/" 
           className="flex items-center gap-2 group"
@@ -60,7 +65,6 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
           <span className="font-headline font-bold text-lg md:text-xl tracking-tight">NxAIO</span>
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
@@ -74,7 +78,6 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
           ))}
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2 md:gap-4">
           <Button variant="ghost" size="icon" asChild className="hidden sm:flex rounded-full text-primary-foreground/60 hover:text-primary-foreground hover:bg-white/10">
             <Link href="https://github.com/sanzzy09" target="_blank" rel="noopener noreferrer">
@@ -83,16 +86,16 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
           </Button>
           
           <div className="flex items-center gap-2">
-            {!loading && user ? (
+            {!authLoading && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/10 p-0 overflow-hidden border border-white/10">
-                    <Avatar className="h-full w-full">
-                      <AvatarImage src={user.photoURL || undefined} alt={user.displayName || ""} />
-                      <AvatarFallback className="bg-primary-foreground/10 text-primary-foreground">
-                        {user.displayName?.charAt(0) || user.email?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/10 p-0 overflow-visible">
+                    <AvatarFrame 
+                      src={user.photoURL}
+                      fallback={user.displayName?.charAt(0) || user.email?.charAt(0)}
+                      frameId={(profileData?.frameId as FrameId) || 'none'}
+                      size="sm"
+                    />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 mt-4 rounded-2xl bg-primary text-primary-foreground border-white/10 shadow-2xl" align="end" forceMount>
@@ -131,7 +134,6 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
             )}
           </div>
 
-          {/* Mobile Menu Toggle */}
           <button 
             className="md:hidden p-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -141,7 +143,6 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="absolute top-full left-4 right-4 mt-2 p-8 rounded-[2.5rem] bg-primary border border-white/10 shadow-2xl animate-fade-in-up md:hidden z-50">
           <div className="flex flex-col gap-8">

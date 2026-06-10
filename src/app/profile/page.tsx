@@ -10,14 +10,24 @@ import { updateProfile } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Mail, Shield, Camera, Save, LogOut, Layout } from "lucide-react";
+import { Loader2, User, Mail, Shield, Camera, Save, LogOut, Layout, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import Image from 'next/image';
+import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
+import { cn } from '@/lib/utils';
+
+const AVAILABLE_FRAMES: { id: FrameId; name: string; color: string }[] = [
+  { id: 'none', name: 'None', color: 'bg-muted' },
+  { id: 'tech', name: 'Tech Core', color: 'bg-blue-500' },
+  { id: 'royal', name: 'Royal Guard', color: 'bg-yellow-500' },
+  { id: 'mystic', name: 'Mystic Void', color: 'bg-purple-500' },
+  { id: 'emerald', name: 'Emerald', color: 'bg-emerald-500' },
+  { id: 'crimson', name: 'Crimson', color: 'bg-red-600' },
+];
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
@@ -26,14 +36,14 @@ export default function ProfilePage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
 
-  // Firestore reference for user document
   const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
   const { data: profileData, loading: profileLoading } = useDoc(userRef);
 
   const [formData, setFormData] = useState({
     displayName: "",
     photoURL: "",
-    bannerURL: ""
+    bannerURL: "",
+    frameId: "none" as FrameId
   });
 
   useEffect(() => {
@@ -41,7 +51,8 @@ export default function ProfilePage() {
       setFormData({
         displayName: profileData.displayName || "",
         photoURL: profileData.photoURL || "",
-        bannerURL: profileData.bannerURL || ""
+        bannerURL: profileData.bannerURL || "",
+        frameId: (profileData.frameId as FrameId) || "none"
       });
     }
   }, [profileData]);
@@ -52,17 +63,16 @@ export default function ProfilePage() {
 
     setSaving(true);
     try {
-      // Update Firebase Auth
       await updateProfile(user, {
         displayName: formData.displayName,
         photoURL: formData.photoURL
       });
 
-      // Update Firestore using setDoc with merge: true for better reliability
       setDoc(userRef, {
         displayName: formData.displayName,
         photoURL: formData.photoURL,
         bannerURL: formData.bannerURL,
+        frameId: formData.frameId,
         updatedAt: new Date().toISOString()
       }, { merge: true }).catch(async (error) => {
         errorEmitter.emit("permission-error", new FirestorePermissionError({
@@ -105,7 +115,6 @@ export default function ProfilePage() {
       <Navbar />
 
       <main className="pb-16 lg:pb-24">
-        {/* Full-Width Immersive Banner */}
         <div className="w-full h-64 md:h-80 lg:h-[400px] bg-secondary/30 relative overflow-hidden group shadow-inner">
           {formData.bannerURL ? (
             <Image 
@@ -129,16 +138,15 @@ export default function ProfilePage() {
 
         <div className="container mx-auto px-4 max-w-5xl -mt-20 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            {/* Sidebar Info */}
             <div className="lg:col-span-4 space-y-6">
               <div className="flex flex-col items-center text-center space-y-4 p-8 bg-card border border-primary/5 rounded-[2.5rem] shadow-2xl backdrop-blur-xl">
                 <div className="relative group">
-                  <Avatar className="w-32 h-32 border-4 border-background shadow-2xl scale-110">
-                    <AvatarImage src={formData.photoURL || user.photoURL || undefined} />
-                    <AvatarFallback className="text-3xl bg-primary/5">
-                      {formData.displayName?.charAt(0) || user.email?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <AvatarFrame 
+                    src={formData.photoURL || user.photoURL}
+                    fallback={formData.displayName?.charAt(0) || user.email?.charAt(0)}
+                    frameId={formData.frameId}
+                    size="xl"
+                  />
                   <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                     <Camera className="text-white w-6 h-6" />
                   </div>
@@ -177,8 +185,7 @@ export default function ProfilePage() {
               </Button>
             </div>
 
-            {/* Main Content Form */}
-            <div className="lg:col-span-8">
+            <div className="lg:col-span-8 space-y-8">
               <Card className="border-primary/5 shadow-2xl rounded-[2.5rem] overflow-hidden bg-card/80 backdrop-blur-md">
                 <CardHeader className="p-8 sm:p-12 pb-6">
                   <div className="flex items-center gap-3 mb-2">
@@ -191,8 +198,40 @@ export default function ProfilePage() {
                 </CardHeader>
 
                 <form onSubmit={handleUpdate}>
-                  <CardContent className="p-8 sm:p-12 pt-0 space-y-8">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <CardContent className="p-8 sm:p-12 pt-0 space-y-10">
+                    <div className="space-y-4">
+                      <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                        <Sparkles className="w-3 h-3" /> Select Avatar Frame
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {AVAILABLE_FRAMES.map((frame) => (
+                          <button
+                            key={frame.id}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, frameId: frame.id }))}
+                            className={cn(
+                              "relative group p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-3",
+                              formData.frameId === frame.id 
+                                ? "border-primary bg-primary/5 shadow-lg scale-[1.02]" 
+                                : "border-primary/5 bg-secondary/20 hover:border-primary/10 hover:bg-secondary/40"
+                            )}
+                          >
+                            <AvatarFrame 
+                              src={formData.photoURL || user.photoURL}
+                              fallback={formData.displayName?.charAt(0) || "U"}
+                              frameId={frame.id}
+                              size="md"
+                            />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">{frame.name}</span>
+                            {formData.frameId === frame.id && (
+                              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Full Name</label>
                         <div className="relative group">

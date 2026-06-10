@@ -7,11 +7,11 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useFirestore, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { Loader2, Calendar } from "lucide-react";
 import Image from 'next/image';
+import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
 
 export default function PublicProfilePage() {
   const params = useParams();
@@ -43,7 +43,6 @@ export default function PublicProfilePage() {
       <Navbar />
 
       <main className="pb-16 lg:pb-24">
-        {/* Full-Width Immersive Banner */}
         <div className="relative w-full h-64 md:h-80 lg:h-[450px] bg-secondary/30 overflow-hidden shadow-inner">
           {profile.bannerURL ? (
             <Image 
@@ -61,14 +60,14 @@ export default function PublicProfilePage() {
         <div className="container mx-auto px-4 max-w-4xl -mt-24 relative z-10">
           <div className="bg-card border border-primary/5 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] backdrop-blur-xl overflow-hidden">
             <div className="px-8 pb-12 relative">
-              {/* Avatar - overlapping the full-width banner */}
               <div className="absolute -top-16 left-8">
-                <Avatar className="w-32 h-32 border-4 border-card shadow-2xl scale-110">
-                  <AvatarImage src={profile.photoURL || undefined} />
-                  <AvatarFallback className="text-3xl bg-primary/5">
-                    {profile.displayName?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarFrame 
+                  src={profile.photoURL}
+                  fallback={profile.displayName?.charAt(0) || "U"}
+                  frameId={profile.frameId as FrameId}
+                  size="xl"
+                  className="bg-card rounded-full p-1"
+                />
               </div>
 
               <div className="pt-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
