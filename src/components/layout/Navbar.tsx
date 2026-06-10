@@ -77,7 +77,7 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
 
           {/* Mobile Menu Toggle */}
           <button 
-            className="md:hidden p-2 text-primary-foreground/80 hover:text-primary-foreground"
+            className="md:hidden p-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -87,27 +87,40 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="absolute top-full left-4 right-4 mt-2 p-6 rounded-3xl bg-primary border border-white/10 shadow-2xl animate-fade-in-up md:hidden">
-          <div className="flex flex-col gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                onClick={() => {
-                  link.onClick?.();
-                  setMobileMenuOpen(false);
-                }}
-                className="text-lg font-headline font-semibold text-primary-foreground/80 hover:text-primary-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
+        <div className="absolute top-full left-4 right-4 mt-2 p-8 rounded-[2.5rem] bg-primary border border-white/10 shadow-2xl animate-fade-in-up md:hidden z-50">
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => {
+                    link.onClick?.();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-xl font-headline font-bold text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+            
             <div className="h-px bg-white/10" />
-            <div className="flex flex-col gap-3">
-              <Button variant="outline" asChild className="w-full rounded-full border-white/20 text-primary-foreground hover:bg-white/10">
+            
+            <div className="flex flex-col gap-4">
+              <Button 
+                variant="ghost" 
+                asChild 
+                className="w-full h-14 rounded-full border border-white/10 text-primary-foreground/90 hover:text-primary-foreground hover:bg-white/10 text-lg font-bold"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 <Link href="/login">Sign In</Link>
               </Button>
-              <Button asChild className="w-full rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold">
+              <Button 
+                asChild 
+                className="w-full h-14 rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold text-lg shadow-xl shadow-black/20"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 <Link href="/signup">Create Account</Link>
               </Button>
             </div>
