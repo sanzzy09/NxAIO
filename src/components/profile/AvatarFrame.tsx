@@ -25,10 +25,18 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
   const containerSize = sizeClasses[size];
 
   const renderFrameOverlay = () => {
+    // Standardize SVG props for all frames
+    const svgProps = {
+      className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[115%] h-[125%] pointer-events-none overflow-visible z-10",
+      viewBox: "0 0 100 100",
+      fill: "none",
+      preserveAspectRatio: "xMidYMid meet"
+    };
+
     switch (frameId) {
       case 'tech':
         return (
-          <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
+          <svg {...svgProps}>
             <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="2" className="text-blue-500/30" />
             <path d="M50 2L55 10H45L50 2Z" fill="currentColor" className="text-blue-500" />
             <path d="M50 98L45 90H55L50 98Z" fill="currentColor" className="text-blue-500" />
@@ -39,7 +47,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
         );
       case 'royal':
         return (
-          <svg className="absolute inset-0 w-full h-full scale-[1.18] pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
+          <svg {...svgProps} className={cn(svgProps.className, "w-[125%] h-[125%]")}>
             <circle cx="50" cy="50" r="46" stroke="#FFD700" strokeWidth="4" />
             <circle cx="50" cy="50" r="48" stroke="#B8860B" strokeWidth="1" />
             {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
@@ -58,7 +66,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
         );
       case 'mystic':
         return (
-          <svg className="absolute inset-0 w-full h-full scale-[1.12] pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
+          <svg {...svgProps}>
             <defs>
               <linearGradient id="mysticGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#8A2BE2" />
@@ -70,19 +78,14 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
               </filter>
             </defs>
             <circle cx="50" cy="50" r="47" stroke="url(#mysticGradient)" strokeWidth="3" filter="url(#mysticGlow)" />
-            <path d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform="rotate(22.5 50 50)" />
-            <path d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform="rotate(67.5 50 50)" />
-            <path d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform="rotate(112.5 50 50)" />
-            <path d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform="rotate(157.5 50 50)" />
-            <path d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform="rotate(202.5 50 50)" />
-            <path d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform="rotate(247.5 50 50)" />
-            <path d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform="rotate(292.5 50 50)" />
-            <path d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform="rotate(337.5 50 50)" />
+            {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((deg) => (
+              <path key={deg} d="M50 0 L53 10 L47 10 Z" fill="#8A2BE2" transform={`rotate(${deg} 50 50)`} />
+            ))}
           </svg>
         );
       case 'emerald':
         return (
-          <svg className="absolute inset-0 w-full h-full scale-[1.14] pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
+          <svg {...svgProps} className={cn(svgProps.className, "w-[120%] h-[120%]")}>
             <rect x="10" y="10" width="80" height="80" rx="40" stroke="#10B981" strokeWidth="4" />
             <path d="M50 2L58 15H42L50 2Z" fill="#10B981" />
             <path d="M50 98L42 85H58L50 98Z" fill="#10B981" />
@@ -92,7 +95,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
         );
       case 'crimson':
         return (
-          <svg className="absolute inset-0 w-full h-full scale-[1.1] pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
+          <svg {...svgProps}>
             <circle cx="50" cy="50" r="48" stroke="#DC2626" strokeWidth="2" strokeDasharray="10 5" />
             <circle cx="50" cy="50" r="44" stroke="#7F1D1D" strokeWidth="1" />
             <path d="M50 5L55 15H45Z" fill="#DC2626" />
@@ -107,12 +110,10 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
   };
 
   return (
-    <div className={cn('relative flex items-center justify-center shrink-0 isolate', containerSize, className)}>
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        {renderFrameOverlay()}
-      </div>
-      <Avatar className={cn('w-full h-full z-0', frameId !== 'none' && 'p-[4%]')}>
-        <AvatarImage src={src || undefined} className="object-cover rounded-full" />
+    <div className={cn('relative flex items-center justify-center shrink-0 isolate overflow-visible', containerSize, className)}>
+      {renderFrameOverlay()}
+      <Avatar className="w-full h-full z-0 overflow-hidden ring-offset-background">
+        <AvatarImage src={src || undefined} className="object-cover" />
         <AvatarFallback className="bg-primary/5 text-primary/40 font-headline font-bold">
           {fallback || '?'}
         </AvatarFallback>
