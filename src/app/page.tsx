@@ -21,6 +21,7 @@ export default function Home() {
 
   // Real-time statistics from Firestore
   // Path: /system/stats
+  // Note: Firestore Security Rules have been updated to allow public read access for this path.
   const statsRef = useMemo(() => doc(db, 'system', 'stats'), [db]);
   const { data: stats, loading: statsLoading } = useDoc(statsRef);
 
