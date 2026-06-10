@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -12,10 +13,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Mail, Shield, Camera, Save, LogOut } from "lucide-react";
+import { Loader2, User, Mail, Shield, Camera, Save, LogOut, Layout } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import Image from 'next/image';
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
@@ -30,14 +32,16 @@ export default function ProfilePage() {
 
   const [formData, setFormData] = useState({
     displayName: "",
-    photoURL: ""
+    photoURL: "",
+    bannerURL: ""
   });
 
   useEffect(() => {
     if (profileData) {
       setFormData({
         displayName: profileData.displayName || "",
-        photoURL: profileData.photoURL || ""
+        photoURL: profileData.photoURL || "",
+        bannerURL: profileData.bannerURL || ""
       });
     }
   }, [profileData]);
@@ -58,6 +62,7 @@ export default function ProfilePage() {
       updateDoc(userRef, {
         displayName: formData.displayName,
         photoURL: formData.photoURL,
+        bannerURL: formData.bannerURL,
         updatedAt: new Date().toISOString()
       }).catch(async (error) => {
         errorEmitter.emit("permission-error", new FirestorePermissionError({
@@ -99,14 +104,36 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/10">
       <Navbar />
 
-      <main className="container mx-auto px-4 pt-32 pb-16 lg:pb-24 max-w-4xl">
+      <main className="container mx-auto px-4 pt-32 pb-16 lg:pb-24 max-w-5xl">
+        {/* Banner Preview */}
+        <div className="w-full h-48 md:h-64 bg-secondary/30 rounded-[2.5rem] mb-12 relative overflow-hidden group shadow-inner">
+          {formData.bannerURL ? (
+            <Image 
+              src={formData.bannerURL} 
+              alt="Banner Preview" 
+              fill 
+              className="object-cover"
+              unoptimized
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-tr from-primary/5 to-primary/10 flex items-center justify-center">
+              <Layout className="w-12 h-12 text-primary/10" />
+            </div>
+          )}
+          <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Badge variant="outline" className="bg-card/80 backdrop-blur-sm border-none px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-primary">
+              Banner Preview
+            </Badge>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Sidebar Info */}
           <div className="lg:col-span-4 space-y-6">
             <div className="flex flex-col items-center text-center space-y-4 p-8 bg-card border border-primary/5 rounded-[2.5rem] shadow-sm">
               <div className="relative group">
                 <Avatar className="w-32 h-32 border-4 border-background shadow-2xl">
-                  <AvatarImage src={formData.photoURL || user.photoURL || undefined} />
+                  <AvatarImage src={formData.photoURL || user.photoURL || undefined} unoptimized />
                   <AvatarFallback className="text-3xl bg-primary/5">
                     {formData.displayName?.charAt(0) || user.email?.charAt(0)}
                   </AvatarFallback>
@@ -119,6 +146,18 @@ export default function ProfilePage() {
                 <h2 className="text-2xl font-bold font-headline">{formData.displayName || "Account User"}</h2>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </div>
+              
+              <div className="flex gap-4 w-full justify-center py-2">
+                <div className="text-center">
+                  <p className="text-lg font-bold font-headline">{profileData?.followersCount || 0}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground opacity-60">Followers</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold font-headline">{profileData?.followingCount || 0}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground opacity-60">Following</p>
+                </div>
+              </div>
+
               <Badge variant="secondary" className="bg-primary/5 text-primary/60 border-none px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
                 Professional Plan
               </Badge>
@@ -126,7 +165,7 @@ export default function ProfilePage() {
 
             <Button 
               variant="outline" 
-              className="w-full h-14 rounded-2xl border-primary/5 hover:bg-destructive/5 hover:text-destructive hover:border-destructive/20 transition-all font-bold gap-3"
+              className="w-full h-14 rounded-2xl border-primary/5 hover:bg-destructive/5 hover:text-destructive hover:border-destructive/20 transition-all font-bold gap-3 shadow-sm"
               onClick={() => {
                 const { auth } = require('@/firebase');
                 auth.signOut();
@@ -145,9 +184,9 @@ export default function ProfilePage() {
                   <div className="p-2 bg-primary/5 rounded-xl">
                     <Shield className="w-5 h-5 text-primary/40" />
                   </div>
-                  <CardTitle className="text-3xl font-bold font-headline">Account Settings</CardTitle>
+                  <CardTitle className="text-3xl font-bold font-headline">Profile Configuration</CardTitle>
                 </div>
-                <CardDescription>Manage your public profile and account details.</CardDescription>
+                <CardDescription>Manage your visual identity and public profile metadata.</CardDescription>
               </CardHeader>
 
               <form onSubmit={handleUpdate}>
@@ -180,7 +219,7 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Avatar URL</label>
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Avatar Image URL (Supports GIFs)</label>
                     <div className="relative group">
                       <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
                       <Input 
@@ -190,7 +229,20 @@ export default function ProfilePage() {
                         className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30"
                       />
                     </div>
-                    <p className="text-[10px] text-muted-foreground/40 ml-1 italic">Provide a link to a high-resolution portrait.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Profile Banner URL</label>
+                    <div className="relative group">
+                      <Layout className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
+                      <Input 
+                        value={formData.bannerURL}
+                        onChange={(e) => setFormData(prev => ({ ...prev, bannerURL: e.target.value }))}
+                        placeholder="https://images.unsplash.com/..." 
+                        className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30"
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground/40 ml-1 italic">Provide a high-quality landscape image for your profile background.</p>
                   </div>
                 </CardContent>
 

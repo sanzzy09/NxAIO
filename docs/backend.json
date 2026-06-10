@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "GlobalStats": {
@@ -28,10 +29,22 @@
         "uid": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "displayName": { "type": "string" },
-        "photoURL": { "type": "string" },
+        "photoURL": { "type": "string", "description": "URL to profile image, supports GIF." },
+        "bannerURL": { "type": "string", "description": "URL to profile background banner." },
+        "followersCount": { "type": "number", "default": 0 },
+        "followingCount": { "type": "number", "default": 0 },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email"]
+    },
+    "FollowRecord": {
+      "title": "FollowRecord",
+      "description": "A record indicating a follow relationship.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -45,6 +58,14 @@
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "Individual user profile data."
+    },
+    "/users/{userId}/followers/{followerId}": {
+      "schema": "FollowRecord",
+      "description": "Record of who follows this user."
+    },
+    "/users/{userId}/following/{followedId}": {
+      "schema": "FollowRecord",
+      "description": "Record of who this user follows."
     }
   }
 }
