@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState } from 'react';
@@ -40,8 +41,8 @@ export default function Home() {
           
           <nav className="hidden md:flex items-center gap-6">
             <button className="text-sm font-medium hover:text-primary transition-colors">Tools</button>
+            <Link href="/changelog" className="text-sm font-medium hover:text-primary transition-colors text-muted-foreground hover:text-primary transition-colors">Changelog</Link>
             <button className="text-sm font-medium hover:text-primary transition-colors">Enterprise</button>
-            <button className="text-sm font-medium hover:text-primary transition-colors">Community</button>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -77,7 +78,9 @@ export default function Home() {
                 <Button size="lg" className="rounded-full px-8 h-12 text-base shadow-lg shadow-primary/10" asChild>
                   <Link href="/signup">Get Started Now</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base">View Utilities</Button>
+                <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base" asChild>
+                  <Link href="/changelog">What's New in v3.0</Link>
+                </Button>
               </div>
             </div>
 
@@ -150,8 +153,8 @@ export default function Home() {
               <div>
                 <h4 className="font-headline font-bold mb-4 uppercase text-xs tracking-widest text-muted-foreground">Product</h4>
                 <ul className="space-y-2 text-sm">
-                  <li><button className="hover:text-primary transition-colors">Tool Hub</button></li>
-                  <li><button className="hover:text-primary transition-colors">Pricing</button></li>
+                  <li><Link href="/" className="hover:text-primary transition-colors">Tool Hub</Link></li>
+                  <li><Link href="/changelog" className="hover:text-primary transition-colors">Changelog</Link></li>
                   <li><button className="hover:text-primary transition-colors">Documentation</button></li>
                 </ul>
               </div>
