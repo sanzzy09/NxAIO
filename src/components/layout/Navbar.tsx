@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -90,8 +91,8 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 p-0 overflow-visible">
                     <AvatarFrame 
-                      src={user.photoURL}
-                      fallback={user.displayName?.charAt(0) || user.email?.charAt(0)}
+                      src={profileData?.photoURL || user.photoURL}
+                      fallback={profileData?.displayName?.charAt(0) || user.displayName?.charAt(0) || user.email?.charAt(0)}
                       frameId={(profileData?.frameId as FrameId) || 'none'}
                       size="sm"
                     />
@@ -100,7 +101,7 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
                 <DropdownMenuContent className="w-56 mt-4 rounded-2xl bg-primary text-primary-foreground border-white/10 shadow-2xl" align="end" forceMount>
                   <DropdownMenuLabel className="font-headline font-bold py-4 px-6">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-bold leading-none">{user.displayName || 'Account User'}</p>
+                      <p className="text-sm font-bold leading-none">{profileData?.displayName || user.displayName || 'Account User'}</p>
                       <p className="text-xs leading-none text-primary-foreground/40">{user.email}</p>
                     </div>
                   </DropdownMenuLabel>
