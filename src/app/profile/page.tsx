@@ -8,7 +8,7 @@ import { useUser, useFirestore, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, User, LogOut, Layout, Settings, Activity, ArrowUpRight } from "lucide-react";
+import { Loader2, User, LogOut, Layout, Settings, Activity, ArrowUpRight, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
