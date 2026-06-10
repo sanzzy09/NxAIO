@@ -34,6 +34,14 @@
         "frameId": { "type": "string", "description": "The ID of the selected avatar frame." },
         "followersCount": { "type": "number", "default": 0 },
         "followingCount": { "type": "number", "default": 0 },
+        "preferences": {
+          "type": "object",
+          "properties": {
+            "productUpdates": { "type": "boolean", "default": true },
+            "weeklyDigest": { "type": "boolean", "default": false },
+            "timezone": { "type": "string", "default": "GMT+0" }
+          }
+        },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email"]

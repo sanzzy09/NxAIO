@@ -12,13 +12,17 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Mail, Shield, Camera, Save, LogOut, Layout, Sparkles } from "lucide-react";
+import { Loader2, User, Mail, Shield, Camera, Save, LogOut, Layout, Sparkles, Bell, CreditCard } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import Image from 'next/image';
 import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const AVAILABLE_FRAMES: { id: FrameId; name: string; color: string }[] = [
   { id: 'none', name: 'None', color: 'bg-muted' },
@@ -43,7 +47,10 @@ export default function ProfilePage() {
     displayName: "",
     photoURL: "",
     bannerURL: "",
-    frameId: "none" as FrameId
+    frameId: "none" as FrameId,
+    productUpdates: true,
+    weeklyDigest: false,
+    timezone: "lon"
   });
 
   useEffect(() => {
@@ -52,7 +59,10 @@ export default function ProfilePage() {
         displayName: profileData.displayName || "",
         photoURL: profileData.photoURL || "",
         bannerURL: profileData.bannerURL || "",
-        frameId: (profileData.frameId as FrameId) || "none"
+        frameId: (profileData.frameId as FrameId) || "none",
+        productUpdates: profileData.preferences?.productUpdates ?? true,
+        weeklyDigest: profileData.preferences?.weeklyDigest ?? false,
+        timezone: profileData.preferences?.timezone || "lon"
       });
     }
   }, [profileData]);
@@ -73,6 +83,11 @@ export default function ProfilePage() {
         photoURL: formData.photoURL,
         bannerURL: formData.bannerURL,
         frameId: formData.frameId,
+        preferences: {
+          productUpdates: formData.productUpdates,
+          weeklyDigest: formData.weeklyDigest,
+          timezone: formData.timezone
+        },
         updatedAt: new Date().toISOString()
       }, { merge: true }).catch(async (error) => {
         errorEmitter.emit("permission-error", new FirestorePermissionError({
@@ -83,14 +98,14 @@ export default function ProfilePage() {
       });
 
       toast({
-        title: "Profile updated",
-        description: "Your changes have been saved successfully.",
+        title: "Configuration updated",
+        description: "Your account settings have been synchronized.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Update failed",
-        description: error.message || "Could not update profile.",
+        description: error.message || "Could not save settings.",
       });
     } finally {
       setSaving(false);
@@ -115,6 +130,7 @@ export default function ProfilePage() {
       <Navbar />
 
       <main className="pb-16 lg:pb-24">
+        {/* Immersive Full-Width Banner */}
         <div className="w-full h-64 md:h-80 lg:h-[400px] bg-secondary/30 relative overflow-hidden group shadow-inner">
           {formData.bannerURL ? (
             <Image 
@@ -192,111 +208,205 @@ export default function ProfilePage() {
                     <div className="p-2 bg-primary/5 rounded-xl">
                       <Shield className="w-5 h-5 text-primary/40" />
                     </div>
-                    <CardTitle className="text-3xl font-bold font-headline">Profile Configuration</CardTitle>
+                    <CardTitle className="text-3xl font-bold font-headline tracking-tight leading-none">Settings</CardTitle>
                   </div>
-                  <CardDescription>Manage your visual identity and public profile metadata.</CardDescription>
+                  <CardDescription>Manage your profile, notifications, and platform preferences.</CardDescription>
                 </CardHeader>
 
-                <form onSubmit={handleUpdate}>
-                  <CardContent className="p-8 sm:p-12 pt-0 space-y-10">
-                    <div className="space-y-4">
-                      <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                        <Sparkles className="w-3 h-3" /> Select Avatar Frame
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {AVAILABLE_FRAMES.map((frame) => (
-                          <button
-                            key={frame.id}
-                            type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, frameId: frame.id }))}
-                            className={cn(
-                              "relative group p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-3",
-                              formData.frameId === frame.id 
-                                ? "border-primary bg-primary/5 shadow-lg scale-[1.02]" 
-                                : "border-primary/5 bg-secondary/20 hover:border-primary/10 hover:bg-secondary/40"
-                            )}
-                          >
-                            <AvatarFrame 
-                              src={formData.photoURL || user.photoURL}
-                              fallback={formData.displayName?.charAt(0) || "U"}
-                              frameId={frame.id}
-                              size="md"
+                <CardContent className="p-0">
+                  <Tabs defaultValue="profile" className="w-full">
+                    <div className="px-8 sm:px-12 mb-6">
+                      <TabsList className="bg-secondary/50 p-1 h-12 rounded-full border border-primary/5">
+                        <TabsTrigger value="profile" className="rounded-full gap-2 text-xs font-bold uppercase tracking-wider px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                          <User className="size-4" /> Profile
+                        </TabsTrigger>
+                        <TabsTrigger value="notifications" className="rounded-full gap-2 text-xs font-bold uppercase tracking-wider px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                          <Bell className="size-4" /> Notifications
+                        </TabsTrigger>
+                        <TabsTrigger value="billing" className="rounded-full gap-2 text-xs font-bold uppercase tracking-wider px-6 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                          <CreditCard className="size-4" /> Billing
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+
+                    <form onSubmit={handleUpdate}>
+                      <TabsContent value="profile" className="p-8 sm:p-12 pt-0 space-y-10">
+                        <div className="space-y-4">
+                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                            <Sparkles className="w-3 h-3" /> Avatar Frame
+                          </label>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {AVAILABLE_FRAMES.map((frame) => (
+                              <button
+                                key={frame.id}
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, frameId: frame.id }))}
+                                className={cn(
+                                  "relative group p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-3",
+                                  formData.frameId === frame.id 
+                                    ? "border-primary bg-primary/5 shadow-lg scale-[1.02]" 
+                                    : "border-primary/5 bg-secondary/20 hover:border-primary/10 hover:bg-secondary/40"
+                                )}
+                              >
+                                <AvatarFrame 
+                                  src={formData.photoURL || user.photoURL}
+                                  fallback={formData.displayName?.charAt(0) || "U"}
+                                  frameId={frame.id}
+                                  size="md"
+                                />
+                                <span className="text-[10px] font-bold uppercase tracking-wider">{frame.name}</span>
+                                {formData.frameId === frame.id && (
+                                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Full Name</Label>
+                            <div className="relative group">
+                              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
+                              <Input 
+                                value={formData.displayName}
+                                onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
+                                placeholder="Your Name" 
+                                className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Timezone</Label>
+                            <Select 
+                              value={formData.timezone} 
+                              onValueChange={(val) => setFormData(prev => ({ ...prev, timezone: val }))}
+                            >
+                              <SelectTrigger className="h-14 rounded-2xl bg-secondary/30 border-primary/5 focus:ring-primary/20">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-2xl bg-card border-primary/5">
+                                <SelectGroup>
+                                  <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Americas</SelectLabel>
+                                  <SelectItem value="nyc">New York (GMT-5)</SelectItem>
+                                  <SelectItem value="sao">Sao Paulo (GMT-3)</SelectItem>
+                                </SelectGroup>
+                                <SelectGroup>
+                                  <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Europe</SelectLabel>
+                                  <SelectItem value="lon">London (GMT+0)</SelectItem>
+                                  <SelectItem value="ber">Berlin (GMT+1)</SelectItem>
+                                </SelectGroup>
+                                <SelectGroup>
+                                  <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/40">Asia</SelectLabel>
+                                  <SelectItem value="tok">Tokyo (GMT+9)</SelectItem>
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Avatar Image URL</Label>
+                          <div className="relative group">
+                            <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
+                            <Input 
+                              value={formData.photoURL}
+                              onChange={(e) => setFormData(prev => ({ ...prev, photoURL: e.target.value }))}
+                              placeholder="https://images.unsplash.com/..." 
+                              className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20"
                             />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">{frame.name}</span>
-                            {formData.frameId === frame.id && (
-                              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                          </div>
+                        </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Full Name</label>
-                        <div className="relative group">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
-                          <Input 
-                            value={formData.displayName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                            placeholder="Your Name" 
-                            className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30"
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Profile Banner URL</Label>
+                          <div className="relative group">
+                            <Layout className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
+                            <Input 
+                              value={formData.bannerURL}
+                              onChange={(e) => setFormData(prev => ({ ...prev, bannerURL: e.target.value }))}
+                              placeholder="https://images.unsplash.com/..." 
+                              className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4">
+                          <Button 
+                            type="submit" 
+                            disabled={saving}
+                            className="h-14 px-10 rounded-2xl font-bold shadow-xl shadow-primary/10 gap-2 transition-all hover:scale-[1.02]"
+                          >
+                            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            Save Profile
+                          </Button>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="notifications" className="p-8 sm:p-12 pt-0 space-y-6">
+                        <div className="flex items-center justify-between rounded-[2rem] border border-primary/5 bg-secondary/20 p-6 md:p-8">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-bold font-headline uppercase tracking-wider">Product updates</span>
+                            <span className="text-muted-foreground text-xs">News about features and releases.</span>
+                          </div>
+                          <Switch 
+                            checked={formData.productUpdates} 
+                            onCheckedChange={(val) => setFormData(prev => ({ ...prev, productUpdates: val }))}
                           />
                         </div>
-                      </div>
 
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Email Address</label>
-                        <div className="relative opacity-50">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20" />
-                          <Input 
-                            value={user.email || ""}
-                            disabled
-                            className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 cursor-not-allowed"
+                        <div className="flex items-center justify-between rounded-[2rem] border border-primary/5 bg-secondary/20 p-6 md:p-8">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-bold font-headline uppercase tracking-wider">Weekly digest</span>
+                            <span className="text-muted-foreground text-xs">A summary of activity every Monday morning.</span>
+                          </div>
+                          <Switch 
+                            checked={formData.weeklyDigest} 
+                            onCheckedChange={(val) => setFormData(prev => ({ ...prev, weeklyDigest: val }))}
                           />
                         </div>
-                      </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Avatar Image URL (Supports GIFs)</label>
-                      <div className="relative group">
-                        <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
-                        <Input 
-                          value={formData.photoURL}
-                          onChange={(e) => setFormData(prev => ({ ...prev, photoURL: e.target.value }))}
-                          placeholder="https://images.unsplash.com/..." 
-                          className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30"
-                        />
-                      </div>
-                    </div>
+                        <div className="flex justify-end pt-4">
+                          <Button 
+                            type="submit" 
+                            disabled={saving}
+                            className="h-14 px-10 rounded-2xl font-bold shadow-xl shadow-primary/10 gap-2 transition-all hover:scale-[1.02]"
+                          >
+                            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            Save Preferences
+                          </Button>
+                        </div>
+                      </TabsContent>
 
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Profile Banner URL</label>
-                      <div className="relative group">
-                        <Layout className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
-                        <Input 
-                          value={formData.bannerURL}
-                          onChange={(e) => setFormData(prev => ({ ...prev, bannerURL: e.target.value }))}
-                          placeholder="https://images.unsplash.com/..." 
-                          className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-primary/20 placeholder:text-muted-foreground/30"
-                        />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground/40 ml-1 italic">Provide a high-quality landscape image for your profile background.</p>
-                    </div>
-                  </CardContent>
-
-                  <CardFooter className="p-8 sm:p-12 bg-secondary/20 border-t border-primary/5 flex justify-end">
-                    <Button 
-                      type="submit" 
-                      disabled={saving}
-                      className="h-14 px-10 rounded-2xl font-bold shadow-xl shadow-primary/10 gap-2 transition-all hover:scale-[1.02]"
-                    >
-                      {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                      Save Changes
-                    </Button>
-                  </CardFooter>
-                </form>
+                      <TabsContent value="billing" className="p-8 sm:p-12 pt-0 space-y-6">
+                        <div className="flex items-center justify-between rounded-[2rem] border border-primary/20 bg-primary text-primary-foreground p-8">
+                          <div className="flex flex-col gap-2">
+                            <span className="text-lg font-bold font-headline">Pro Plan</span>
+                            <span className="text-primary-foreground/60 text-xs uppercase tracking-widest font-medium">
+                              $29 per month · Renews Oct 12, 2025
+                            </span>
+                          </div>
+                          <Button variant="outline" className="rounded-full bg-white/10 border-white/20 text-white hover:bg-white/20 px-8 font-bold">
+                            Manage
+                          </Button>
+                        </div>
+                        
+                        <div className="p-8 rounded-[2rem] border border-primary/5 bg-secondary/10 space-y-4">
+                           <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/40">Recent Activity</h4>
+                           <div className="flex justify-between items-center text-sm py-2 border-b border-primary/5">
+                              <span className="text-muted-foreground font-medium">Subscription Renewal</span>
+                              <span className="font-mono text-xs opacity-60">Sept 12, 2024</span>
+                           </div>
+                           <div className="flex justify-between items-center text-sm py-2">
+                              <span className="text-muted-foreground font-medium">Add-on: AI Tokens Tier 2</span>
+                              <span className="font-mono text-xs opacity-60">Aug 28, 2024</span>
+                           </div>
+                        </div>
+                      </TabsContent>
+                    </form>
+                  </Tabs>
+                </CardContent>
               </Card>
             </div>
           </div>
