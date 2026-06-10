@@ -24,7 +24,8 @@ import {
   Server,
   Layers,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  ShieldAlert
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -223,13 +224,14 @@ export function Lk21Explorer() {
       {activeTab === 'movie' ? (
         <div className="space-y-6 pt-4 border-t border-primary/5">
           <div className="flex items-center justify-between">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-              <MonitorPlay className="size-4" /> Stream Video
-            </h4>
+            <div className="flex items-center gap-2">
+              <MonitorPlay className="size-4 text-primary/40" />
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Stream Video</h4>
+            </div>
             {activeServer && (
-              <Button asChild variant="ghost" size="sm" className="h-8 rounded-full text-[10px] font-bold uppercase tracking-widest gap-2">
+              <Button asChild className="h-10 rounded-full px-6 bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
                 <a href={activeServer} target="_blank" rel="noopener noreferrer">
-                  Open in New Tab <ExternalLink className="size-3" />
+                  Open External Player <ExternalLink className="size-3" />
                 </a>
               </Button>
             )}
@@ -241,7 +243,8 @@ export function Lk21Explorer() {
                 src={activeServer} 
                 className="w-full h-full border-none" 
                 allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
               />
              ) : (
                <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 space-y-4">
@@ -251,24 +254,32 @@ export function Lk21Explorer() {
              )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-             {data.servers?.map((srv: any, i: number) => (
-               <Button 
-                key={i} 
-                variant={activeServer === srv.url ? "default" : "outline"}
-                onClick={() => setActiveTabServer(srv.url)}
-                className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm"
-               >
-                 <Server className="size-3 mr-2" /> {srv.server}
-               </Button>
-             ))}
+          <div className="flex flex-col gap-4">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 ml-1">Select Server</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+               {data.servers?.map((srv: any, i: number) => (
+                 <Button 
+                  key={i} 
+                  variant={activeServer === srv.url ? "default" : "outline"}
+                  onClick={() => setActiveTabServer(srv.url)}
+                  className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm transition-all"
+                 >
+                   <Server className="size-3 mr-2" /> {srv.server}
+                 </Button>
+               ))}
+            </div>
           </div>
 
-          <div className="p-4 bg-secondary/20 rounded-2xl border border-primary/5 flex items-start gap-3">
-            <AlertCircle className="size-4 text-muted-foreground/60 mt-0.5" />
-            <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
-              If the player doesn't load or displays an error, try switching servers or use the <span className="font-bold">"Open in New Tab"</span> button to bypass browser embedding restrictions.
-            </p>
+          <div className="p-6 bg-secondary/30 rounded-[2rem] border border-primary/10 flex items-start gap-4 animate-fade-in-up">
+            <div className="p-2 bg-primary/5 rounded-xl">
+              <ShieldAlert className="size-5 text-primary/60" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-bold font-headline uppercase tracking-wider">Troubleshooting Connection</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                If the player shows a <span className="font-bold">"Refused to connect"</span> or broken file icon, this is due to strict security policies from the streaming host. Please use the <span className="font-bold text-primary">"Open External Player"</span> button above to watch the content directly.
+              </p>
+            </div>
           </div>
         </div>
       ) : (
@@ -327,52 +338,64 @@ export function Lk21Explorer() {
         </div>
       </div>
 
-      <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5">
-         {activeServer ? (
-           <iframe 
-            src={activeServer} 
-            className="w-full h-full border-none" 
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          />
-         ) : (
-           <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 space-y-4">
-              <Loader2 className="size-10 animate-spin opacity-20" />
-              <p className="font-bold uppercase tracking-widest text-[10px]">Loading Stream...</p>
-           </div>
-         )}
-      </div>
-
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-           <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Select Server</h4>
+           <div className="flex items-center gap-2">
+             <MonitorPlay className="size-4 text-primary/40" />
+             <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Player Control</h4>
+           </div>
            {activeServer && (
-             <Button asChild variant="ghost" size="sm" className="h-8 rounded-full text-[10px] font-bold uppercase tracking-widest gap-2">
+             <Button asChild className="h-10 rounded-full px-6 bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105">
                 <a href={activeServer} target="_blank" rel="noopener noreferrer">
-                  Open in New Tab <ExternalLink className="size-3" />
+                  Open External Player <ExternalLink className="size-3" />
                 </a>
              </Button>
            )}
         </div>
+
+        <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5">
+           {activeServer ? (
+             <iframe 
+                src={activeServer} 
+                className="w-full h-full border-none" 
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+              />
+           ) : (
+             <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 space-y-4">
+                <Loader2 className="size-10 animate-spin opacity-20" />
+                <p className="font-bold uppercase tracking-widest text-[10px]">Loading Stream...</p>
+             </div>
+           )}
+        </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-           {data.servers?.map((srv: any, i: number) => (
-             <Button 
-              key={i} 
-              variant={activeServer === srv.url ? "default" : "outline"}
-              onClick={() => setActiveTabServer(srv.url)}
-              className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm"
-             >
-               <Server className="size-3 mr-2" /> {srv.server}
-             </Button>
-           ))}
+        <div className="space-y-4">
+          <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 ml-1">Select Server</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+             {data.servers?.map((srv: any, i: number) => (
+               <Button 
+                key={i} 
+                variant={activeServer === srv.url ? "default" : "outline"}
+                onClick={() => setActiveTabServer(srv.url)}
+                className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm transition-all"
+               >
+                 <Server className="size-3 mr-2" /> {srv.server}
+               </Button>
+             ))}
+          </div>
         </div>
 
-        <div className="p-4 bg-secondary/20 rounded-2xl border border-primary/5 flex items-start gap-3">
-          <AlertCircle className="size-4 text-muted-foreground/60 mt-0.5" />
-          <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
-            If the player displays a broken file icon, it might be due to security restrictions. Try using the <span className="font-bold">"Open in New Tab"</span> option above to play the video directly.
-          </p>
+        <div className="p-6 bg-secondary/30 rounded-[2rem] border border-primary/10 flex items-start gap-4 animate-fade-in-up">
+          <div className="p-2 bg-primary/5 rounded-xl">
+            <ShieldAlert className="size-5 text-primary/60" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs font-bold font-headline uppercase tracking-wider">Connection Trouble?</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              If the player says <span className="font-bold italic">"refused to connect"</span>, it means the host is blocking iframe embedding. Use the <span className="font-bold text-primary">"Open External Player"</span> button above to bypass this.
+            </p>
+          </div>
         </div>
       </div>
 
