@@ -60,8 +60,10 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
 
         {/* Actions */}
         <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="ghost" size="icon" className="hidden sm:flex rounded-full text-primary-foreground/60 hover:text-primary-foreground hover:bg-white/10">
-            <Github className="w-5 h-5" />
+          <Button variant="ghost" size="icon" asChild className="hidden sm:flex rounded-full text-primary-foreground/60 hover:text-primary-foreground hover:bg-white/10">
+            <Link href="https://github.com/sanzzy09" target="_blank" rel="noopener noreferrer">
+              <Github className="w-5 h-5" />
+            </Link>
           </Button>
           
           <div className="flex gap-2">
