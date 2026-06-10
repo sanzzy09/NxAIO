@@ -29,6 +29,20 @@ interface Tool {
 
 const tools: Tool[] = [
   {
+    id: "snippets",
+    name: "Interactive Snippet Manager",
+    description: "Simplified storage with modern code highlighting.",
+    icon: <Code2 className="size-6" />,
+    color: "bg-cyan-50 text-cyan-600"
+  },
+  {
+    id: "logic",
+    name: "Logic Command Center",
+    description: "Chain utilities with natural language commands.",
+    icon: <Zap className="size-6" />,
+    color: "bg-orange-50 text-orange-600"
+  },
+  {
     id: "nimegami",
     name: "Nimegami Explorer",
     description: "Premium database for Anime, Live Action, and J-Dramas with Bluray support.",
@@ -110,20 +124,6 @@ const tools: Tool[] = [
     name: "Anime Explorer (AnimeXin)",
     description: "Explore, search, and stream anime details via AnimeXin.",
     icon: <Tv className="size-6" />,
-    color: "bg-orange-50 text-orange-600"
-  },
-  {
-    id: "snippets",
-    name: "Interactive Snippet Manager",
-    description: "Simplified storage with modern code highlighting.",
-    icon: <Code2 className="size-6" />,
-    color: "bg-cyan-50 text-cyan-600"
-  },
-  {
-    id: "logic",
-    name: "Logic Command Center",
-    description: "Chain utilities with natural language commands.",
-    icon: <Zap className="size-6" />,
     color: "bg-orange-50 text-orange-600"
   }
 ];
