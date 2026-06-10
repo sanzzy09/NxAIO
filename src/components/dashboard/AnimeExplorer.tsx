@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,10 @@ import {
   Calendar,
   Flag,
   Building2,
-  PlayCircle
+  PlayCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -65,9 +68,9 @@ export function AnimeExplorer() {
   const [detailData, setDetailData] = useState<AnimeDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
-    // Reset page to 1 whenever new detail data is loaded
     if (detailData) {
       setCurrentPage(1);
     }
@@ -116,10 +119,18 @@ export function AnimeExplorer() {
     setQuery("");
   };
 
-  const totalPages = detailData ? Math.ceil(detailData.episodes.length / EPISODES_PER_PAGE) : 0;
-  const paginatedEpisodes = detailData 
-    ? detailData.episodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE) 
-    : [];
+  const sortedEpisodes = useMemo(() => {
+    if (!detailData) return [];
+    const eps = [...detailData.episodes];
+    return eps.sort((a, b) => {
+      const numA = parseFloat(a.episode) || 0;
+      const numB = parseFloat(b.episode) || 0;
+      return sortOrder === 'asc' ? numA - numB : numB - numA;
+    });
+  }, [detailData, sortOrder]);
+
+  const totalPages = Math.ceil(sortedEpisodes.length / EPISODES_PER_PAGE);
+  const paginatedEpisodes = sortedEpisodes.slice((currentPage - 1) * EPISODES_PER_PAGE, currentPage * EPISODES_PER_PAGE);
 
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
@@ -209,7 +220,7 @@ export function AnimeExplorer() {
           <div className="space-y-10 animate-fade-in-up">
             <Button 
               variant="ghost" 
-              onClick={() => setSearchResults([]) /* Trigger last search state? Simple go back */} 
+              onClick={() => setSearchResults([])} 
               className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-orange-600 -ml-2"
             >
               <ChevronLeft className="w-3 h-3" /> Back
@@ -292,9 +303,20 @@ export function AnimeExplorer() {
 
                 <div className="space-y-6 pt-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-primary/5 pb-4 gap-4">
-                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-                      <ListOrdered className="w-3 h-3" /> Episode List ({detailData.totalEpisode})
-                    </h4>
+                    <div className="flex items-center gap-4">
+                      <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
+                        <ListOrdered className="w-3 h-3" /> Episode List ({detailData.totalEpisode})
+                      </h4>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                        className="h-7 px-3 rounded-full text-[9px] font-bold uppercase tracking-widest bg-secondary/50 hover:bg-orange-500/10 hover:text-orange-600 transition-colors gap-2"
+                      >
+                        {sortOrder === 'desc' ? <ArrowDown className="w-3 h-3" /> : <ArrowUp className="w-3 h-3" />}
+                        {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
+                      </Button>
+                    </div>
                     
                     {totalPages > 1 && (
                       <div className="flex items-center gap-2 bg-secondary/30 rounded-full px-3 py-1 border border-primary/5">
@@ -355,7 +377,6 @@ export function AnimeExplorer() {
                        <div className="flex items-center gap-1.5 flex-wrap justify-center">
                           {Array.from({ length: totalPages }).map((_, i) => {
                             const pageNum = i + 1;
-                            // Only show current, first, last, and pages around current
                             if (
                               pageNum === 1 || 
                               pageNum === totalPages || 
@@ -376,7 +397,6 @@ export function AnimeExplorer() {
                                 </Button>
                               );
                             }
-                            // Show ellipsis for gaps
                             if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
                               return <span key={pageNum} className="text-muted-foreground/30 px-1">...</span>;
                             }
