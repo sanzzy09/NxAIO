@@ -24,7 +24,8 @@ import {
   CreditCard, 
   Layout,
   TriangleAlert,
-  Trash2
+  Trash2,
+  Lock
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -75,6 +76,7 @@ export default function SettingsPage() {
     photoURL: "",
     bannerURL: "",
     frameId: "none" as FrameId,
+    isPrivate: false,
     productUpdates: true,
     weeklyDigest: false,
     timezone: "Asia/Jakarta"
@@ -87,6 +89,7 @@ export default function SettingsPage() {
         photoURL: profileData.photoURL || "",
         bannerURL: profileData.bannerURL || "",
         frameId: (profileData.frameId as FrameId) || "none",
+        isPrivate: profileData.isPrivate ?? false,
         productUpdates: profileData.preferences?.productUpdates ?? true,
         weeklyDigest: profileData.preferences?.weeklyDigest ?? false,
         timezone: profileData.preferences?.timezone || "Asia/Jakarta"
@@ -110,6 +113,7 @@ export default function SettingsPage() {
         photoURL: formData.photoURL,
         bannerURL: formData.bannerURL,
         frameId: formData.frameId,
+        isPrivate: formData.isPrivate,
         preferences: {
           productUpdates: formData.productUpdates,
           weeklyDigest: formData.weeklyDigest,
@@ -212,7 +216,7 @@ export default function SettingsPage() {
                       <User className="size-4" /> Profile
                     </TabsTrigger>
                     <TabsTrigger value="notifications" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm transition-all duration-300">
-                      <Bell className="size-4" /> Notifications
+                      <Bell className="size-4" /> Preferences
                     </TabsTrigger>
                     <TabsTrigger value="billing" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm transition-all duration-300">
                       <CreditCard className="size-4" /> Billing
@@ -392,26 +396,49 @@ export default function SettingsPage() {
                   </TabsContent>
 
                   <TabsContent value="notifications" className="p-8 sm:p-12 pt-0 space-y-6">
-                    <div className="flex items-center justify-between rounded-[2rem] border border-primary/5 bg-secondary/20 p-6 md:p-8">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-sm font-bold font-headline uppercase tracking-wider">Product updates</span>
-                        <span className="text-muted-foreground text-xs">News about features and releases.</span>
+                    <div className="space-y-4">
+                       <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/40 ml-1 flex items-center gap-2">
+                         <Shield className="w-3 h-3" /> Account Privacy
+                       </h3>
+                       <div className="flex items-center justify-between rounded-[2rem] border border-primary/5 bg-secondary/20 p-6 md:p-8 hover:bg-secondary/30 transition-all">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-bold font-headline uppercase tracking-wider flex items-center gap-2">
+                            <Lock className="w-3.5 h-3.5" /> Private Account
+                          </span>
+                          <span className="text-muted-foreground text-xs">When active, only you can see your profile details.</span>
+                        </div>
+                        <Switch 
+                          checked={formData.isPrivate} 
+                          onCheckedChange={(val) => setFormData(prev => ({ ...prev, isPrivate: val }))}
+                        />
                       </div>
-                      <Switch 
-                        checked={formData.productUpdates} 
-                        onCheckedChange={(val) => setFormData(prev => ({ ...prev, productUpdates: val }))}
-                      />
                     </div>
 
-                    <div className="flex items-center justify-between rounded-[2rem] border border-primary/5 bg-secondary/20 p-6 md:p-8">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-sm font-bold font-headline uppercase tracking-wider">Weekly digest</span>
-                        <span className="text-muted-foreground text-xs">A summary of activity every Monday morning.</span>
+                    <div className="space-y-4 pt-6">
+                      <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/40 ml-1 flex items-center gap-2">
+                        <Bell className="w-3 h-3" /> Communication
+                      </h3>
+                      <div className="flex items-center justify-between rounded-[2rem] border border-primary/5 bg-secondary/20 p-6 md:p-8">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-bold font-headline uppercase tracking-wider">Product updates</span>
+                          <span className="text-muted-foreground text-xs">News about features and releases.</span>
+                        </div>
+                        <Switch 
+                          checked={formData.productUpdates} 
+                          onCheckedChange={(val) => setFormData(prev => ({ ...prev, productUpdates: val }))}
+                        />
                       </div>
-                      <Switch 
-                        checked={formData.weeklyDigest} 
-                        onCheckedChange={(val) => setFormData(prev => ({ ...prev, weeklyDigest: val }))}
-                      />
+
+                      <div className="flex items-center justify-between rounded-[2rem] border border-primary/5 bg-secondary/20 p-6 md:p-8">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-bold font-headline uppercase tracking-wider">Weekly digest</span>
+                          <span className="text-muted-foreground text-xs">A summary of activity every Monday morning.</span>
+                        </div>
+                        <Switch 
+                          checked={formData.weeklyDigest} 
+                          onCheckedChange={(val) => setFormData(prev => ({ ...prev, weeklyDigest: val }))}
+                        />
+                      </div>
                     </div>
 
                     <div className="flex justify-end pt-4">

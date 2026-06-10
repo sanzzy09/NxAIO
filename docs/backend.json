@@ -32,6 +32,7 @@
         "photoURL": { "type": "string", "description": "URL to profile image, supports GIF." },
         "bannerURL": { "type": "string", "description": "URL to profile background banner." },
         "frameId": { "type": "string", "description": "The ID of the selected avatar frame." },
+        "isPrivate": { "type": "boolean", "default": false, "description": "Whether the profile is hidden from public view." },
         "followersCount": { "type": "number", "default": 0 },
         "followingCount": { "type": "number", "default": 0 },
         "preferences": {

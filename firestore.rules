@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deployment Sync Trigger: v6 - Added activity logging rules.
+    // Deployment Sync Trigger: v7 - Added profile privacy rules.
     
     // Global stats are publicly readable
     match /system/stats {
@@ -10,22 +10,24 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Profiles are publicly readable so users can find each other
+    // Profiles rules
     match /users/{userId} {
-      allow read: if true;
+      // Allow read if profile is not private OR requester is the owner
+      allow read: if (resource == null || resource.data.isPrivate == false) || (request.auth != null && request.auth.uid == userId);
       
       // Only the owner can update their own profile (create, update, delete)
       allow write: if request.auth != null && request.auth.uid == userId;
 
-      // Follower management: anyone can read, only the follower can write their own record
+      // Follower management
       match /followers/{followerId} {
-        allow read: if true;
+        // Can read if profile is public OR requester is owner
+        allow read: if (get(/databases/$(database)/documents/users/$(userId)).data.isPrivate == false) || (request.auth != null && request.auth.uid == userId);
         allow write: if request.auth != null && request.auth.uid == followerId;
       }
 
-      // Following management: anyone can read, only the user can manage who they follow
+      // Following management
       match /following/{followedId} {
-        allow read: if true;
+        allow read: if (get(/databases/$(database)/documents/users/$(userId)).data.isPrivate == false) || (request.auth != null && request.auth.uid == userId);
         allow write: if request.auth != null && request.auth.uid == userId;
       }
 

@@ -5,21 +5,24 @@ import React, { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useFirestore, useDoc } from "@/firebase";
+import { useFirestore, useDoc, useUser } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { Badge } from "@/components/ui/badge";
 import { FollowButton } from "@/components/profile/FollowButton";
-import { Loader2, Calendar } from "lucide-react";
+import { Loader2, Calendar, Lock, ShieldAlert } from "lucide-react";
 import Image from 'next/image';
 import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
 
 export default function PublicProfilePage() {
   const params = useParams();
   const userId = params.userId as string;
+  const { user: currentUser } = useUser();
   const db = useFirestore();
 
   const userRef = useMemo(() => doc(db, "users", userId), [db, userId]);
-  const { data: profile, loading } = useDoc(userRef);
+  const { data: profile, loading, error } = useDoc(userRef);
+
+  const isOwner = currentUser?.uid === userId;
 
   if (loading) {
     return (
@@ -29,11 +32,32 @@ export default function PublicProfilePage() {
     );
   }
 
-  if (!profile) {
+  // Handle case where profile is private or not found (blocked by rules or doesn't exist)
+  if (!profile || (profile.isPrivate && !isOwner)) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-        <h1 className="text-4xl font-bold font-headline">User not found</h1>
-        <p className="text-muted-foreground mt-2">The user you are looking for does not exist.</p>
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="max-w-md w-full text-center space-y-8 animate-fade-in-up">
+            <div className="flex justify-center">
+              <div className="w-24 h-24 rounded-full bg-secondary/50 flex items-center justify-center border-4 border-primary/5 shadow-2xl">
+                <Lock className="w-10 h-10 text-primary/40" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <h1 className="text-3xl font-bold font-headline tracking-tight">This account is private</h1>
+              <p className="text-muted-foreground leading-relaxed">
+                The owner of this profile has chosen to keep their identity and activity restricted to their own view.
+              </p>
+            </div>
+            <div className="pt-4">
+              <Badge variant="outline" className="rounded-full px-6 py-1.5 border-primary/10 text-primary/40 font-bold uppercase tracking-widest text-[10px]">
+                Restricted Access
+              </Badge>
+            </div>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
@@ -72,7 +96,14 @@ export default function PublicProfilePage() {
 
               <div className="pt-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
-                  <h1 className="text-4xl font-bold font-headline tracking-tight leading-none">{profile.displayName || "Anonymous User"}</h1>
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-4xl font-bold font-headline tracking-tight leading-none">{profile.displayName || "Anonymous User"}</h1>
+                    {profile.isPrivate && (
+                      <Badge variant="outline" className="border-primary/20 text-primary/40">
+                        <Lock className="w-3 h-3 mr-1" /> Private
+                      </Badge>
+                    )}
+                  </div>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4 opacity-40" />
