@@ -48,6 +48,13 @@ function parseList($: cheerio.CheerioAPI) {
   return results;
 }
 
+function normalizeUrl(url: string | undefined, base: string) {
+  if (!url) return '';
+  if (url.startsWith('//')) return `https:${url}`;
+  if (url.startsWith('/')) return `${base}${url}`;
+  return url;
+}
+
 export async function fetchLk21(input: { mode: string; query?: string; slug?: string; page?: number }) {
   try {
     const { mode, query, slug, page = 1 } = input;
@@ -84,21 +91,21 @@ export async function fetchLk21(input: { mode: string; query?: string; slug?: st
       if (h1.includes('dialihkan') || h1.includes('nontondrama')) {
         const sUrl = `${DOMAINS.nontondrama}/${slug}/`;
         const $s = await fetchPage(sUrl, DOMAINS.nontondrama);
-        return { status: true, type: 'series', data: parseSeriesDetail($s) };
+        return { status: true, type: 'series', data: parseSeriesDetail($s, DOMAINS.nontondrama) };
       }
-      return { status: true, type: 'movie', data: parseMovieDetail($) };
+      return { status: true, type: 'movie', data: parseMovieDetail($, DOMAINS.lk21) };
     }
 
     if (mode === 'series-detail') {
       const url = `${DOMAINS.nontondrama}/${slug}/`;
       const $ = await fetchPage(url, DOMAINS.nontondrama);
-      return { status: true, type: 'series', data: parseSeriesDetail($) };
+      return { status: true, type: 'series', data: parseSeriesDetail($, DOMAINS.nontondrama) };
     }
 
     if (mode === 'watch-episode') {
       const url = `${DOMAINS.nontondrama}/${slug}/`;
       const $ = await fetchPage(url, DOMAINS.nontondrama);
-      return { status: true, data: parseEpisodeWatch($) };
+      return { status: true, data: parseEpisodeWatch($, DOMAINS.nontondrama) };
     }
 
     return { status: false, error: 'Invalid mode' };
@@ -108,7 +115,7 @@ export async function fetchLk21(input: { mode: string; query?: string; slug?: st
   }
 }
 
-function parseMovieDetail($: cheerio.CheerioAPI) {
+function parseMovieDetail($: cheerio.CheerioAPI, baseDomain: string) {
   const title = $('h1').first().text().trim();
   const rating = ($('.info-tag span strong').first().text().trim()).replace(/[^\d.]/g, '');
   const infoSpans: string[] = [];
@@ -125,14 +132,18 @@ function parseMovieDetail($: cheerio.CheerioAPI) {
   const servers: any[] = [];
   const seen = new Set();
   $('[data-server]').each((_, el) => {
-    const server = $(el).attr('data-server'), url = $(el).attr('data-url');
-    if (server && url && !seen.has(server)) { seen.add(server); servers.push({ server, url }); }
+    const server = $(el).attr('data-server');
+    const rawUrl = $(el).attr('data-url');
+    if (server && rawUrl && !seen.has(server)) { 
+      seen.add(server); 
+      servers.push({ server, url: normalizeUrl(rawUrl, baseDomain) }); 
+    }
   });
   
   return { title, rating, quality: infoSpans[1] || '', resolution: infoSpans[2] || '', duration: infoSpans[3] || '', genre, country, synopsis, poster, servers };
 }
 
-function parseSeriesDetail($: cheerio.CheerioAPI) {
+function parseSeriesDetail($: cheerio.CheerioAPI, baseDomain: string) {
   const title = $('h1').first().text().trim();
   const rating = ($('.info-tag span strong').first().text().trim()).replace(/[^\d.]/g, '');
   const infoSpans: string[] = [];
@@ -171,7 +182,7 @@ function parseSeriesDetail($: cheerio.CheerioAPI) {
   return { title, rating, airDate: infoSpans[1] || '', type: infoSpans[2] || '', status: infoSpans[3] || '', genre, country, synopsis, poster, episodes };
 }
 
-function parseEpisodeWatch($: cheerio.CheerioAPI) {
+function parseEpisodeWatch($: cheerio.CheerioAPI, baseDomain: string) {
   const title = $('h1').first().text().trim();
   let meta: any = {};
   $('script').each((_, el) => {
@@ -183,8 +194,12 @@ function parseEpisodeWatch($: cheerio.CheerioAPI) {
   const servers: any[] = [];
   const seen = new Set();
   $('[data-server]').each((_, el) => {
-    const server = $(el).attr('data-server'), url = $(el).attr('data-url');
-    if (server && url && !seen.has(server)) { seen.add(server); servers.push({ server, url }); }
+    const server = $(el).attr('data-server');
+    const rawUrl = $(el).attr('data-url');
+    if (server && rawUrl && !seen.has(server)) { 
+      seen.add(server); 
+      servers.push({ server, url: normalizeUrl(rawUrl, baseDomain) }); 
+    }
   });
   
   const nextEpSlug = meta.next ? meta.next.split('/').filter(Boolean).pop() : null;

@@ -23,7 +23,8 @@ import {
   Play,
   Server,
   Layers,
-  Calendar
+  Calendar,
+  AlertCircle
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -221,9 +222,18 @@ export function Lk21Explorer() {
 
       {activeTab === 'movie' ? (
         <div className="space-y-6 pt-4 border-t border-primary/5">
-          <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-            <MonitorPlay className="size-4" /> Stream Video
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
+              <MonitorPlay className="size-4" /> Stream Video
+            </h4>
+            {activeServer && (
+              <Button asChild variant="ghost" size="sm" className="h-8 rounded-full text-[10px] font-bold uppercase tracking-widest gap-2">
+                <a href={activeServer} target="_blank" rel="noopener noreferrer">
+                  Open in New Tab <ExternalLink className="size-3" />
+                </a>
+              </Button>
+            )}
+          </div>
           
           <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 group">
              {activeServer ? (
@@ -231,6 +241,7 @@ export function Lk21Explorer() {
                 src={activeServer} 
                 className="w-full h-full border-none" 
                 allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               />
              ) : (
                <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 space-y-4">
@@ -252,6 +263,13 @@ export function Lk21Explorer() {
                </Button>
              ))}
           </div>
+
+          <div className="p-4 bg-secondary/20 rounded-2xl border border-primary/5 flex items-start gap-3">
+            <AlertCircle className="size-4 text-muted-foreground/60 mt-0.5" />
+            <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
+              If the player doesn't load or displays an error, try switching servers or use the <span className="font-bold">"Open in New Tab"</span> button to bypass browser embedding restrictions.
+            </p>
+          </div>
         </div>
       ) : (
         <div className="space-y-6 pt-4 border-t border-primary/5">
@@ -270,7 +288,7 @@ export function Lk21Explorer() {
                    <div className="size-8 rounded-lg bg-secondary flex items-center justify-center text-[10px] font-bold font-mono">
                      {ep.episode || i+1}
                    </div>
-                   <span className="text-sm truncate max-w-[250px]">{ep.title}</span>
+                   <span className="text-sm truncate max-w-[250px]">{ep.title || ep.label}</span>
                 </div>
                 <Play className="size-3 opacity-20" />
               </Button>
@@ -290,8 +308,8 @@ export function Lk21Explorer() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                disabled={!data.prevEpSlug}
-                onClick={() => handleWatchEpisode(data.prevEpSlug!)}
+                disabled={!data.prevEp}
+                onClick={() => handleWatchEpisode(data.prevEp!.split('/').filter(Boolean).pop()!)}
                 className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest"
               >
                 <ChevronLeft className="size-3" /> Prev
@@ -299,8 +317,8 @@ export function Lk21Explorer() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                disabled={!data.nextEpSlug}
-                onClick={() => handleWatchEpisode(data.nextEpSlug!)}
+                disabled={!data.nextEp}
+                onClick={() => handleWatchEpisode(data.nextEp!.split('/').filter(Boolean).pop()!)}
                 className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest"
               >
                 Next <ChevronRight className="size-3" />
@@ -315,6 +333,7 @@ export function Lk21Explorer() {
             src={activeServer} 
             className="w-full h-full border-none" 
             allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           />
          ) : (
            <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 space-y-4">
@@ -324,17 +343,37 @@ export function Lk21Explorer() {
          )}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-         {data.servers?.map((srv: any, i: number) => (
-           <Button 
-            key={i} 
-            variant={activeServer === srv.url ? "default" : "outline"}
-            onClick={() => setActiveTabServer(srv.url)}
-            className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm"
-           >
-             <Server className="size-3 mr-2" /> {srv.server}
-           </Button>
-         ))}
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+           <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Select Server</h4>
+           {activeServer && (
+             <Button asChild variant="ghost" size="sm" className="h-8 rounded-full text-[10px] font-bold uppercase tracking-widest gap-2">
+                <a href={activeServer} target="_blank" rel="noopener noreferrer">
+                  Open in New Tab <ExternalLink className="size-3" />
+                </a>
+             </Button>
+           )}
+        </div>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+           {data.servers?.map((srv: any, i: number) => (
+             <Button 
+              key={i} 
+              variant={activeServer === srv.url ? "default" : "outline"}
+              onClick={() => setActiveTabServer(srv.url)}
+              className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm"
+             >
+               <Server className="size-3 mr-2" /> {srv.server}
+             </Button>
+           ))}
+        </div>
+
+        <div className="p-4 bg-secondary/20 rounded-2xl border border-primary/5 flex items-start gap-3">
+          <AlertCircle className="size-4 text-muted-foreground/60 mt-0.5" />
+          <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
+            If the player displays a broken file icon, it might be due to security restrictions. Try using the <span className="font-bold">"Open in New Tab"</span> option above to play the video directly.
+          </p>
+        </div>
       </div>
 
       <div className="pt-8 border-t border-primary/5 flex items-center justify-between">
