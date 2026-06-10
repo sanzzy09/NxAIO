@@ -28,53 +28,53 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-primary text-primary-foreground flex flex-col items-center justify-center p-4 sm:p-6 selection:bg-white/10">
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-4 sm:p-6 selection:bg-white/10">
       <div className="w-full max-w-[440px] space-y-8 animate-fade-in-up">
         {/* Header Section */}
         <div className="text-center space-y-6">
           <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl backdrop-blur-sm group hover:rotate-6 transition-all duration-500">
-              <Key className="w-7 h-7 text-primary-foreground/40 group-hover:text-primary-foreground transition-colors" />
+            <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl backdrop-blur-sm group hover:rotate-6 transition-all duration-500">
+              <Key className="w-7 h-7 text-white/40 group-hover:text-white transition-colors" />
             </div>
           </div>
 
-          <div className="space-y-2 px-4">
+          <div className="space-y-3 px-4">
             <h1 className="text-3xl sm:text-4xl font-bold font-headline tracking-tight text-white">
-              Forgot password?
+              Forgot your password?
             </h1>
-            <p className="text-primary-foreground/40 text-sm sm:text-base leading-relaxed max-w-[300px] mx-auto">
-              No worries, we'll send you reset instructions to your inbox.
+            <p className="text-white/40 text-sm sm:text-base leading-relaxed max-w-[320px] mx-auto">
+              Enter the email linked to your account and we'll send you a link to reset your password.
             </p>
           </div>
         </div>
 
         {/* Interactive Form Card */}
-        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 sm:p-10 shadow-2xl backdrop-blur-md relative overflow-hidden group">
+        <div className="bg-[#141414] border border-white/5 rounded-[2.5rem] p-8 sm:p-10 shadow-2xl relative overflow-hidden group">
           {/* Subtle Background Glow */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors duration-700" />
           
           {!submitted ? (
             <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
               <Field>
-                <FieldLabel className="text-primary-foreground/30 font-bold text-[10px] uppercase tracking-[0.2em] mb-3 block">
+                <FieldLabel className="text-white/40 font-bold text-[11px] uppercase tracking-[0.2em] mb-4 block">
                   Email Address
                 </FieldLabel>
                 <div className="relative group/input">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-foreground/20 group-focus-within/input:text-primary-foreground/60 transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within/input:text-white/60 transition-colors" />
                   <Input 
                     type="email" 
                     required
-                    placeholder="name@company.com" 
-                    className="bg-white/5 border-white/10 text-white h-14 pl-12 rounded-2xl focus-visible:ring-primary-foreground/20 placeholder:text-white/10 transition-all hover:bg-white/[0.08]"
+                    placeholder="you@example.com" 
+                    className="bg-white/[0.03] border-white/10 text-white h-14 pl-12 rounded-2xl focus-visible:ring-white/20 placeholder:text-white/10 transition-all hover:bg-white/[0.06]"
                   />
                 </div>
               </Field>
 
               <Button 
                 disabled={loading}
-                className="w-full h-14 bg-white hover:bg-white/90 text-primary font-bold rounded-2xl transition-all shadow-xl shadow-black/20 text-base"
+                className="w-full h-14 bg-[#e5e5e5] hover:bg-white text-black font-bold rounded-2xl transition-all shadow-xl shadow-black/40 text-base"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Reset password"}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send reset link"}
               </Button>
             </form>
           ) : (
@@ -84,14 +84,14 @@ export default function ForgotPasswordPage() {
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold text-white font-headline">Check your email</h3>
-                <p className="text-primary-foreground/40 text-sm leading-relaxed">
+                <p className="text-white/40 text-sm leading-relaxed">
                   We've sent a password reset link to your email address. Please follow the instructions to reset your account.
                 </p>
               </div>
               <Button 
                 onClick={() => setSubmitted(false)}
                 variant="ghost" 
-                className="w-full h-12 rounded-xl text-primary-foreground/60 hover:text-white hover:bg-white/5 font-semibold"
+                className="w-full h-12 rounded-xl text-white/60 hover:text-white hover:bg-white/5 font-semibold"
               >
                 Try another email
               </Button>
@@ -103,7 +103,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center pt-4">
           <Link 
             href="/login" 
-            className="inline-flex items-center gap-2 text-sm font-bold text-primary-foreground/40 hover:text-white transition-colors group px-6 py-2 rounded-full hover:bg-white/5"
+            className="inline-flex items-center gap-2 text-sm font-bold text-white/40 hover:text-white transition-colors group px-6 py-2 rounded-full hover:bg-white/5"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back to sign in
