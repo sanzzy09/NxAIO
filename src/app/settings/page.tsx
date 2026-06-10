@@ -5,14 +5,27 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
-import { updateProfile } from "firebase/auth";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import { updateProfile, deleteUser } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Shield, Camera, Save, ChevronLeft, Sparkles, Bell, CreditCard, Layout } from "lucide-react";
+import { 
+  Loader2, 
+  User, 
+  Shield, 
+  Camera, 
+  Save, 
+  ChevronLeft, 
+  Sparkles, 
+  Bell, 
+  CreditCard, 
+  Layout,
+  TriangleAlert,
+  Trash2
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -22,6 +35,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import Link from 'next/link';
 import { logActivity } from '@/lib/activity';
 
@@ -34,12 +56,16 @@ const AVAILABLE_FRAMES: { id: FrameId; name: string; color: string }[] = [
   { id: 'crimson', name: 'Crimson', color: 'bg-red-600' },
 ];
 
+const CONFIRM_WORD = 'DELETE';
+
 export default function SettingsPage() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
 
   const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
   const { data: profileData, loading: profileLoading } = useDoc(userRef);
@@ -115,6 +141,38 @@ export default function SettingsPage() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!user || deleteConfirm !== CONFIRM_WORD) return;
+
+    setDeleting(true);
+    try {
+      // 1. Log the final activity
+      logActivity(db, user.uid, 'profile_update', 'Account deletion initiated.');
+
+      // 2. Delete user document from Firestore (standard practice before auth deletion)
+      if (userRef) {
+        await deleteDoc(userRef);
+      }
+
+      // 3. Delete from Firebase Auth
+      await deleteUser(user);
+
+      toast({
+        title: "Account deleted",
+        description: "Your account and data have been removed. We're sorry to see you go.",
+      });
+      router.push("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Deletion failed",
+        description: error.message || "Please re-authenticate and try again.",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -169,7 +227,7 @@ export default function SettingsPage() {
                 </div>
 
                 <form onSubmit={handleUpdate}>
-                  <TabsContent value="profile" className="p-8 sm:p-12 pt-0 space-y-10">
+                  <TabsContent value="profile" className="p-8 sm:p-12 pt-0 space-y-12">
                     <div className="space-y-4">
                       <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">
                         <Sparkles className="w-3 h-3" /> Avatar Frame
@@ -271,7 +329,7 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-4 gap-4 items-center">
                       <Button 
                         type="submit" 
                         disabled={saving}
@@ -280,6 +338,62 @@ export default function SettingsPage() {
                         {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                         Save Profile
                       </Button>
+                    </div>
+
+                    {/* Danger Zone */}
+                    <div className="pt-12 border-t border-destructive/10">
+                      <div className="bg-destructive/5 rounded-[2.5rem] border border-destructive/10 p-8 sm:p-12 space-y-6">
+                        <div className="space-y-1">
+                          <h3 className="text-xl font-bold font-headline text-destructive flex items-center gap-2">
+                            <Trash2 className="w-5 h-5" /> Danger Zone
+                          </h3>
+                          <p className="text-sm text-muted-foreground">Permanently remove your account and all of its data. This cannot be undone.</p>
+                        </div>
+
+                        <Dialog onOpenChange={() => setDeleteConfirm('')}>
+                          <DialogTrigger asChild>
+                            <Button variant="destructive" className="h-14 w-full sm:w-auto px-10 rounded-2xl font-bold shadow-xl shadow-destructive/10">
+                              Delete Account
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md rounded-[2.5rem] border-none shadow-2xl">
+                            <DialogHeader className="space-y-4">
+                              <div className="bg-destructive/10 text-destructive mb-2 flex size-12 items-center justify-center rounded-2xl">
+                                <TriangleAlert className="size-6" />
+                              </div>
+                              <DialogTitle className="text-2xl font-bold font-headline">Are you absolutely sure?</DialogTitle>
+                              <DialogDescription className="text-muted-foreground leading-relaxed">
+                                This deletes your profile, activity history, and following data. To confirm, type <span className="font-bold text-foreground">"{CONFIRM_WORD}"</span> below.
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="flex flex-col gap-3 py-4">
+                              <Label htmlFor="confirm-delete" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                                Confirm by typing {CONFIRM_WORD}
+                              </Label>
+                              <Input
+                                id="confirm-delete"
+                                value={deleteConfirm}
+                                onChange={(e) => setDeleteConfirm(e.target.value)}
+                                placeholder={CONFIRM_WORD}
+                                autoComplete="off"
+                                className="h-14 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-destructive/20 text-center font-bold tracking-widest uppercase"
+                              />
+                            </div>
+
+                            <DialogFooter>
+                              <Button
+                                variant="destructive"
+                                className="w-full h-14 rounded-2xl font-bold text-base shadow-xl shadow-destructive/10"
+                                disabled={deleteConfirm !== CONFIRM_WORD || deleting}
+                                onClick={handleDeleteAccount}
+                              >
+                                {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Delete this account"}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </div>
                   </TabsContent>
 
