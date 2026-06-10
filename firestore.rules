@@ -1,16 +1,21 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Global stats are publicly readable for the landing page hero section
-    // Re-applying this rule to ensure it is correctly deployed to the backend.
+    // Explicitly allow public read access for global platform statistics
+    // Used by the hero section on the landing page
     match /system/stats {
       allow read: if true;
-      allow write: if false; // Stats should only be updated by server-side processes or admins
+      allow write: if false; // Only manageable via admin/server processes
     }
 
-    // User profiles are only accessible by the owner
+    // Individual user profiles - restricted to owners
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Default deny for all other paths
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
