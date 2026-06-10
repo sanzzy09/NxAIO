@@ -17,7 +17,8 @@ import {
   ScanText,
   Sparkles,
   CloudUpload,
-  Eraser
+  Eraser,
+  Film
 } from "lucide-react";
 
 interface Tool {
@@ -29,6 +30,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "nimegami",
+    name: "Nimegami Explorer",
+    description: "Premium database for Anime, Live Action, and J-Dramas with Bluray support.",
+    icon: <Film className="size-6" />,
+    color: "bg-purple-50 text-purple-600"
+  },
   {
     id: "bypass",
     name: "Adlink Bypasser",

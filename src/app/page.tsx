@@ -17,6 +17,7 @@ import { AnichinExplorer } from '@/components/dashboard/AnichinExplorer';
 import { AdlinkBypasser } from '@/components/dashboard/AdlinkBypasser';
 import { FileHosting } from '@/components/dashboard/FileHosting';
 import { BackgroundRemover } from '@/components/dashboard/BackgroundRemover';
+import { NimegamiExplorer } from '@/components/dashboard/NimegamiExplorer';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -37,6 +38,7 @@ export default function Home() {
 
   const renderTool = () => {
     switch (activeTool) {
+      case "nimegami": return <NimegamiExplorer />;
       case "remover": return <BackgroundRemover />;
       case "hosting": return <FileHosting />;
       case "bypass": return <AdlinkBypasser />;
