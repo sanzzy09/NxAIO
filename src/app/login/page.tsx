@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
@@ -36,6 +37,11 @@ export default function LoginPage() {
       });
       router.push("/");
     } catch (error: any) {
+      // Don't show an error toast if the user closed the popup manually
+      if (error.code === 'auth/popup-closed-by-user') {
+        return;
+      }
+
       toast({
         variant: "destructive",
         title: "Authentication failed",

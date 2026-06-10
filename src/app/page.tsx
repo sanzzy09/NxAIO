@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useMemo } from 'react';
@@ -19,6 +20,7 @@ export default function Home() {
   const db = useFirestore();
 
   // Real-time statistics from Firestore
+  // Path: /system/stats
   const statsRef = useMemo(() => doc(db, 'system', 'stats'), [db]);
   const { data: stats, loading: statsLoading } = useDoc(statsRef);
 
@@ -68,7 +70,7 @@ export default function Home() {
                     <span className="text-xs font-bold uppercase tracking-widest opacity-60">Total Users</span>
                   </div>
                   <div className="text-4xl font-headline font-bold">
-                    {statsLoading ? "..." : (stats?.totalUsers || "1,240")}
+                    {statsLoading ? "..." : (stats?.totalUsers || "0")}
                   </div>
                   <div className="text-[10px] text-muted-foreground flex items-center gap-1">
                     <TrendingUp className="w-3 h-3 text-green-500" /> +12% from last week
@@ -81,7 +83,7 @@ export default function Home() {
                     <span className="text-xs font-bold uppercase tracking-widest opacity-60">Visitors</span>
                   </div>
                   <div className="text-4xl font-headline font-bold">
-                    {statsLoading ? "..." : (stats?.totalVisitors || "45,821")}
+                    {statsLoading ? "..." : (stats?.totalVisitors || "0")}
                   </div>
                   <div className="text-[10px] text-muted-foreground flex items-center gap-1">
                     <TrendingUp className="w-3 h-3 text-green-500" /> +5% in last 24h
@@ -95,7 +97,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-headline font-bold">
-                      {statsLoading ? "..." : (stats?.registrationsToday || "86")}
+                      {statsLoading ? "..." : (stats?.registrationsToday || "0")}
                     </span>
                     <span className="text-sm text-muted-foreground">new accounts</span>
                   </div>
