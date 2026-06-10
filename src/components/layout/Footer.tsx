@@ -88,7 +88,7 @@ export function Footer() {
         <div className="pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-medium uppercase tracking-widest text-primary-foreground/40">
           <p>© {currentYear} NxAIO Studio. All rights reserved.</p>
           <div className="flex gap-8">
-            <Link href="#" className="hover:text-primary-foreground transition-colors">Privacy Policy</Link>
+            <Link href="/privacy" className="hover:text-primary-foreground transition-colors">Privacy Policy</Link>
             <Link href="#" className="hover:text-primary-foreground transition-colors">Terms of Service</Link>
             <Link href="#" className="hover:text-primary-foreground transition-colors">Cookie Policy</Link>
           </div>
