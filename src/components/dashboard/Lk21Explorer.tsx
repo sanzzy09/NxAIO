@@ -13,26 +13,16 @@ import {
   Loader2, 
   Star, 
   Info, 
-  PlayCircle, 
-  ExternalLink,
   ChevronLeft,
-  ChevronRight,
   Film,
   Tv,
-  MonitorPlay,
-  Play,
-  Server,
-  Layers,
-  ShieldAlert,
-  Copy,
-  Check
+  Layers
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { fetchLk21 } from "@/app/actions/lk21";
-import { useToast } from "@/hooks/use-toast";
 
-type View = 'home' | 'search' | 'detail' | 'watch';
+type View = 'home' | 'search' | 'detail';
 type MediaType = 'movie' | 'series';
 
 export function Lk21Explorer() {
@@ -42,9 +32,6 @@ export function Lk21Explorer() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeServer, setActiveServer] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const { toast } = useToast();
 
   const fetchHome = async (type: MediaType) => {
     setLoading(true);
@@ -94,40 +81,11 @@ export function Lk21Explorer() {
       
       setData(res.data);
       setView('detail');
-      if (res.data.servers?.length > 0) setActiveServer(res.data.servers[0].url);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleWatchEpisode = async (slug: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetchLk21({ mode: 'watch-episode', slug });
-      if (!res.status) throw new Error(res.error);
-      
-      setData(res.data);
-      setView('watch');
-      if (res.data.servers?.length > 0) setActiveServer(res.data.servers[0].url);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const copyToClipboard = () => {
-    if (!activeServer) return;
-    navigator.clipboard.writeText(activeServer);
-    setCopied(true);
-    toast({
-      title: "Link Copied",
-      description: "Paste it in a Private Window for best results.",
-    });
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const renderGrid = (items: any[]) => (
@@ -235,93 +193,16 @@ export function Lk21Explorer() {
         </div>
       </div>
 
-      {activeTab === 'movie' ? (
-        <div className="space-y-6 pt-4 border-t border-primary/5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <MonitorPlay className="size-4 text-primary/40" />
-              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Stream Video</h4>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={copyToClipboard}
-                variant="outline"
-                className="h-10 rounded-full px-4 border-primary/5 font-bold text-[10px] uppercase tracking-widest gap-2 shadow-sm transition-all"
-              >
-                {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-                Copy Link
-              </Button>
-              {activeServer && (
-                <Button asChild className="h-10 rounded-full px-6 bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
-                  <a href={activeServer} target="_blank" rel="noreferrer" referrerPolicy="no-referrer">
-                    Open External Player <ExternalLink className="size-3" />
-                  </a>
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 group">
-             {activeServer ? (
-               <iframe 
-                src={activeServer} 
-                className="w-full h-full border-none" 
-                allowFullScreen
-                referrerPolicy="no-referrer"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
-              />
-             ) : (
-               <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 space-y-4">
-                  <PlayCircle className="size-16 opacity-20" />
-                  <p className="font-bold uppercase tracking-widest text-[10px]">Select a server below to start streaming</p>
-               </div>
-             )}
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 ml-1">Select Server</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-               {data.servers?.map((srv: any, i: number) => (
-                 <Button 
-                  key={i} 
-                  variant={activeServer === srv.url ? "default" : "outline"}
-                  onClick={() => setActiveServer(srv.url)}
-                  className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm transition-all"
-                 >
-                   <Server className="size-3 mr-2" /> {srv.server}
-                 </Button>
-               ))}
-            </div>
-          </div>
-
-          <div className="p-6 bg-secondary/30 rounded-[2rem] border border-primary/10 flex items-start gap-4 animate-fade-in-up">
-            <div className="p-2 bg-primary/5 rounded-xl">
-              <ShieldAlert className="size-5 text-primary/60" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs font-bold font-headline uppercase tracking-wider">Bypassing Domain Restrictions</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Many servers redirect to the home page to protect their content. To watch without issues: <br />
-                1. Click <span className="font-bold">"Copy Link"</span> above.<br />
-                2. Open a <span className="font-bold text-primary">Private/Incognito Window</span> in your browser.<br />
-                3. Paste the link and enjoy.
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : (
+      {activeTab === 'series' && (
         <div className="space-y-6 pt-4 border-t border-primary/5">
           <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
             <Layers className="size-4" /> Episodes List
           </h4>
           <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             {data.episodes?.map((ep: any, i: number) => (
-              <Button 
+              <div 
                 key={i} 
-                variant="outline" 
-                onClick={() => handleWatchEpisode(ep.slug)}
-                className="h-14 rounded-2xl justify-between px-6 border-primary/5 hover:bg-primary/5 hover:border-primary/20 transition-all font-bold"
+                className="h-14 rounded-2xl flex items-center justify-between px-6 border border-primary/5 bg-secondary/10 font-bold"
               >
                 <div className="flex items-center gap-4">
                    <div className="size-8 rounded-lg bg-secondary flex items-center justify-center text-[10px] font-bold font-mono">
@@ -329,135 +210,11 @@ export function Lk21Explorer() {
                    </div>
                    <span className="text-sm truncate max-w-[250px]">{ep.title || ep.label}</span>
                 </div>
-                <Play className="size-3 opacity-20" />
-              </Button>
+              </div>
             ))}
           </div>
         </div>
       )}
-    </div>
-  );
-
-  const renderWatch = () => (
-    <div className="space-y-8 animate-fade-in-up">
-      <div className="space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-           <h2 className="text-2xl font-bold font-headline leading-tight">{data.title}</h2>
-           <div className="flex gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                disabled={!data.prevEpSlug}
-                onClick={() => handleWatchEpisode(data.prevEpSlug)}
-                className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest"
-              >
-                <ChevronLeft className="size-3" /> Prev
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                disabled={!data.nextEpSlug}
-                onClick={() => handleWatchEpisode(data.nextEpSlug)}
-                className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest"
-              >
-                Next <ChevronRight className="size-3" />
-              </Button>
-           </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-           <div className="flex items-center gap-2">
-             <MonitorPlay className="size-4 text-primary/40" />
-             <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Player Control</h4>
-           </div>
-           <div className="flex gap-2">
-              <Button 
-                onClick={copyToClipboard}
-                variant="outline"
-                className="h-10 rounded-full px-4 border-primary/5 font-bold text-[10px] uppercase tracking-widest gap-2 shadow-sm transition-all"
-              >
-                {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-                Copy Link
-              </Button>
-              {activeServer && (
-                <Button asChild className="h-10 rounded-full px-6 bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105">
-                  <a href={activeServer} target="_blank" rel="noreferrer" referrerPolicy="no-referrer">
-                    Open External Player <ExternalLink className="size-3" />
-                  </a>
-                </Button>
-              )}
-           </div>
-        </div>
-
-        <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5">
-           {activeServer ? (
-             <iframe 
-                src={activeServer} 
-                className="w-full h-full border-none" 
-                allowFullScreen
-                referrerPolicy="no-referrer"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
-              />
-           ) : (
-             <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 space-y-4">
-                <Loader2 className="size-10 animate-spin opacity-20" />
-                <p className="font-bold uppercase tracking-widest text-[10px]">Loading Stream...</p>
-             </div>
-           )}
-        </div>
-        
-        <div className="space-y-4">
-          <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 ml-1">Select Server</h4>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-             {data.servers?.map((srv: any, i: number) => (
-               <Button 
-                key={i} 
-                variant={activeServer === srv.url ? "default" : "outline"}
-                onClick={() => setActiveServer(srv.url)}
-                className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm transition-all"
-               >
-                 <Server className="size-3 mr-2" /> {srv.server}
-               </Button>
-             ))}
-          </div>
-        </div>
-
-        <div className="p-6 bg-secondary/30 rounded-[2rem] border border-primary/10 flex items-start gap-4 animate-fade-in-up">
-          <div className="p-2 bg-primary/5 rounded-xl">
-            <ShieldAlert className="size-5 text-primary/60" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs font-bold font-headline uppercase tracking-wider">Avoiding Redirects</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              If the player redirects to the home page, copy the link and open it in an <span className="font-bold text-primary italic">Incognito/Private Tab</span>. This prevents the host site from tracking your session and forcing a redirect.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="pt-8 border-t border-primary/5 flex items-center justify-between">
-         <div className="flex items-center gap-3">
-            {data.poster && (
-              <div className="size-16 relative rounded-xl overflow-hidden flex-shrink-0">
-                <Image src={data.poster} alt="Poster" fill className="object-cover" unoptimized />
-              </div>
-            )}
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Currently Watching</p>
-              <p className="text-sm font-bold font-headline">Season {data.season || "-"} · Episode {data.episode || "-"}</p>
-            </div>
-         </div>
-         <Button 
-          variant="ghost" 
-          className="text-[10px] font-bold uppercase tracking-widest gap-2"
-          onClick={() => handleDetail(data.seriesSlug)}
-         >
-           Series Details <ExternalLink className="size-3" />
-         </Button>
-      </div>
     </div>
   );
 
@@ -470,8 +227,8 @@ export function Lk21Explorer() {
               <Clapperboard className="size-6" />
             </div>
             <div>
-              <CardTitle className="font-headline text-2xl">LK21 Explorer</CardTitle>
-              <CardDescription>Premium movie & drama streaming control center.</CardDescription>
+              <CardTitle className="font-headline text-2xl">LK21 Directory</CardTitle>
+              <CardDescription>Premium movie & drama info control center.</CardDescription>
             </div>
           </div>
 
@@ -539,10 +296,10 @@ export function Lk21Explorer() {
               </div>
             )}
             {view === 'detail' && renderDetail()}
-            {view === 'watch' && renderWatch()}
           </div>
         )}
       </CardContent>
     </Card>
   );
 }
+
