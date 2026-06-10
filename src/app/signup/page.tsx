@@ -3,10 +3,10 @@
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
 import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { useAuth, useFirestore } from "@/firebase";
+import { useAuth, useFirestore, useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -30,9 +30,16 @@ const GithubIcon = (
 export default function SignUpPage() {
   const auth = useAuth();
   const db = useFirestore();
+  const { user, loading: authLoading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/");
+    }
+  }, [user, authLoading, router]);
 
   const initUserProfile = async (uid: string, email: string, displayName: string, photoURL: string) => {
     const userRef = doc(db, "users", uid);
@@ -127,6 +134,10 @@ export default function SignUpPage() {
     { label: "Google", icon: GoogleIcon, onClick: handleGoogleSignIn },
     { label: "GitHub", icon: GithubIcon, href: "#" },
   ];
+
+  if (authLoading || user) {
+    return null; // Or a loading spinner
+  }
 
   return (
     <AuthLayout
