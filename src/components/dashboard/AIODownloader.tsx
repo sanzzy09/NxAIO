@@ -15,7 +15,8 @@ import {
   ExternalLink,
   Info,
   CheckCircle2,
-  Download
+  Download,
+  Video
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -23,9 +24,9 @@ import { fetchSnapVideo } from "@/app/actions/downloader";
 
 interface MediaItem {
   url: string;
-  quality?: string;
-  type?: string;
-  extension?: string;
+  quality?: string | null;
+  type?: 'video' | 'audio' | 'image' | string;
+  ext?: string;
 }
 
 interface SnapVideoResult {
@@ -36,8 +37,9 @@ interface SnapVideoResult {
     name?: string;
     avatar?: string;
   };
-  medias?: MediaItem[];
+  media?: MediaItem[];
   hashtags?: string[];
+  platform?: string;
 }
 
 export function AIODownloader() {
@@ -132,7 +134,7 @@ export function AIODownloader() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md" />
-                      <span className="text-white text-xs font-bold uppercase tracking-widest">{result.author?.name || "Content Creator"}</span>
+                      <span className="text-white text-xs font-bold uppercase tracking-widest">{result.author?.name || result.platform || "Content Creator"}</span>
                     </div>
                   </div>
                 </div>
@@ -141,10 +143,12 @@ export function AIODownloader() {
               {/* Info & Downloads Column */}
               <div className="md:col-span-7 space-y-6">
                 <div className="space-y-2">
-                  <h3 className="text-xl font-bold font-headline">{result.title || "Untitled Media"}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {result.description || "No description provided for this content."}
-                  </p>
+                  <h3 className="text-xl font-bold font-headline leading-tight">{result.title || "Untitled Media"}</h3>
+                  {result.description && (
+                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                      {result.description}
+                    </p>
+                  )}
                 </div>
 
                 {result.hashtags && result.hashtags.length > 0 && (
@@ -163,10 +167,10 @@ export function AIODownloader() {
                   </h4>
                   
                   <div className="grid grid-cols-1 gap-3">
-                    {result.medias?.map((media, idx) => {
-                      const isAudio = media.type === 'audio' || media.extension === 'mp3';
-                      const isVideo = media.type === 'video' || media.extension === 'mp4';
-                      const Icon = isAudio ? Music : isVideo ? PlayCircle : ImageIcon;
+                    {result.media?.map((media, idx) => {
+                      const isAudio = media.type === 'audio' || media.ext === 'mp3';
+                      const isVideo = media.type === 'video' || media.ext === 'mp4';
+                      const Icon = isAudio ? Music : isVideo ? Video : ImageIcon;
                       
                       return (
                         <div key={idx} className="flex gap-2">
@@ -184,8 +188,12 @@ export function AIODownloader() {
                                   <Icon className="w-4 h-4" />
                                 </div>
                                 <div className="text-left">
-                                  <span className="block text-sm">{media.quality || media.extension?.toUpperCase() || "Media Content"}</span>
-                                  <span className="block text-[10px] text-muted-foreground font-medium opacity-60">Source File {media.extension}</span>
+                                  <span className="block text-sm">
+                                    {media.type?.toUpperCase()} {media.quality ? `- ${media.quality}` : ''}
+                                  </span>
+                                  <span className="block text-[10px] text-muted-foreground font-medium opacity-60">
+                                    Format: {media.ext?.toUpperCase() || 'Unknown'}
+                                  </span>
                                 </div>
                               </div>
                               <ExternalLink className="w-4 h-4 opacity-20 group-hover:opacity-100 transition-opacity" />
