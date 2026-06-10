@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useRef, useMemo } from 'react';
@@ -49,6 +48,7 @@ export function FileHosting() {
   const db = useFirestore();
   const { toast } = useToast();
   
+  const [activeTab, setActiveTab] = useState("upload");
   const [files, setFiles] = useState<File[]>([]);
   const [days, setDays] = useState("7");
   const [extendOnView, setExtendOnView] = useState(false);
@@ -145,7 +145,14 @@ export function FileHosting() {
     try {
       const res = await getBucket(slug);
       if (!res.status) throw new Error(res.error);
+      
       setResult(res.data);
+      setActiveTab("upload"); // Switch to result view
+      
+      toast({
+        title: "Bucket Retrieved",
+        description: `Loaded assets from bucket ${slug}.`,
+      });
     } catch (err: any) {
       setError("Failed to retrieve bucket data. It may have expired.");
     } finally {
@@ -198,10 +205,10 @@ export function FileHosting() {
       </CardHeader>
       
       <CardContent className="p-8 sm:p-10 pt-0 space-y-8">
-        <Tabs defaultValue="upload" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-secondary/30 p-1 rounded-full border border-primary/5 mb-8 grid grid-cols-2 max-w-[400px]">
             <TabsTrigger value="upload" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all">
-              <CloudUpload className="size-3" /> New Upload
+              <CloudUpload className="size-3" /> {result ? "View Assets" : "New Upload"}
             </TabsTrigger>
             <TabsTrigger value="history" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all">
               <History className="size-3" /> My History
