@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState } from 'react';
@@ -17,9 +16,9 @@ import {
   Info,
   CheckCircle2
 } from "lucide-react";
-import axios from "axios";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
+import { fetchSnapVideo } from "@/app/actions/downloader";
 
 interface MediaItem {
   url: string;
@@ -46,9 +45,6 @@ export function AIODownloader() {
   const [result, setResult] = useState<SnapVideoResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const API = "https://api.rifkyshre.biz.id";
-  const ROUTE = "/scrape/snapvideo";
-
   const handleProcess = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
@@ -58,17 +54,8 @@ export function AIODownloader() {
     setResult(null);
 
     try {
-      const res = await axios.post(
-        `${API}${ROUTE}`,
-        { url },
-        {
-          timeout: 45000,
-          validateStatus: () => true,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      const body = res.data;
+      const body = await fetchSnapVideo(url);
+      
       if (!body?.status) {
         throw new Error(body?.error ?? "Failed to extract media content.");
       }
