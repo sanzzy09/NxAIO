@@ -50,9 +50,10 @@ function parseList($: cheerio.CheerioAPI) {
 
 function normalizeUrl(url: string | undefined, base: string) {
   if (!url) return '';
+  if (url.startsWith('http')) return url;
   if (url.startsWith('//')) return `https:${url}`;
   if (url.startsWith('/')) return `${base}${url}`;
-  return url;
+  return `${base}/${url}`;
 }
 
 export async function fetchLk21(input: { mode: string; query?: string; slug?: string; page?: number }) {
@@ -206,7 +207,6 @@ function parseEpisodeWatch($: cheerio.CheerioAPI, baseDomain: string) {
   const seriesSlug = meta.slug;
   let prevEpSlug = null;
   if (meta.current_eps > 1 && seriesSlug) {
-    // Attempting to guess previous episode slug
     prevEpSlug = `${seriesSlug}-episode-${meta.current_eps - 1}`;
   }
   

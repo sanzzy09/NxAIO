@@ -1,12 +1,12 @@
 
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Clapperboard, 
   Search, 
@@ -23,13 +23,14 @@ import {
   Play,
   Server,
   Layers,
-  Calendar,
-  AlertCircle,
-  ShieldAlert
+  ShieldAlert,
+  Copy,
+  Check
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { fetchLk21 } from "@/app/actions/lk21";
+import { useToast } from "@/hooks/use-toast";
 
 type View = 'home' | 'search' | 'detail' | 'watch';
 type MediaType = 'movie' | 'series';
@@ -41,7 +42,9 @@ export function Lk21Explorer() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeServer, setActiveTabServer] = useState<string | null>(null);
+  const [activeServer, setActiveServer] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
 
   const fetchHome = async (type: MediaType) => {
     setLoading(true);
@@ -91,7 +94,7 @@ export function Lk21Explorer() {
       
       setData(res.data);
       setView('detail');
-      if (res.data.servers?.length > 0) setActiveTabServer(res.data.servers[0].url);
+      if (res.data.servers?.length > 0) setActiveServer(res.data.servers[0].url);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -108,12 +111,23 @@ export function Lk21Explorer() {
       
       setData(res.data);
       setView('watch');
-      if (res.data.servers?.length > 0) setActiveTabServer(res.data.servers[0].url);
+      if (res.data.servers?.length > 0) setActiveServer(res.data.servers[0].url);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyToClipboard = () => {
+    if (!activeServer) return;
+    navigator.clipboard.writeText(activeServer);
+    setCopied(true);
+    toast({
+      title: "Link Copied",
+      description: "Paste it in a Private Window for best results.",
+    });
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const renderGrid = (items: any[]) => (
@@ -223,18 +237,28 @@ export function Lk21Explorer() {
 
       {activeTab === 'movie' ? (
         <div className="space-y-6 pt-4 border-t border-primary/5">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <MonitorPlay className="size-4 text-primary/40" />
               <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Stream Video</h4>
             </div>
-            {activeServer && (
-              <Button asChild className="h-10 rounded-full px-6 bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
-                <a href={activeServer} target="_blank" rel="noopener noreferrer">
-                  Open External Player <ExternalLink className="size-3" />
-                </a>
+            <div className="flex gap-2">
+              <Button 
+                onClick={copyToClipboard}
+                variant="outline"
+                className="h-10 rounded-full px-4 border-primary/5 font-bold text-[10px] uppercase tracking-widest gap-2 shadow-sm transition-all"
+              >
+                {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                Copy Link
               </Button>
-            )}
+              {activeServer && (
+                <Button asChild className="h-10 rounded-full px-6 bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
+                  <a href={activeServer} target="_blank" rel="noreferrer" referrerPolicy="no-referrer">
+                    Open External Player <ExternalLink className="size-3" />
+                  </a>
+                </Button>
+              )}
+            </div>
           </div>
           
           <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 group">
@@ -243,6 +267,7 @@ export function Lk21Explorer() {
                 src={activeServer} 
                 className="w-full h-full border-none" 
                 allowFullScreen
+                referrerPolicy="no-referrer"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
               />
@@ -261,7 +286,7 @@ export function Lk21Explorer() {
                  <Button 
                   key={i} 
                   variant={activeServer === srv.url ? "default" : "outline"}
-                  onClick={() => setActiveTabServer(srv.url)}
+                  onClick={() => setActiveServer(srv.url)}
                   className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm transition-all"
                  >
                    <Server className="size-3 mr-2" /> {srv.server}
@@ -275,9 +300,12 @@ export function Lk21Explorer() {
               <ShieldAlert className="size-5 text-primary/60" />
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-bold font-headline uppercase tracking-wider">Troubleshooting Connection</p>
+              <p className="text-xs font-bold font-headline uppercase tracking-wider">Bypassing Domain Restrictions</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                If the player shows a <span className="font-bold">"Refused to connect"</span> or broken file icon, this is due to strict security policies from the streaming host. Please use the <span className="font-bold text-primary">"Open External Player"</span> button above to watch the content directly.
+                Many servers redirect to the home page to protect their content. To watch without issues: <br />
+                1. Click <span className="font-bold">"Copy Link"</span> above.<br />
+                2. Open a <span className="font-bold text-primary">Private/Incognito Window</span> in your browser.<br />
+                3. Paste the link and enjoy.
               </p>
             </div>
           </div>
@@ -319,8 +347,8 @@ export function Lk21Explorer() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                disabled={!data.prevEp}
-                onClick={() => handleWatchEpisode(data.prevEp!.split('/').filter(Boolean).pop()!)}
+                disabled={!data.prevEpSlug}
+                onClick={() => handleWatchEpisode(data.prevEpSlug)}
                 className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest"
               >
                 <ChevronLeft className="size-3" /> Prev
@@ -328,8 +356,8 @@ export function Lk21Explorer() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                disabled={!data.nextEp}
-                onClick={() => handleWatchEpisode(data.nextEp!.split('/').filter(Boolean).pop()!)}
+                disabled={!data.nextEpSlug}
+                onClick={() => handleWatchEpisode(data.nextEpSlug)}
                 className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest"
               >
                 Next <ChevronRight className="size-3" />
@@ -339,18 +367,28 @@ export function Lk21Explorer() {
       </div>
 
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
            <div className="flex items-center gap-2">
              <MonitorPlay className="size-4 text-primary/40" />
              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Player Control</h4>
            </div>
-           {activeServer && (
-             <Button asChild className="h-10 rounded-full px-6 bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105">
-                <a href={activeServer} target="_blank" rel="noopener noreferrer">
-                  Open External Player <ExternalLink className="size-3" />
-                </a>
-             </Button>
-           )}
+           <div className="flex gap-2">
+              <Button 
+                onClick={copyToClipboard}
+                variant="outline"
+                className="h-10 rounded-full px-4 border-primary/5 font-bold text-[10px] uppercase tracking-widest gap-2 shadow-sm transition-all"
+              >
+                {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                Copy Link
+              </Button>
+              {activeServer && (
+                <Button asChild className="h-10 rounded-full px-6 bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-105">
+                  <a href={activeServer} target="_blank" rel="noreferrer" referrerPolicy="no-referrer">
+                    Open External Player <ExternalLink className="size-3" />
+                  </a>
+                </Button>
+              )}
+           </div>
         </div>
 
         <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5">
@@ -359,6 +397,7 @@ export function Lk21Explorer() {
                 src={activeServer} 
                 className="w-full h-full border-none" 
                 allowFullScreen
+                referrerPolicy="no-referrer"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
               />
@@ -377,7 +416,7 @@ export function Lk21Explorer() {
                <Button 
                 key={i} 
                 variant={activeServer === srv.url ? "default" : "outline"}
-                onClick={() => setActiveTabServer(srv.url)}
+                onClick={() => setActiveServer(srv.url)}
                 className="h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border-primary/5 shadow-sm transition-all"
                >
                  <Server className="size-3 mr-2" /> {srv.server}
@@ -391,9 +430,9 @@ export function Lk21Explorer() {
             <ShieldAlert className="size-5 text-primary/60" />
           </div>
           <div className="space-y-1">
-            <p className="text-xs font-bold font-headline uppercase tracking-wider">Connection Trouble?</p>
+            <p className="text-xs font-bold font-headline uppercase tracking-wider">Avoiding Redirects</p>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              If the player says <span className="font-bold italic">"refused to connect"</span>, it means the host is blocking iframe embedding. Use the <span className="font-bold text-primary">"Open External Player"</span> button above to bypass this.
+              If the player redirects to the home page, copy the link and open it in an <span className="font-bold text-primary italic">Incognito/Private Tab</span>. This prevents the host site from tracking your session and forcing a redirect.
             </p>
           </div>
         </div>
