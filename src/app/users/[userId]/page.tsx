@@ -63,7 +63,7 @@ export default function PublicProfilePage() {
             {/* Avatar - overlapping the banner */}
             <div className="absolute -top-16 left-8">
               <Avatar className="w-32 h-32 border-4 border-card shadow-2xl">
-                <AvatarImage src={profile.photoURL || undefined} unoptimized />
+                <AvatarImage src={profile.photoURL || undefined} />
                 <AvatarFallback className="text-3xl bg-primary/5">
                   {profile.displayName?.charAt(0) || "U"}
                 </AvatarFallback>

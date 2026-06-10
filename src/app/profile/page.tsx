@@ -133,7 +133,7 @@ export default function ProfilePage() {
             <div className="flex flex-col items-center text-center space-y-4 p-8 bg-card border border-primary/5 rounded-[2.5rem] shadow-sm">
               <div className="relative group">
                 <Avatar className="w-32 h-32 border-4 border-background shadow-2xl">
-                  <AvatarImage src={formData.photoURL || user.photoURL || undefined} unoptimized />
+                  <AvatarImage src={formData.photoURL || user.photoURL || undefined} />
                   <AvatarFallback className="text-3xl bg-primary/5">
                     {formData.displayName?.charAt(0) || user.email?.charAt(0)}
                   </AvatarFallback>
