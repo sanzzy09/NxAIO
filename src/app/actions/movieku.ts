@@ -52,7 +52,14 @@ export async function fetchMovieku(input: { mode: 'search' | 'detail'; query?: s
 
       const title = $('h1').first().text().trim();
       const synopsis = $('.entry-content p').first().text().trim();
-      const poster = $('img[src*="wp-content/uploads"]').first().attr('src');
+      
+      // Improved poster selection
+      const posterImg = $('.post-thumbnail img, .thumb img, img[src*="wp-content/uploads"]').first();
+      let poster = posterImg.attr('data-src') || posterImg.attr('src') || null;
+      
+      if (poster && poster.startsWith('/')) {
+        poster = `${BASE_URL}${poster}`;
+      }
 
       const detail: any = {};
       $('ul li').each((_, el) => {

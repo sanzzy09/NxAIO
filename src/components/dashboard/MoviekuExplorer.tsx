@@ -61,14 +61,21 @@ export function MoviekuExplorer() {
     }
   };
 
-  const handleDetail = async (url: string) => {
+  const handleDetail = async (item: any) => {
     setLoading(true);
     setError(null);
     setActiveVideo(null);
     try {
-      const res = await fetchMovieku({ mode: 'detail', url });
+      const res = await fetchMovieku({ mode: 'detail', url: item.url });
       if (!res.status) throw new Error(res.error);
-      setSelectedMedia(res.data);
+      
+      // If scraper missed the poster, use the thumbnail from search results
+      const mediaData = {
+        ...res.data,
+        poster: res.data.poster || item.thumbnail
+      };
+      
+      setSelectedMedia(mediaData);
       setView('detail');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
@@ -98,7 +105,7 @@ export function MoviekuExplorer() {
       {results.map((item, i) => (
         <div 
           key={i} 
-          onClick={() => handleDetail(item.url)}
+          onClick={() => handleDetail(item)}
           className="group cursor-pointer text-left bg-secondary/20 border border-primary/5 rounded-[2.5rem] overflow-hidden hover:border-primary/20 transition-all hover:shadow-xl relative"
         >
           <div className="relative aspect-[2/3] w-full bg-black/5">
@@ -344,7 +351,7 @@ export function MoviekuExplorer() {
             </div>
             <div>
               <CardTitle className="font-headline text-3xl tracking-tight">Movieku Explorer</CardTitle>
-              <CardDescription className="text-sm font-medium">Premium movie directory with multi-quality mirrors.</CardDescription>
+              <CardDescription className="text-sm font-medium">Premium movie directory with high-speed download mirrors and streaming.</CardDescription>
             </div>
           </div>
 
