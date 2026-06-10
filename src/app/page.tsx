@@ -3,11 +3,9 @@
 import React, { useState, useMemo } from 'react';
 import { ToolHub } from '@/components/dashboard/ToolHub';
 import { AIAssistant } from '@/components/dashboard/AIAssistant';
-import { ImageOptimizer } from '@/components/dashboard/ImageOptimizer';
 import { SnippetManager } from '@/components/dashboard/SnippetManager';
 import { LivePreviewer } from '@/components/dashboard/LivePreviewer';
 import { AIODownloader } from '@/components/dashboard/AIODownloader';
-import { ImageUpscaler } from '@/components/dashboard/ImageUpscaler';
 import { AnimeExplorer } from '@/components/dashboard/AnimeExplorer';
 import { Lk21Explorer } from '@/components/dashboard/Lk21Explorer';
 import { DonghuaExplorer } from '@/components/dashboard/DonghuaExplorer';
@@ -43,11 +41,9 @@ export default function Home() {
       case "hosting": return <FileHosting />;
       case "bypass": return <AdlinkBypasser />;
       case "anichin": return <AnichinExplorer />;
-      case "optimizer": return <ImageOptimizer />;
       case "previewer": return <LivePreviewer />;
       case "snippets": return <SnippetManager />;
       case "downloader": return <AIODownloader />;
-      case "upscaler": return <ImageUpscaler />;
       case "anime": return <AnimeExplorer />;
       case "lk21": return <Lk21Explorer />;
       case "donghua": return <DonghuaExplorer />;
