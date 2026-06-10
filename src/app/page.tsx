@@ -11,7 +11,6 @@ import { ImageUpscaler } from '@/components/dashboard/ImageUpscaler';
 import { AnimeExplorer } from '@/components/dashboard/AnimeExplorer';
 import { Lk21Explorer } from '@/components/dashboard/Lk21Explorer';
 import { DonghuaExplorer } from '@/components/dashboard/DonghuaExplorer';
-import { ShinigamiExplorer } from '@/components/dashboard/ShinigamiExplorer';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -32,7 +31,6 @@ export default function Home() {
 
   const renderTool = () => {
     switch (activeTool) {
-      case "shinigami": return <ShinigamiExplorer />;
       case "optimizer": return <ImageOptimizer />;
       case "previewer": return <LivePreviewer />;
       case "snippets": return <SnippetManager />;

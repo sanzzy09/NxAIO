@@ -12,8 +12,7 @@ import {
   Maximize,
   Tv,
   Clapperboard,
-  Waves,
-  BookOpen
+  Waves
 } from "lucide-react";
 
 interface Tool {
@@ -25,13 +24,6 @@ interface Tool {
 }
 
 const tools: Tool[] = [
-  {
-    id: "shinigami",
-    name: "Shinigami Library",
-    description: "Premium manga & manhwa directory with high-speed vertical reader.",
-    icon: <BookOpen className="size-6" />,
-    color: "bg-emerald-50 text-emerald-600"
-  },
   {
     id: "donghua",
     name: "Donghua Stream Explorer",
@@ -56,7 +48,7 @@ const tools: Tool[] = [
   {
     id: "lk21",
     name: "LK21 & Drama Explorer",
-    description: "Search and stream latest movies and series via LK21.",
+    description: "Search and browse latest movies and series via LK21.",
     icon: <Clapperboard className="size-6" />,
     color: "bg-red-50 text-red-600"
   },
