@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
@@ -12,6 +12,7 @@ import {
 import { Boxes, ChevronLeft, HelpCircle } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const faqs = [
   {
@@ -42,6 +43,8 @@ const faqs = [
 ];
 
 export default function FAQPage() {
+  const [openItem, setOpenItem] = useState<string | undefined>(undefined);
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/10">
       {/* Navigation */}
@@ -79,28 +82,52 @@ export default function FAQPage() {
 
         {/* FAQ Accordion */}
         <div className="animate-fade-in-up [animation-delay:200ms]">
-          <Accordion type="single" collapsible className="space-y-4">
-            {faqs.map((faq) => (
-              <AccordionItem 
-                key={faq.number} 
-                value={`item-${faq.number}`}
-                className="border border-primary/5 bg-card/50 rounded-2xl px-2 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <AccordionTrigger className="hover:no-underline py-6 px-4">
-                  <div className="flex items-center gap-6 text-left">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold font-mono text-muted-foreground">
-                      {faq.number}
+          <Accordion 
+            type="single" 
+            collapsible 
+            value={openItem}
+            onValueChange={setOpenItem}
+            className="space-y-4"
+          >
+            {faqs.map((faq) => {
+              const itemValue = `item-${faq.number}`;
+              const isOpen = openItem === itemValue;
+              const isBlurred = openItem !== undefined && !isOpen;
+
+              return (
+                <AccordionItem 
+                  key={faq.number} 
+                  value={itemValue}
+                  className={cn(
+                    "border border-primary/5 bg-card/50 rounded-2xl px-2 shadow-sm transition-all duration-500 ease-in-out",
+                    isBlurred ? "blur-[2px] opacity-40 scale-[0.98] grayscale-[0.5]" : "blur-0 opacity-100 scale-100 grayscale-0",
+                    isOpen ? "shadow-2xl shadow-primary/10 border-primary/20 bg-card translate-y-[-4px]" : "hover:shadow-md hover:border-primary/10"
+                  )}
+                >
+                  <AccordionTrigger className="hover:no-underline py-6 px-4 group/trigger">
+                    <div className="flex items-center gap-6 text-left w-full">
+                      <div className={cn(
+                        "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-all duration-300",
+                        isOpen ? "bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/20" : "bg-secondary text-muted-foreground"
+                      )}>
+                        {faq.number}
+                      </div>
+                      <span className={cn(
+                        "font-headline font-semibold text-lg md:text-xl transition-colors duration-300",
+                        isOpen ? "text-primary" : "text-foreground group-hover/trigger:text-primary/70"
+                      )}>
+                        {faq.question}
+                      </span>
                     </div>
-                    <span className="font-headline font-semibold text-lg md:text-xl">
-                      {faq.question}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-14 pb-6 text-muted-foreground text-base leading-relaxed">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
+                  </AccordionTrigger>
+                  <AccordionContent className="px-14 pb-6 text-muted-foreground text-base leading-relaxed">
+                    <div className="animate-fade-in-up duration-500">
+                      {faq.answer}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
           </Accordion>
         </div>
 
