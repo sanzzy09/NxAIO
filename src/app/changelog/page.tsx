@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -15,6 +14,7 @@ import {
   Image as ImageIcon,
   Cpu
 } from "lucide-react";
+import { Footer } from "@/components/layout/Footer";
 import Link from 'next/link';
 
 export default function ChangelogPage() {
@@ -154,16 +154,7 @@ export default function ChangelogPage() {
         </div>
       </main>
 
-      <footer className="border-t border-primary/5 py-12 bg-secondary/10">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-muted-foreground text-xs gap-4">
-          <p>© 2025 NxAIO Engineering Studio.</p>
-          <div className="flex gap-8 font-medium">
-             <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-             <Link href="/changelog" className="text-primary">Changelog</Link>
-             <Link href="#" className="hover:text-primary transition-colors">Twitter</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

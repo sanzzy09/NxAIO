@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState } from 'react';
@@ -9,6 +8,7 @@ import { SnippetManager } from '@/components/dashboard/SnippetManager';
 import { LivePreviewer } from '@/components/dashboard/LivePreviewer';
 import { LayoutGrid, Boxes, ChevronLeft, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 
 export default function Home() {
@@ -143,45 +143,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-primary/5 py-12 mt-20 bg-card/30">
-        <div className="container mx-auto px-4">
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-              <div className="col-span-1 md:col-span-2">
-                <div className="flex items-center gap-2 mb-4">
-                  <Boxes className="w-6 h-6 text-primary" />
-                  <span className="font-headline font-bold text-xl tracking-tight">NxAIO</span>
-                </div>
-                <p className="text-muted-foreground text-sm max-w-sm">
-                  Premium tool hub designed for the next generation of creative technologists. Minimalist, fast, and AI-first.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-headline font-bold mb-4 uppercase text-xs tracking-widest text-muted-foreground">Product</h4>
-                <ul className="space-y-2 text-sm">
-                  <li><button onClick={() => setActiveTool(null)} className="hover:text-primary transition-colors">Tool Hub</button></li>
-                  <li><Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link></li>
-                  <li><Link href="/changelog" className="hover:text-primary transition-colors">Changelog</Link></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-headline font-bold mb-4 uppercase text-xs tracking-widest text-muted-foreground">Social</h4>
-                <ul className="space-y-2 text-sm">
-                  <li><button className="hover:text-primary transition-colors">Twitter / X</button></li>
-                  <li><button className="hover:text-primary transition-colors">GitHub</button></li>
-                  <li><button className="hover:text-primary transition-colors">Discord</button></li>
-                </ul>
-              </div>
-           </div>
-           <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-primary/5 text-xs text-muted-foreground">
-              <p>© 2025 NxAIO Studio. Built for speed.</p>
-              <div className="flex gap-6 mt-4 md:mt-0">
-                <button className="hover:text-primary transition-colors">Privacy Policy</button>
-                <button className="hover:text-primary transition-colors">Terms of Service</button>
-              </div>
-           </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

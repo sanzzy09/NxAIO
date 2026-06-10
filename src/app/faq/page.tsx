@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -11,6 +10,7 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Boxes, ChevronLeft, HelpCircle } from "lucide-react";
+import { Footer } from "@/components/layout/Footer";
 import Link from 'next/link';
 
 const faqs = [
@@ -119,16 +119,7 @@ export default function FAQPage() {
         </div>
       </main>
 
-      <footer className="border-t border-primary/5 py-12 bg-secondary/10 mt-12">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-muted-foreground text-xs gap-4">
-          <p>© 2025 NxAIO Engineering Studio.</p>
-          <div className="flex gap-8 font-medium">
-             <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-             <Link href="/faq" className="text-primary">FAQ</Link>
-             <Link href="/changelog" className="hover:text-primary transition-colors">Changelog</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
