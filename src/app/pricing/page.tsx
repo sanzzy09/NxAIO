@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,7 +9,7 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { Check, Zap, Shield, Globe, Users, Database } from "lucide-react";
+import { Check } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
@@ -57,22 +57,23 @@ const plans = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-white/10">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/10">
       <Navbar />
 
       <main className="container mx-auto px-4 pt-32 pb-24 max-w-7xl">
         {/* Header Section */}
         <div className="text-center space-y-6 mb-20 animate-fade-in-up">
           <div className="flex justify-center">
-            <Badge variant="outline" className="bg-white/5 border-white/10 text-white/40 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
+            <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
               Pricing
             </Badge>
           </div>
-          <h1 className="text-4xl lg:text-6xl font-bold font-headline tracking-tight leading-tight">
-            Explore plan details
+          <h1 className="text-4xl lg:text-7xl font-bold font-headline tracking-tight leading-tight">
+            Transparent <br />
+            <span className="text-muted-foreground/60">value scales.</span>
           </h1>
-          <p className="text-white/40 text-lg max-w-xl mx-auto">
-            Expand each section to see what's included in every plan.
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+            Choose the plan that fits your creative workflow.
           </p>
         </div>
 
@@ -82,24 +83,24 @@ export default function PricingPage() {
             <div 
               key={plan.name}
               className={cn(
-                "relative flex flex-col p-8 rounded-[2.5rem] bg-[#141414] border border-white/5 transition-all duration-500 hover:border-white/10 group",
-                plan.popular && "border-white/20 shadow-2xl shadow-white/5 ring-1 ring-white/10"
+                "relative flex flex-col p-8 rounded-[2.5rem] bg-card border border-primary/5 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 group",
+                plan.popular && "border-primary/20 bg-card shadow-xl ring-1 ring-primary/5"
               )}
             >
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-white text-black text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xl">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest rounded-full shadow-xl">
                   Most Popular
                 </div>
               )}
 
               <div className="space-y-2 mb-8">
                 <h3 className="text-2xl font-bold font-headline">{plan.name}</h3>
-                <p className="text-sm text-white/30 font-medium">{plan.description}</p>
+                <p className="text-sm text-muted-foreground font-medium">{plan.description}</p>
               </div>
 
               <div className="flex items-baseline gap-1 mb-10">
-                <span className="text-5xl font-bold tracking-tight">${plan.price}</span>
-                <span className="text-white/20 font-medium">/month</span>
+                <span className="text-5xl font-bold tracking-tight text-primary">${plan.price}</span>
+                <span className="text-muted-foreground/40 font-medium">/month</span>
               </div>
 
               <div className="flex-1 space-y-4">
@@ -108,15 +109,15 @@ export default function PricingPage() {
                     <AccordionItem 
                       key={idx} 
                       value={`item-${idx}`} 
-                      className="border-none bg-white/[0.03] rounded-2xl px-4 overflow-hidden"
+                      className="border-none bg-secondary/30 rounded-2xl px-4 overflow-hidden"
                     >
-                      <AccordionTrigger className="hover:no-underline py-4 text-xs font-bold uppercase tracking-[0.15em] text-white/40 group-data-[state=open]:text-white transition-colors">
+                      <AccordionTrigger className="hover:no-underline py-4 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground group-data-[state=open]:text-primary transition-colors">
                         {section.category}
                       </AccordionTrigger>
                       <AccordionContent className="pb-4 space-y-3">
                         {section.items.map((item, i) => (
-                          <div key={i} className="flex items-start gap-3 text-sm text-white/60 animate-fade-in-up">
-                            <Check className="w-4 h-4 text-white/40 mt-0.5" />
+                          <div key={i} className="flex items-start gap-3 text-sm text-muted-foreground animate-fade-in-up">
+                            <Check className="w-4 h-4 text-primary/40 mt-0.5" />
                             <span>{item}</span>
                           </div>
                         ))}
@@ -130,26 +131,26 @@ export default function PricingPage() {
                 className={cn(
                   "w-full h-14 rounded-2xl mt-10 font-bold text-sm transition-all duration-300",
                   plan.popular 
-                    ? "bg-white text-black hover:bg-white/90 shadow-xl shadow-white/5" 
-                    : "bg-white/5 border border-white/10 text-white hover:bg-white/10"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/10" 
+                    : "bg-secondary text-secondary-foreground border border-primary/5 hover:bg-secondary/80"
                 )}
               >
-                Get started with {plan.name}
+                {plan.popular ? "Start free trial" : `Join ${plan.name}`}
               </Button>
             </div>
           ))}
         </div>
 
         {/* Enterprise Callout */}
-        <div className="mt-20 p-12 rounded-[3rem] bg-white/5 border border-white/5 text-center space-y-6 animate-fade-in-up [animation-delay:400ms]">
-          <h3 className="text-2xl font-bold font-headline">Need something more custom?</h3>
-          <p className="text-white/40 text-sm max-w-md mx-auto">
-            We offer custom solutions for large-scale operations requiring high-volume throughput and specialized security.
+        <div className="mt-20 p-12 rounded-[3rem] bg-primary text-primary-foreground text-center space-y-6 animate-fade-in-up [animation-delay:400ms]">
+          <h3 className="text-2xl font-bold font-headline">Need a custom scale?</h3>
+          <p className="text-primary-foreground/60 text-sm max-w-md mx-auto">
+            We provide bespoke infrastructure for high-throughput studios and enterprise teams.
           </p>
           <div className="flex justify-center gap-4">
-            <Button variant="link" className="text-white font-bold h-auto py-0">Contact Sales</Button>
-            <span className="text-white/10">•</span>
-            <Button variant="link" className="text-white font-bold h-auto py-0">View Enterprise Docs</Button>
+            <Button variant="link" className="text-primary-foreground font-bold h-auto py-0">Talk to Sales</Button>
+            <span className="text-primary-foreground/10">•</span>
+            <Button variant="link" className="text-primary-foreground font-bold h-auto py-0">Custom API Pricing</Button>
           </div>
         </div>
       </main>
