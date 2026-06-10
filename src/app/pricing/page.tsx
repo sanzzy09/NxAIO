@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -9,7 +10,7 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { Check } from "lucide-react";
+import { Check, Mail, Zap, Shield } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
@@ -17,39 +18,47 @@ import { cn } from "@/lib/utils";
 const plans = [
   {
     name: "Starter",
-    description: "For individuals",
-    price: "9",
+    description: "For individuals & trial",
+    price: "0",
     features: [
       {
+        category: "Temp-Mail Limits",
+        items: ["3 new identities per day", "Real-time OTP extraction", "Browser session persistence"]
+      },
+      {
         category: "Core Features",
-        items: ["5 projects", "5GB storage", "Basic analytics", "Community support"]
+        items: ["Basic AI tools access", "5GB hosting storage", "Community support"]
       }
     ]
   },
   {
     name: "Pro",
-    description: "For professionals",
+    description: "For frequent explorers",
     price: "29",
     popular: true,
     features: [
       {
-        category: "Core Features",
-        items: ["Unlimited projects", "50GB storage", "Advanced analytics", "Priority email support", "Custom domains"]
+        category: "Temp-Mail Limits",
+        items: ["25 new identities per day", "Priority mailbox nodes", "Extended session life"]
+      },
+      {
+        category: "Advanced Features",
+        items: ["Full AI suite access", "50GB hosting storage", "Priority email support", "Custom avatar frames"]
       }
     ]
   },
   {
-    name: "Enterprise",
-    description: "For organizations",
+    name: "Sultan",
+    description: "For power users",
     price: "99",
     features: [
       {
-        category: "Core Features",
-        items: ["Unlimited storage", "SLA guarantee", "Dedicated account manager"]
+        category: "Temp-Mail Limits",
+        items: ["50 new identities per day", "Private dedicated nodes", "Unlimited history sync"]
       },
       {
-        category: "Collaboration",
-        items: ["Unlimited members", "Role-based access", "Single Sign-On (SSO)", "Team billing"]
+        category: "Exclusive Access",
+        items: ["Unlimited hosting storage", "Beta tool early access", "Dedicated account manager", "SSO & Team billing"]
       }
     ]
   }
@@ -65,15 +74,15 @@ export default function PricingPage() {
         <div className="text-center space-y-6 mb-20 animate-fade-in-up">
           <div className="flex justify-center">
             <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
-              Pricing
+              Pricing & Tiers
             </Badge>
           </div>
           <h1 className="text-4xl lg:text-7xl font-bold font-headline tracking-tight leading-tight">
-            Transparent <br />
-            <span className="text-muted-foreground/60">value scales.</span>
+            Choose your <br />
+            <span className="text-muted-foreground/60">power level.</span>
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Choose the plan that fits your creative workflow.
+            Scale your daily identities and tool capabilities based on your needs.
           </p>
         </div>
 
@@ -135,23 +144,29 @@ export default function PricingPage() {
                     : "bg-secondary text-secondary-foreground border border-primary/5 hover:bg-secondary/80"
                 )}
               >
-                {plan.popular ? "Start free trial" : `Join ${plan.name}`}
+                {plan.name === "Starter" ? "Start Now" : `Upgrade to ${plan.name}`}
               </Button>
             </div>
           ))}
         </div>
 
-        {/* Enterprise Callout */}
-        <div className="mt-20 p-12 rounded-[3rem] bg-primary text-primary-foreground text-center space-y-6 animate-fade-in-up [animation-delay:400ms]">
-          <h3 className="text-2xl font-bold font-headline">Need a custom scale?</h3>
-          <p className="text-primary-foreground/60 text-sm max-w-md mx-auto">
-            We provide bespoke infrastructure for high-throughput studios and enterprise teams.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button variant="link" className="text-primary-foreground font-bold h-auto py-0">Talk to Sales</Button>
-            <span className="text-primary-foreground/10">•</span>
-            <Button variant="link" className="text-primary-foreground font-bold h-auto py-0">Custom API Pricing</Button>
-          </div>
+        {/* Support Section */}
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+           <div className="p-8 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 flex flex-col items-center text-center gap-4">
+              <Mail className="size-8 text-indigo-600" />
+              <h4 className="font-headline font-bold text-lg">Identity Freedom</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">Scale up to 50 identities per day with our Sultan package for maximum workflow efficiency.</p>
+           </div>
+           <div className="p-8 rounded-[2rem] bg-yellow-500/5 border border-yellow-500/10 flex flex-col items-center text-center gap-4">
+              <Zap className="size-8 text-yellow-600" />
+              <h4 className="font-headline font-bold text-lg">Instant Logic</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">Our premium tiers include higher AI quotas and faster processing for all logic chains.</p>
+           </div>
+           <div className="p-8 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 flex flex-col items-center text-center gap-4">
+              <Shield className="size-8 text-emerald-600" />
+              <h4 className="font-headline font-bold text-lg">Pro Security</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">Encrypted data processing and private nodes ensure your creative work remains yours.</p>
+           </div>
         </div>
       </main>
 

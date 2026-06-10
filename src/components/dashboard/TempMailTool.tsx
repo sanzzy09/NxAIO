@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,10 @@ import {
   Search,
   KeyRound,
   MailQuestion,
-  X
+  X,
+  Lock,
+  Zap,
+  AlertTriangle
 } from "lucide-react";
 import { initMailbox, checkMessages } from "@/app/actions/temp-mail";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +36,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useUser, useFirestore, useDoc } from "@/firebase";
+import { doc, updateDoc, setDoc } from "firebase/firestore";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface TempMessage {
   id: string;
@@ -44,7 +51,18 @@ interface TempMessage {
   code: string | null;
 }
 
+const ROLE_LIMITS = {
+  free: 3,
+  pro: 25,
+  sultan: 50
+};
+
 export function TempMailTool() {
+  const { user } = useUser();
+  const db = useFirestore();
+  const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
+  const { data: profile } = useDoc(userRef);
+
   const [address, setAddress] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [cookies, setCookies] = useState<any>(null);
@@ -57,7 +75,62 @@ export function TempMailTool() {
   
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const startNewSession = async () => {
+  const role = (profile?.role as keyof typeof ROLE_LIMITS) || 'free';
+  const limit = ROLE_LIMITS[role];
+  const usage = profile?.tempMailUsage || { count: 0, lastReset: new Date().toISOString().split('T')[0] };
+
+  // Check if reset is needed (daily)
+  const isResetNeeded = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return usage.lastReset !== today;
+  }, [usage.lastReset]);
+
+  const startNewSession = async (force = false) => {
+    // 1. Check if we have a persisted session and aren't forcing a new one
+    if (!force) {
+      const savedAddress = sessionStorage.getItem('nx_temp_address');
+      const savedToken = sessionStorage.getItem('nx_temp_token');
+      const savedCookies = sessionStorage.getItem('nx_temp_cookies');
+      
+      if (savedAddress && savedToken && savedCookies) {
+        setAddress(savedAddress);
+        setToken(savedToken);
+        setCookies(JSON.parse(savedCookies));
+        setLastCheck(new Date());
+        return;
+      }
+    }
+
+    // 2. Limit Check for "New Identity"
+    if (force && userRef) {
+      const today = new Date().toISOString().split('T')[0];
+      const currentCount = isResetNeeded ? 0 : usage.count;
+
+      if (currentCount >= limit) {
+        toast({
+          variant: "warning",
+          title: "Limit Reached",
+          description: `You have used your ${limit} daily identities. Upgrade for more.`,
+        });
+        return;
+      }
+
+      // Update Usage in Firestore
+      const newUsage = {
+        count: currentCount + 1,
+        lastReset: today
+      };
+
+      updateDoc(userRef, { tempMailUsage: newUsage }).catch(e => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'write',
+          requestResourceData: { tempMailUsage: newUsage }
+        }));
+      });
+    }
+
+    // 3. Provision Mailbox
     setLoading(true);
     setMessages([]);
     setLastCheck(null);
@@ -70,9 +143,14 @@ export function TempMailTool() {
       setCookies(res.data.cookies);
       setLastCheck(new Date());
       
+      // Persist to session storage
+      sessionStorage.setItem('nx_temp_address', res.data.mailbox);
+      sessionStorage.setItem('nx_temp_token', res.data.token);
+      sessionStorage.setItem('nx_temp_cookies', JSON.stringify(res.data.cookies));
+      
       toast({
         title: "Mailbox Ready",
-        description: "Your temporary identity has been provisioned.",
+        description: force ? "Identity rotated successfully." : "Your temporary identity has been provisioned.",
       });
     } catch (err: any) {
       toast({
@@ -94,9 +172,9 @@ export function TempMailTool() {
       if (res.status) {
         setMessages(res.data.messages);
         setCookies(res.data.cookies);
+        sessionStorage.setItem('nx_temp_cookies', JSON.stringify(res.data.cookies));
         setLastCheck(new Date());
         
-        // Notify if new messages arrived (simplistic check)
         if (res.data.messages.length > messages.length) {
           toast({
             title: "New Mail Received",
@@ -111,12 +189,10 @@ export function TempMailTool() {
     }
   }, [token, cookies, polling, messages.length, toast]);
 
-  // Initial load
   useEffect(() => {
-    startNewSession();
+    startNewSession(false);
   }, []);
 
-  // Polling setup
   useEffect(() => {
     if (address) {
       pollTimerRef.current = setInterval(() => {
@@ -145,6 +221,8 @@ export function TempMailTool() {
     });
   };
 
+  const remainingIdentities = limit - (isResetNeeded ? 0 : usage.count);
+
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
       <CardHeader className="p-8 sm:p-10 pb-6">
@@ -155,13 +233,13 @@ export function TempMailTool() {
             </div>
             <div>
               <CardTitle className="font-headline text-2xl">Disposable Temp-Mail</CardTitle>
-              <CardDescription>Anonymous mailbox with real-time monitoring and OTP extraction.</CardDescription>
+              <CardDescription>Anonymous mailbox with real-time monitoring and tiered identity limits.</CardDescription>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
-              onClick={startNewSession} 
+              onClick={() => startNewSession(true)} 
               disabled={loading}
               className="rounded-full gap-2 border-primary/5 font-bold text-[10px] uppercase tracking-widest hover:bg-destructive/5 hover:text-destructive"
             >
@@ -177,10 +255,30 @@ export function TempMailTool() {
             </Button>
           </div>
         </div>
+
+        {/* Limit Tracker */}
+        <div className="mt-6 flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-primary/5">
+           <div className="flex items-center gap-3">
+              <div className={cn(
+                "p-2 rounded-lg flex items-center justify-center",
+                role === 'sultan' ? "bg-yellow-500/10 text-yellow-600" : role === 'pro' ? "bg-indigo-500/10 text-indigo-600" : "bg-muted text-muted-foreground"
+              )}>
+                 <Zap className="size-4" />
+              </div>
+              <div className="space-y-0.5">
+                 <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Your Tier: {role}</p>
+                 <p className="text-xs font-bold font-headline">{remainingIdentities} daily identities remaining</p>
+              </div>
+           </div>
+           {role === 'free' && (
+             <Button variant="link" asChild className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">
+                <a href="/pricing">Upgrade to Pro</a>
+             </Button>
+           )}
+        </div>
       </CardHeader>
       
       <CardContent className="p-8 sm:p-10 pt-0 space-y-10">
-        {/* Address Display */}
         <div className="p-8 rounded-[2.5rem] bg-secondary/30 border border-primary/5 space-y-6 relative overflow-hidden group">
            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
               <ShieldCheck className="size-24 text-indigo-600" />
@@ -221,7 +319,6 @@ export function TempMailTool() {
            </div>
         </div>
 
-        {/* Inbox Section */}
         <div className="space-y-6">
            <div className="flex items-center justify-between px-1">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
@@ -284,29 +381,22 @@ export function TempMailTool() {
                         Waiting for messages to arrive. This inbox will refresh automatically every 8 seconds.
                       </p>
                    </div>
-                   {loading && (
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-indigo-600/40 uppercase tracking-widest">
-                        <Loader2 className="size-3 animate-spin" /> Provisioning Node
-                      </div>
-                   )}
                 </div>
               )}
            </div>
         </div>
 
-        {/* Support Notice */}
         <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-4">
            <ShieldCheck className="size-5 text-indigo-500 mt-0.5 opacity-60" />
            <div className="space-y-1">
              <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600/60">Privacy Protocol</p>
              <p className="text-[11px] text-muted-foreground leading-relaxed">
-               This mailbox is strictly temporary. Content is volatile and will be permanently erased once you generate a <span className="font-bold text-indigo-600">New Identity</span> or the session expires.
+               Mailboxes are preserved for your session. Use <span className="font-bold text-indigo-600">New Identity</span> only when you need a fresh address. Identity rotations are limited by your daily quota.
              </p>
            </div>
         </div>
       </CardContent>
 
-      {/* Message Viewer Modal */}
       <Dialog open={!!selectedMsg} onOpenChange={() => setSelectedMsg(null)}>
         <DialogContent className="sm:max-w-3xl rounded-[2.5rem] border-none shadow-[0_32px_64px_rgba(0,0,0,0.2)] bg-card/95 backdrop-blur-xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
           {selectedMsg && (
