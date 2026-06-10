@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState } from 'react';
@@ -199,10 +200,10 @@ export function AnimeExplorer() {
               <ChevronLeft className="w-3 h-3" /> Back to results
             </Button>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
               {/* Poster Column */}
-              <div className="md:col-span-4 space-y-6">
-                <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5">
+              <div className="lg:col-span-4 space-y-6">
+                <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
                   {detailData.thumbnail && (
                     <Image 
                       src={detailData.thumbnail} 
@@ -218,76 +219,89 @@ export function AnimeExplorer() {
                   </div>
                 </div>
 
-                <div className="bg-secondary/20 p-6 rounded-3xl border border-primary/5 space-y-4">
-                  <h5 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Information</h5>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <span className="text-muted-foreground flex items-center gap-2"><Flag className="w-3 h-3" /> Status</span>
-                      <span className="text-orange-600">{detailData.information.status}</span>
+                <div className="bg-secondary/20 p-8 rounded-[2rem] border border-primary/5 space-y-6">
+                  <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Information</h5>
+                  <div className="grid grid-cols-1 gap-5">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                        <Flag className="w-3 h-3" /> Status
+                      </div>
+                      <span className="text-sm font-bold font-headline text-orange-600">{detailData.information.status}</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <span className="text-muted-foreground flex items-center gap-2"><PlayCircle className="w-3 h-3" /> Type</span>
-                      <span>{detailData.information.type}</span>
+                    
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                        <PlayCircle className="w-3 h-3" /> Type
+                      </div>
+                      <span className="text-sm font-bold font-headline">{detailData.information.type}</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <span className="text-muted-foreground flex items-center gap-2"><Building2 className="w-3 h-3" /> Studio</span>
-                      <span>{detailData.information.studio}</span>
+
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                        <Building2 className="w-3 h-3" /> Studio
+                      </div>
+                      <span className="text-sm font-bold font-headline leading-tight">{detailData.information.studio}</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-3 h-3" /> Released</span>
-                      <span>{detailData.information.released}</span>
+
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                        <Calendar className="w-3 h-3" /> Released
+                      </div>
+                      <span className="text-sm font-bold font-headline">{detailData.information.released}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Details Column */}
-              <div className="md:col-span-8 space-y-8">
-                <div className="space-y-4">
-                  <h2 className="text-3xl font-bold font-headline leading-tight">{detailData.title}</h2>
+              <div className="lg:col-span-8 space-y-10">
+                <div className="space-y-6">
+                  <h2 className="text-4xl lg:text-5xl font-bold font-headline leading-tight tracking-tight">{detailData.title}</h2>
                   <div className="flex flex-wrap gap-2">
                     {detailData.genres.map((genre, i) => (
-                      <Badge key={i} variant="secondary" className="bg-primary/5 text-primary/60 border-none px-3 py-1 rounded-full text-[10px] font-bold">
+                      <Badge key={i} variant="secondary" className="bg-primary/5 text-primary/60 border-none px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide">
                         {genre}
                       </Badge>
                     ))}
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 flex items-center gap-2">
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
                      <Info className="w-3 h-3" /> Synopsis
                    </h4>
-                   <p className="text-sm text-muted-foreground leading-relaxed">
+                   <p className="text-base text-muted-foreground leading-relaxed">
                      {detailData.synopsis || "No synopsis available."}
                    </p>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 flex items-center gap-2">
-                      <ListOrdered className="w-3 h-3" /> Episodes ({detailData.totalEpisode})
+                <div className="space-y-6 pt-4">
+                  <div className="flex items-center justify-between border-b border-primary/5 pb-4">
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
+                      <ListOrdered className="w-3 h-3" /> Episode List ({detailData.totalEpisode})
                     </h4>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                     {detailData.episodes.map((ep, i) => (
                       <Button 
                         key={i} 
                         variant="outline" 
                         asChild 
-                        className="h-14 rounded-2xl border-primary/5 hover:bg-orange-500/5 hover:border-orange-500/20 justify-between px-6 transition-all group"
+                        className="h-16 rounded-[1.25rem] border-primary/5 hover:bg-orange-500/5 hover:border-orange-500/20 justify-between px-6 transition-all group shadow-sm hover:shadow-md"
                       >
                         <a href={ep.url} target="_blank" rel="noopener noreferrer">
                           <div className="flex items-center gap-4">
-                             <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-[10px] font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                             <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-all">
                                {ep.episode || (detailData.episodes.length - i)}
                              </div>
-                             <span className="text-sm font-bold font-headline">Episode {ep.episode}</span>
+                             <span className="text-base font-bold font-headline">Episode {ep.episode}</span>
                           </div>
-                          <div className="flex items-center gap-3">
-                             <span className="text-[10px] text-muted-foreground opacity-60 font-medium">{ep.date}</span>
-                             <ExternalLink className="w-4 h-4 text-orange-600 opacity-20 group-hover:opacity-100 transition-opacity" />
+                          <div className="flex items-center gap-4">
+                             <span className="text-[10px] text-muted-foreground opacity-60 font-medium uppercase tracking-widest">{ep.date}</span>
+                             <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600 opacity-20 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
+                               <ExternalLink className="w-4 h-4" />
+                             </div>
                           </div>
                         </a>
                       </Button>
