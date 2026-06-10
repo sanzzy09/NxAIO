@@ -9,7 +9,6 @@ import { LivePreviewer } from '@/components/dashboard/LivePreviewer';
 import { AIODownloader } from '@/components/dashboard/AIODownloader';
 import { ImageUpscaler } from '@/components/dashboard/ImageUpscaler';
 import { AnimeExplorer } from '@/components/dashboard/AnimeExplorer';
-import { OtakudesuExplorer } from '@/components/dashboard/OtakudesuExplorer';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -36,7 +35,6 @@ export default function Home() {
       case "downloader": return <AIODownloader />;
       case "upscaler": return <ImageUpscaler />;
       case "anime": return <AnimeExplorer />;
-      case "otakudesu": return <OtakudesuExplorer />;
       case "logic": return <AIAssistant />;
       default: return null;
     }

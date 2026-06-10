@@ -10,8 +10,7 @@ import {
   ArrowRight,
   DownloadCloud,
   Maximize,
-  Tv,
-  FileVideo
+  Tv
 } from "lucide-react";
 
 interface Tool {
@@ -57,13 +56,6 @@ const tools: Tool[] = [
     description: "Explore, search, and stream anime details via AnimeXin.",
     icon: <Tv className="size-6" />,
     color: "bg-orange-50 text-orange-600"
-  },
-  {
-    id: "otakudesu",
-    name: "Otakudesu Explorer",
-    description: "Advanced anime platform for home updates, schedules, and downloads.",
-    icon: <FileVideo className="size-6" />,
-    color: "bg-blue-50 text-blue-600"
   },
   {
     id: "snippets",
