@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -23,14 +22,16 @@ import {
   X,
   Plus,
   History,
-  Trash2
+  Trash2,
+  Zap,
+  Crown
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { createMusicJob, pollMusicStatus } from "@/app/actions/remusic";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore, useCollection } from "@/firebase";
-import { doc, setDoc, collection, query, orderBy, serverTimestamp, deleteDoc } from "firebase/firestore";
+import { useUser, useFirestore, useCollection, useDoc } from "@/firebase";
+import { doc, setDoc, collection, query, orderBy, serverTimestamp, deleteDoc, updateDoc } from "firebase/firestore";
 import { logActivity } from "@/lib/activity";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -42,11 +43,20 @@ const STYLES = {
   tempo: ["Slow", "Mid-tempo", "Upbeat", "Fast"]
 };
 
+const ROLE_LIMITS = {
+  free: 5,
+  pro: 15,
+  sultan: 30
+};
+
 export function MusicGenerator() {
   const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   
+  const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
+  const { data: profile } = useDoc(userRef);
+
   const [activeTab, setActiveTab] = useState<'simple' | 'custom' | 'history'>('simple');
   const [prompt, setPrompt] = useState("");
   const [title, setTitle] = useState("");
@@ -55,6 +65,24 @@ export function MusicGenerator() {
   const [loading, setLoading] = useState(false);
   const [jobs, setJobs] = useState<any[]>([]);
   
+  const role = (profile?.role as keyof typeof ROLE_LIMITS) || 'free';
+  const limit = ROLE_LIMITS[role];
+  const usage = profile?.musicUsage || { count: 0, weekStart: new Date().toISOString() };
+
+  // Rolling Weekly Reset Logic
+  const isResetNeeded = useMemo(() => {
+    if (!usage.weekStart) return true;
+    const weekStart = new Date(usage.weekStart);
+    const now = new Date();
+    const diff = now.getTime() - weekStart.getTime();
+    return diff > 7 * 24 * 60 * 60 * 1000; // 7 days
+  }, [usage.weekStart]);
+
+  const remainingCredits = useMemo(() => {
+    const currentCount = isResetNeeded ? 0 : (usage.count || 0);
+    return Math.max(0, limit - currentCount);
+  }, [isResetNeeded, usage.count, limit]);
+
   // Fetch Music History from Firestore
   const musicQuery = useMemo(() => {
     if (!db || !user) return null;
@@ -73,8 +101,22 @@ export function MusicGenerator() {
   };
 
   const handleGenerate = async () => {
+    if (!user) {
+      toast({ variant: "destructive", title: "Authentication required", description: "Please sign in to generate music." });
+      return;
+    }
+
     if (!prompt.trim() && activeTab === 'simple') return;
     if (!title.trim() && activeTab === 'custom') return;
+
+    if (remainingCredits <= 0) {
+      toast({
+        variant: "warning",
+        title: "Weekly Limit Reached",
+        description: `You've used all ${limit} generations for this week. Upgrade your tier for more credits.`,
+      });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -88,6 +130,25 @@ export function MusicGenerator() {
 
       if (!res.status) throw new Error(res.error);
 
+      // Increment Usage Count in Firestore
+      if (userRef) {
+        const newCount = isResetNeeded ? 1 : (usage.count || 0) + 1;
+        const newWeekStart = isResetNeeded ? new Date().toISOString() : usage.weekStart;
+        
+        updateDoc(userRef, {
+          musicUsage: {
+            count: newCount,
+            weekStart: newWeekStart
+          }
+        }).catch(e => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'write',
+            requestResourceData: { musicUsage: { count: newCount, weekStart: newWeekStart } }
+          }));
+        });
+      }
+
       // Start tracking jobs
       const newJobs = res.data.map((j: any) => ({
         id: j.song_id,
@@ -100,7 +161,7 @@ export function MusicGenerator() {
       setJobs(prev => [...newJobs, ...prev]);
       toast({
         title: "Composition Initiated",
-        description: "NxAIO is orchestrating your track. This may take a few minutes.",
+        description: "NxAIO is orchestrating your track. Credits deducted.",
       });
     } catch (err: any) {
       toast({
@@ -256,7 +317,7 @@ export function MusicGenerator() {
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
       <CardHeader className="p-8 sm:p-10 pb-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-500/10 text-indigo-600 rounded-xl">
               <Music className="size-6" />
@@ -265,6 +326,24 @@ export function MusicGenerator() {
               <CardTitle className="font-headline text-2xl">AI Music Generator</CardTitle>
               <CardDescription>Compose high-fidelity songs with custom lyrics and styles.</CardDescription>
             </div>
+          </div>
+
+          <div className={cn(
+            "flex items-center gap-3 px-6 py-3 rounded-2xl border border-primary/5",
+            role === 'sultan' ? "bg-yellow-500/5 text-yellow-600" : role === 'pro' ? "bg-indigo-500/5 text-indigo-600" : "bg-secondary/30"
+          )}>
+             <div className="p-2 bg-white/20 rounded-lg">
+                <Zap className="size-4" />
+             </div>
+             <div className="space-y-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Weekly Credits ({role})</p>
+                <p className="text-sm font-bold font-headline">{remainingCredits} generations left</p>
+             </div>
+             {role === 'free' && (
+               <Button variant="link" asChild className="h-auto p-0 ml-4 text-[10px] font-bold uppercase text-indigo-600">
+                  <a href="/pricing">Upgrade</a>
+               </Button>
+             )}
           </div>
         </div>
       </CardHeader>
@@ -318,7 +397,7 @@ export function MusicGenerator() {
                </div>
 
                <Button 
-                disabled={loading || !prompt.trim()}
+                disabled={loading || !prompt.trim() || remainingCredits <= 0}
                 onClick={handleGenerate}
                 className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xl shadow-indigo-500/10 transition-all active:scale-95"
               >
@@ -392,7 +471,7 @@ export function MusicGenerator() {
                </div>
 
               <Button 
-                disabled={loading || !title.trim()}
+                disabled={loading || !title.trim() || remainingCredits <= 0}
                 onClick={handleGenerate}
                 className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xl shadow-indigo-500/10 transition-all active:scale-95"
               >

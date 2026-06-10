@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "GlobalStats": {
@@ -40,6 +39,13 @@
           "properties": {
             "count": { "type": "number", "default": 0 },
             "lastReset": { "type": "string", "format": "date" }
+          }
+        },
+        "musicUsage": {
+          "type": "object",
+          "properties": {
+            "count": { "type": "number", "default": 0 },
+            "weekStart": { "type": "string", "format": "date-time" }
           }
         },
         "followersCount": { "type": "number", "default": 0 },
