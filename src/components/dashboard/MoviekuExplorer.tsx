@@ -85,13 +85,19 @@ export function MoviekuExplorer() {
           className="group cursor-pointer text-left bg-secondary/20 border border-primary/5 rounded-[2rem] overflow-hidden hover:border-primary/20 transition-all hover:shadow-xl"
         >
           <div className="relative aspect-[2/3] w-full bg-black/5">
-            <Image 
-              src={item.thumbnail || "https://placehold.co/500x750/png?text=No+Poster"} 
-              alt={item.title} 
-              fill 
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
-              unoptimized
-            />
+            {item.thumbnail ? (
+              <Image 
+                src={item.thumbnail} 
+                alt={item.title} 
+                fill 
+                className="object-cover group-hover:scale-105 transition-transform duration-700"
+                unoptimized
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted/50">
+                <Film className="size-10 text-muted-foreground/20" />
+              </div>
+            )}
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                <PlayCircle className="size-12 text-white drop-shadow-2xl" />
             </div>
@@ -111,7 +117,13 @@ export function MoviekuExplorer() {
       <div className="flex flex-col md:flex-row gap-10">
         <div className="w-full md:w-80 flex-shrink-0">
           <div className="relative aspect-[2/3] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
-            <Image src={selectedMedia.poster} alt={selectedMedia.title} fill className="object-cover" unoptimized />
+            {selectedMedia.poster ? (
+              <Image src={selectedMedia.poster} alt={selectedMedia.title} fill className="object-cover" unoptimized />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted/50">
+                <Film className="size-16 text-muted-foreground/20" />
+              </div>
+            )}
             {selectedMedia.rating && (
               <div className="absolute top-4 right-4 bg-primary text-primary-foreground p-3 rounded-2xl flex flex-col items-center gap-1 shadow-lg">
                 <Star className="size-4 fill-primary-foreground" />
