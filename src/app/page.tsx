@@ -8,6 +8,7 @@ import { SnippetManager } from '@/components/dashboard/SnippetManager';
 import { LivePreviewer } from '@/components/dashboard/LivePreviewer';
 import { LayoutGrid, Boxes, ChevronLeft, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function Home() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -47,7 +48,14 @@ export default function Home() {
             <Button variant="ghost" size="icon" className="rounded-full">
               <Github className="w-5 h-5" />
             </Button>
-            <Button size="sm" className="rounded-full px-5">Sign In</Button>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" asChild className="rounded-full px-5">
+                <Link href="/login">Sign In</Link>
+              </Button>
+              <Button size="sm" asChild className="rounded-full px-5">
+                <Link href="/signup">Get Started</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -66,7 +74,9 @@ export default function Home() {
               </p>
               
               <div className="flex flex-wrap gap-4">
-                <Button size="lg" className="rounded-full px-8 h-12 text-base shadow-lg shadow-primary/10">Get Started</Button>
+                <Button size="lg" className="rounded-full px-8 h-12 text-base shadow-lg shadow-primary/10" asChild>
+                  <Link href="/signup">Get Started Now</Link>
+                </Button>
                 <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base">View Utilities</Button>
               </div>
             </div>
@@ -80,7 +90,6 @@ export default function Home() {
               <ToolHub onSelect={setActiveTool} />
             </div>
 
-            {/* Featured AI Assistant Section */}
             <div className="pt-8 animate-fade-in-up [animation-delay:200ms]">
                <AIAssistant />
             </div>
@@ -99,7 +108,7 @@ export default function Home() {
                 {renderTool()}
               </div>
               <div className="space-y-6">
-                <Card className="p-6 border-none shadow-sm bg-card/50">
+                <div className={`bg-card rounded-2xl border border-primary/5 shadow-sm p-6 bg-card/50`}>
                    <h3 className="font-headline font-semibold mb-4">Quick Insights</h3>
                    <div className="space-y-4">
                       <div className="flex justify-between items-center text-sm">
@@ -114,10 +123,10 @@ export default function Home() {
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Session ID</span>
-                        <span className="font-code">nx-7721</span>
+                        <span className="font-mono">nx-7721</span>
                       </div>
                    </div>
-                </Card>
+                </div>
                 <AIAssistant />
               </div>
             </div>
@@ -164,14 +173,6 @@ export default function Home() {
            </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function Card({ children, className }: { children: React.ReactNode, className?: string }) {
-  return (
-    <div className={`bg-card rounded-2xl border border-primary/5 shadow-sm p-1 ${className}`}>
-      {children}
     </div>
   );
 }
