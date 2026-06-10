@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "GlobalStats": {
@@ -81,6 +82,24 @@
         "status": { "type": "string", "default": "active" }
       },
       "required": ["slug", "url", "timestamp"]
+    },
+    "MusicRecord": {
+      "title": "MusicRecord",
+      "description": "Record of an AI generated music track.",
+      "type": "object",
+      "properties": {
+        "songId": { "type": "string" },
+        "title": { "type": "string" },
+        "audio": { "type": "string" },
+        "image": { "type": "string" },
+        "duration": { "type": "number" },
+        "tags": { "type": "string" },
+        "lyrics": { "type": "string" },
+        "prompt": { "type": "string" },
+        "mode": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["songId", "title", "audio", "timestamp"]
     }
   },
   "auth": {
@@ -110,6 +129,10 @@
     "/users/{userId}/uploads/{uploadId}": {
       "schema": "FileUploadRecord",
       "description": "History of user file uploads."
+    },
+    "/users/{userId}/music/{musicId}": {
+      "schema": "MusicRecord",
+      "description": "User's generated music history."
     }
   }
 }

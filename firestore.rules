@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deployment Sync Trigger: v9 - Allowed stats updates from client.
+    // Deployment Sync Trigger: v10 - Added music history rules.
     
     // Global stats are publicly readable and writable for real-time tracking
     match /system/stats {
@@ -38,6 +38,11 @@ service cloud.firestore {
 
       // File uploads: only the owner can read and write their upload history
       match /uploads/{uploadId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Music history: only the owner can read and write their generated tracks
+      match /music/{musicId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
