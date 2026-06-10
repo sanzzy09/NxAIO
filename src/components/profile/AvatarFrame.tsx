@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -29,7 +28,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
     switch (frameId) {
       case 'tech':
         return (
-          <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" viewBox="0 0 100 100" fill="none">
+          <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
             <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="2" className="text-blue-500/30" />
             <path d="M50 2L55 10H45L50 2Z" fill="currentColor" className="text-blue-500" />
             <path d="M50 98L45 90H55L50 98Z" fill="currentColor" className="text-blue-500" />
@@ -40,7 +39,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
         );
       case 'royal':
         return (
-          <svg className="absolute inset-0 w-full h-full scale-[1.15] pointer-events-none overflow-visible" viewBox="0 0 100 100" fill="none">
+          <svg className="absolute inset-0 w-full h-full scale-[1.18] pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
             <circle cx="50" cy="50" r="46" stroke="#FFD700" strokeWidth="4" />
             <circle cx="50" cy="50" r="48" stroke="#B8860B" strokeWidth="1" />
             {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
@@ -59,7 +58,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
         );
       case 'mystic':
         return (
-          <svg className="absolute inset-0 w-full h-full scale-[1.1] pointer-events-none overflow-visible" viewBox="0 0 100 100" fill="none">
+          <svg className="absolute inset-0 w-full h-full scale-[1.12] pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
             <defs>
               <linearGradient id="mysticGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#8A2BE2" />
@@ -83,7 +82,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
         );
       case 'emerald':
         return (
-          <svg className="absolute inset-0 w-full h-full scale-[1.12] pointer-events-none overflow-visible" viewBox="0 0 100 100" fill="none">
+          <svg className="absolute inset-0 w-full h-full scale-[1.14] pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
             <rect x="10" y="10" width="80" height="80" rx="40" stroke="#10B981" strokeWidth="4" />
             <path d="M50 2L58 15H42L50 2Z" fill="#10B981" />
             <path d="M50 98L42 85H58L50 98Z" fill="#10B981" />
@@ -93,7 +92,7 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
         );
       case 'crimson':
         return (
-          <svg className="absolute inset-0 w-full h-full scale-[1.08] pointer-events-none overflow-visible" viewBox="0 0 100 100" fill="none">
+          <svg className="absolute inset-0 w-full h-full scale-[1.1] pointer-events-none overflow-visible z-10" viewBox="0 0 100 100" fill="none" style={{ transformOrigin: 'center' }}>
             <circle cx="50" cy="50" r="48" stroke="#DC2626" strokeWidth="2" strokeDasharray="10 5" />
             <circle cx="50" cy="50" r="44" stroke="#7F1D1D" strokeWidth="1" />
             <path d="M50 5L55 15H45Z" fill="#DC2626" />
@@ -108,9 +107,11 @@ export function AvatarFrame({ src, fallback, frameId = 'none', className, size =
   };
 
   return (
-    <div className={cn('relative flex items-center justify-center shrink-0', containerSize, className)}>
-      {renderFrameOverlay()}
-      <Avatar className={cn('w-full h-full', frameId !== 'none' && 'p-[4%]')}>
+    <div className={cn('relative flex items-center justify-center shrink-0 isolate', containerSize, className)}>
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        {renderFrameOverlay()}
+      </div>
+      <Avatar className={cn('w-full h-full z-0', frameId !== 'none' && 'p-[4%]')}>
         <AvatarImage src={src || undefined} className="object-cover rounded-full" />
         <AvatarFallback className="bg-primary/5 text-primary/40 font-headline font-bold">
           {fallback || '?'}

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -89,7 +88,7 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
             {!authLoading && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/10 p-0 overflow-visible">
+                  <Button variant="ghost" className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 p-0 overflow-visible">
                     <AvatarFrame 
                       src={user.photoURL}
                       fallback={user.displayName?.charAt(0) || user.email?.charAt(0)}
