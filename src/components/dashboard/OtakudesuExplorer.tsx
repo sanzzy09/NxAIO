@@ -119,37 +119,46 @@ export function OtakudesuExplorer() {
     <div className="space-y-6 animate-fade-in-up">
       <h3 className="text-lg font-bold font-headline px-2">{data?.message}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {data?.results?.map((anime: any, i: number) => (
-          <button 
-            key={i} 
-            onClick={() => handleNavigate(anime.url)}
-            className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-blue-500/30 transition-all hover:shadow-xl"
-          >
-            <div className="relative aspect-[3/4] w-full bg-black/5">
-              <Image 
-                src={anime.thumb} 
-                alt={anime.title} 
-                fill 
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                unoptimized
-              />
-              <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
-                <Badge className="bg-emerald-600 border-none rounded-lg text-[10px] uppercase font-bold">{anime.status}</Badge>
-                {anime.rating && <Badge variant="outline" className="bg-black/50 backdrop-blur-md text-white border-none rounded-lg text-[10px] uppercase font-bold">{anime.rating}</Badge>}
+        {data?.results?.map((anime: any, i: number) => {
+          // Robust genre handling to avoid .split() error if genres is an array or missing
+          const genreList = typeof anime.genres === 'string' 
+            ? anime.genres.split(', ') 
+            : Array.isArray(anime.genres) 
+              ? anime.genres 
+              : [];
+
+          return (
+            <button 
+              key={i} 
+              onClick={() => handleNavigate(anime.url)}
+              className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-blue-500/30 transition-all hover:shadow-xl"
+            >
+              <div className="relative aspect-[3/4] w-full bg-black/5">
+                <Image 
+                  src={anime.thumb} 
+                  alt={anime.title} 
+                  fill 
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  unoptimized
+                />
+                <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
+                  <Badge className="bg-emerald-600 border-none rounded-lg text-[10px] uppercase font-bold">{anime.status}</Badge>
+                  {anime.rating && <Badge variant="outline" className="bg-black/50 backdrop-blur-md text-white border-none rounded-lg text-[10px] uppercase font-bold">{anime.rating}</Badge>}
+                </div>
               </div>
-            </div>
-            <div className="p-4 space-y-2">
-              <h4 className="font-headline font-bold text-sm line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
-                {anime.title}
-              </h4>
-              <div className="flex flex-wrap gap-1">
-                {anime.genres?.split(', ').map((g: string, idx: number) => (
-                  <span key={idx} className="text-[9px] text-muted-foreground bg-primary/5 px-2 py-0.5 rounded-full">{g}</span>
-                ))}
+              <div className="p-4 space-y-2">
+                <h4 className="font-headline font-bold text-sm line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
+                  {anime.title}
+                </h4>
+                <div className="flex flex-wrap gap-1">
+                  {genreList.map((g: string, idx: number) => (
+                    <span key={idx} className="text-[9px] text-muted-foreground bg-primary/5 px-2 py-0.5 rounded-full">{g}</span>
+                  ))}
+                </div>
               </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
