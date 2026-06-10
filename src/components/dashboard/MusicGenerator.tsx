@@ -1,0 +1,359 @@
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { 
+  Music, 
+  Sparkles, 
+  Loader2, 
+  Play, 
+  Download, 
+  ListMusic, 
+  Mic2, 
+  Radio, 
+  Info,
+  CheckCircle2,
+  AlertCircle,
+  X,
+  Plus
+} from "lucide-react";
+import Image from 'next/image';
+import { cn } from "@/lib/utils";
+import { createMusicJob, pollMusicStatus } from "@/app/actions/remusic";
+import { useToast } from "@/hooks/use-toast";
+
+const STYLES = {
+  genre: ["Pop", "Rock", "Hip-Hop", "R&B", "Jazz", "Classical", "Electronic", "EDM", "Lo-fi", "Metal", "Soul", "Trap", "K-Pop", "Phonk", "Cinematic"],
+  mood: ["Calm", "Happy", "Sad", "Energetic", "Epic", "Dark", "Dreamy", "Uplifting", "Melancholic", "Chill"],
+  vocal: ["Male Vocal", "Female Vocal", "Duet", "Rap", "Whisper"],
+  tempo: ["Slow", "Mid-tempo", "Upbeat", "Fast"]
+};
+
+export function MusicGenerator() {
+  const [activeTab, setActiveTab] = useState<'simple' | 'custom'>('simple');
+  const [prompt, setPrompt] = useState("");
+  const [title, setTitle] = useState("");
+  const [lyrics, setLyrics] = useState("");
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [results, setResultSongs] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  const handleToggleStyle = (style: string) => {
+    setSelectedStyles(prev => 
+      prev.includes(style) ? prev.filter(s => s !== style) : [...prev, style]
+    );
+  };
+
+  const handleGenerate = async () => {
+    if (!prompt.trim() && activeTab === 'simple') return;
+    if (!title.trim() && activeTab === 'custom') return;
+
+    setLoading(true);
+    try {
+      const res = await createMusicJob({
+        prompt,
+        styles: selectedStyles,
+        title: title || undefined,
+        lyrics: lyrics || undefined,
+        mode: activeTab
+      });
+
+      if (!res.status) throw new Error(res.error);
+
+      // Start tracking jobs
+      const newJobs = res.data.map((j: any) => ({
+        id: j.song_id,
+        status: 'pending',
+        percentage: 0
+      }));
+      
+      setJobs(prev => [...newJobs, ...prev]);
+      toast({
+        title: "Composition Initiated",
+        description: "NxAIO is orchestrating your track. This may take a few minutes.",
+      });
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: err.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Polling logic for pending jobs
+  useEffect(() => {
+    if (jobs.length === 0) return;
+
+    const interval = setInterval(async () => {
+      const pendingJobs = jobs.filter(j => j.status !== 'success' && j.status !== 'failed');
+      if (pendingJobs.length === 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      for (const job of pendingJobs) {
+        const update = await pollMusicStatus(job.id);
+        
+        if (update.status === 'success') {
+          setJobs(prev => prev.filter(j => j.id !== job.id));
+          setResultSongs(prev => [update.result, ...prev]);
+          toast({
+            title: "Track Complete",
+            description: `"${update.result.title}" is ready to play.`,
+          });
+        } else if (update.status === 'failed') {
+          setJobs(prev => prev.map(j => j.id === job.id ? { ...j, status: 'failed', error: update.error } : j));
+        } else {
+          setJobs(prev => prev.map(j => j.id === job.id ? { ...j, percentage: update.percentage, status: update.status } : j));
+        }
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [jobs, toast]);
+
+  return (
+    <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
+      <CardHeader className="p-8 sm:p-10 pb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-500/10 text-indigo-600 rounded-xl">
+              <Music className="size-6" />
+            </div>
+            <div>
+              <CardTitle className="font-headline text-2xl">AI Music Generator</CardTitle>
+              <CardDescription>Compose high-fidelity songs with custom lyrics and styles.</CardDescription>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="p-8 sm:p-10 pt-0 space-y-8">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+          <TabsList className="bg-secondary/30 p-1 rounded-full border border-primary/5 mb-8 grid grid-cols-2 max-w-[400px]">
+            <TabsTrigger value="simple" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all">
+              <Sparkles className="size-3" /> Simple Vibe
+            </TabsTrigger>
+            <TabsTrigger value="custom" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all">
+              <Mic2 className="size-3" /> Custom Lyrics
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="space-y-6">
+            <TabsContent value="simple" className="mt-0 space-y-6 animate-fade-in-up">
+               <div className="space-y-2">
+                 <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">Describe your sound</label>
+                 <Input 
+                   value={prompt}
+                   onChange={(e) => setPrompt(e.target.value)}
+                   placeholder="e.g., A futuristic synthwave track with heavy bass for a nighttime drive..." 
+                   className="h-14 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-indigo-500/20"
+                 />
+               </div>
+            </TabsContent>
+
+            <TabsContent value="custom" className="mt-0 space-y-6 animate-fade-in-up">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">Song Title</label>
+                    <Input 
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="My Masterpiece" 
+                      className="h-14 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-indigo-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">Base Style Prompt</label>
+                    <Input 
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      placeholder="e.g., Pop melody with acoustic guitar" 
+                      className="h-14 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-indigo-500/20"
+                    />
+                  </div>
+               </div>
+               <div className="space-y-2">
+                 <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">Lyrics (AI can generate them if empty)</label>
+                 <Textarea 
+                   value={lyrics}
+                   onChange={(e) => setLyrics(e.target.value)}
+                   placeholder="[Verse 1]..." 
+                   className="min-h-[120px] rounded-[1.5rem] bg-secondary/30 border-primary/5 focus-visible:ring-indigo-500/20"
+                 />
+               </div>
+            </TabsContent>
+
+            {/* Styles Selector */}
+            <div className="space-y-4 p-6 rounded-[2.5rem] bg-secondary/20 border border-primary/5">
+               <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2 mb-2">
+                 <Radio className="size-3 text-indigo-600" /> Musical Palette
+               </h4>
+               <div className="flex flex-wrap gap-2">
+                  {Object.values(STYLES).flat().map((style) => (
+                    <button
+                      key={style}
+                      onClick={() => handleToggleStyle(style)}
+                      className={cn(
+                        "text-[9px] px-3 py-1.5 rounded-full font-bold uppercase tracking-widest transition-all",
+                        selectedStyles.includes(style) 
+                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" 
+                          : "bg-background/50 text-muted-foreground border border-primary/5 hover:border-indigo-500/20"
+                      )}
+                    >
+                      {style}
+                    </button>
+                  ))}
+               </div>
+            </div>
+
+            <Button 
+              disabled={loading || (!prompt.trim() && activeTab === 'simple')}
+              onClick={handleGenerate}
+              className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xl shadow-indigo-500/10 transition-all active:scale-95"
+            >
+              {loading ? (
+                <div className="flex items-center gap-3">
+                  <Loader2 className="size-5 animate-spin" />
+                  <span>Submitting to Composer...</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Plus className="size-5" />
+                  <span>Generate Track</span>
+                </div>
+              )}
+            </Button>
+          </div>
+        </Tabs>
+
+        {/* Active Jobs Display */}
+        {jobs.length > 0 && (
+          <div className="space-y-4 animate-fade-in-up">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 ml-1">Active Sessions</h4>
+            <div className="grid grid-cols-1 gap-3">
+              {jobs.map((job) => (
+                <div key={job.id} className="p-5 rounded-2xl bg-secondary/30 border border-primary/5 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="size-10 rounded-xl bg-indigo-500/5 text-indigo-600 flex items-center justify-center">
+                      <Loader2 className="size-5 animate-spin" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold uppercase tracking-widest">Job: {job.id.slice(0, 8)}...</p>
+                      <p className="text-[10px] text-muted-foreground font-medium uppercase">{job.status} — {job.percentage}%</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 max-w-[200px] h-1.5 bg-background rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-indigo-600 transition-all duration-500" 
+                      style={{ width: `${job.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Results List */}
+        {results.length > 0 && (
+          <div className="space-y-6 animate-fade-in-up pt-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 ml-1">Recent Creations</h4>
+              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-none px-3 py-1 rounded-full text-[10px] font-bold uppercase">
+                <CheckCircle2 className="size-3 mr-1" /> {results.length} Tracks Ready
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {results.map((song, i) => (
+                <div key={i} className="group relative p-6 rounded-[2.5rem] bg-secondary/30 border border-primary/5 hover:border-indigo-500/20 transition-all shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <div className="md:col-span-3">
+                       <div className="relative aspect-square rounded-[2rem] overflow-hidden shadow-2xl bg-black/5">
+                          {song.image ? (
+                            <Image src={song.image} alt={song.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" unoptimized />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                               <Music className="size-8 text-muted-foreground/20" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                             <Play className="size-10 text-white fill-white drop-shadow-2xl" />
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="md:col-span-9 space-y-6">
+                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                          <div className="space-y-1">
+                             <h3 className="text-xl font-bold font-headline leading-tight">{song.title}</h3>
+                             <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-widest">{song.duration}s · AI Render</p>
+                          </div>
+                          <div className="flex gap-2">
+                             <Button asChild size="sm" variant="outline" className="h-10 rounded-xl gap-2 font-bold text-[10px] uppercase border-primary/5 hover:bg-secondary/50">
+                                <a href={song.audio} target="_blank" rel="noopener noreferrer">
+                                   <Download className="size-3.5" /> Save
+                                </a>
+                             </Button>
+                          </div>
+                       </div>
+
+                       <div className="space-y-3">
+                          <audio controls className="w-full h-10 rounded-xl [&::-webkit-media-controls-panel]:bg-secondary/50">
+                             <source src={song.audio} type="audio/mpeg" />
+                          </audio>
+                          
+                          {song.tags && (
+                            <div className="flex flex-wrap gap-1.5">
+                               {song.tags.split(',').map((tag: string, idx: number) => (
+                                 <span key={idx} className="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-background/50 rounded-lg text-muted-foreground/60">
+                                   {tag.trim()}
+                                 </span>
+                               ))}
+                            </div>
+                          )}
+                       </div>
+
+                       {song.lyrics && (
+                         <div className="p-4 rounded-2xl bg-background/40 border border-primary/5">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-2">Lyrics Snippet</p>
+                            <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3 italic whitespace-pre-wrap">
+                               {song.lyrics}
+                            </p>
+                         </div>
+                       )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {jobs.length === 0 && results.length === 0 && !loading && (
+          <div className="p-12 text-center bg-secondary/10 rounded-[2.5rem] border border-dashed border-primary/5 space-y-4 animate-fade-in-up">
+             <div className="w-16 h-16 bg-background rounded-2xl flex items-center justify-center mx-auto border border-primary/5 shadow-inner">
+                <Music className="size-8 text-muted-foreground/20" />
+             </div>
+             <div className="space-y-1">
+               <p className="text-sm text-muted-foreground font-medium">Ready for your first production?</p>
+               <p className="text-xs text-muted-foreground/40">Select a style or enter lyrics to begin composing.</p>
+             </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+

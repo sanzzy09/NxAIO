@@ -15,7 +15,8 @@ import {
   Sparkles,
   CloudUpload,
   Eraser,
-  Film
+  Film,
+  Music
 } from "lucide-react";
 
 interface Tool {
@@ -40,6 +41,13 @@ const tools: Tool[] = [
     description: "Chain utilities with natural language commands.",
     icon: <Zap className="size-6" />,
     color: "bg-orange-50 text-orange-600"
+  },
+  {
+    id: "music",
+    name: "AI Music Generator",
+    description: "Compose high-fidelity songs from text or custom lyrics.",
+    icon: <Music className="size-6" />,
+    color: "bg-indigo-50 text-indigo-600"
   },
   {
     id: "nimegami",
