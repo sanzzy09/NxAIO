@@ -30,13 +30,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'anichin.moe',
+        hostname: '**.anichin.moe',
         port: '',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'cdn.anichin.moe',
+        hostname: 'anichin.moe',
         port: '',
         pathname: '/**',
       },

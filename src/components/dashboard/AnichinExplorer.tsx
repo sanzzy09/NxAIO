@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,17 +15,14 @@ import {
   ListOrdered, 
   ChevronLeft,
   ChevronRight,
-  Calendar,
   PlayCircle,
   Home as HomeIcon,
   Download,
-  ExternalLink,
   Library,
-  Layers,
-  ArrowRight,
   TrendingUp,
-  Clock,
-  LayoutGrid
+  LayoutGrid,
+  ArrowRight,
+  AlertCircle
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -88,10 +85,16 @@ export function AnichinExplorer() {
           className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-orange-500/30 transition-all hover:shadow-xl"
         >
           <div className="relative aspect-[3/4] w-full bg-black/5">
-            <Image src={item.thumbnail} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
+            <Image 
+              src={item.thumbnail || "https://placehold.co/400x600/png?text=No+Cover"} 
+              alt={item.title} 
+              fill 
+              className="object-cover group-hover:scale-105 transition-transform duration-500" 
+              unoptimized 
+            />
             <div className="absolute bottom-2 right-2 flex flex-col gap-1 items-end">
-              {item.type && <Badge className="bg-orange-600 border-none rounded-lg text-[10px] uppercase font-bold">{item.type}</Badge>}
-              {item.status && <Badge variant="outline" className="bg-black/50 backdrop-blur-md text-white border-none rounded-lg text-[10px] uppercase font-bold">{item.status}</Badge>}
+              {item.type && item.type !== "Unknown" && <Badge className="bg-orange-600 border-none rounded-lg text-[10px] uppercase font-bold">{item.type}</Badge>}
+              {item.status && item.status !== "Unknown" && <Badge variant="outline" className="bg-black/50 backdrop-blur-md text-white border-none rounded-lg text-[10px] uppercase font-bold">{item.status}</Badge>}
               {item.eps && <Badge className="bg-blue-600 border-none rounded-lg text-[10px] uppercase font-bold">EP {item.eps}</Badge>}
             </div>
           </div>
@@ -108,7 +111,7 @@ export function AnichinExplorer() {
 
   const renderHome = () => (
     <div className="space-y-12 animate-fade-in-up">
-      {data?.results?.map((section: any, idx: number) => (
+      {data?.results?.length > 0 ? data.results.map((section: any, idx: number) => (
         <div key={idx} className="space-y-6">
           <div className="flex items-center justify-between border-b border-primary/5 pb-4">
              <h3 className="text-xl font-bold font-headline capitalize flex items-center gap-2">
@@ -121,7 +124,12 @@ export function AnichinExplorer() {
           </div>
           {renderGrid(section.cards)}
         </div>
-      ))}
+      )) : (
+        <div className="py-20 text-center space-y-4">
+           <AlertCircle className="size-12 mx-auto text-muted-foreground/20" />
+           <p className="text-muted-foreground">No updates found on home feed.</p>
+        </div>
+      )}
       <div className="flex justify-center pt-8">
         <Button 
           variant="outline" 
@@ -136,7 +144,7 @@ export function AnichinExplorer() {
 
   const renderGenres = () => (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-fade-in-up">
-      {data?.map((genre: any, i: number) => (
+      {data?.length > 0 ? data.map((genre: any, i: number) => (
         <button 
           key={i} 
           onClick={() => handleFetch({ mode: 'genre_browse', slug: genre.slug })}
@@ -144,7 +152,11 @@ export function AnichinExplorer() {
         >
           <span className="text-xs font-bold font-headline group-hover:text-orange-600 transition-colors uppercase tracking-wider">{genre.name}</span>
         </button>
-      ))}
+      )) : (
+        <div className="col-span-full py-20 text-center">
+           <p className="text-muted-foreground">Unable to load genre list.</p>
+        </div>
+      )}
     </div>
   );
 
@@ -153,7 +165,7 @@ export function AnichinExplorer() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-4 space-y-6">
           <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
-            <Image src={data.thumbnail} alt={data.name} fill className="object-cover" unoptimized />
+            <Image src={data.thumbnail || "https://placehold.co/400x600/png?text=No+Cover"} alt={data.name} fill className="object-cover" unoptimized />
             <div className="absolute top-4 right-4 bg-orange-600 text-white p-3 rounded-2xl flex flex-col items-center gap-1 shadow-lg">
               <Star className="size-4 fill-white" />
               <span className="text-xs font-bold">{data.rating || "-"}</span>
@@ -163,7 +175,8 @@ export function AnichinExplorer() {
              <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Technical Info</h5>
              <div className="space-y-4">
                 {Object.entries(data).map(([key, val]: [string, any]) => {
-                  if (['name', 'thumbnail', 'genre', 'rating', 'synopsis', 'episodes', 'source'].includes(key)) return null;
+                  if (['name', 'thumbnail', 'genre', 'rating', 'synopsis', 'episodes', 'source', 'status'].includes(key)) return null;
+                  if (typeof val !== 'string') return null;
                   return (
                     <div key={key} className="flex flex-col gap-1">
                       <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider">{key.replace(/_/g, ' ')}</span>
@@ -172,9 +185,11 @@ export function AnichinExplorer() {
                   );
                 })}
                 <div className="flex flex-wrap gap-2 pt-2">
-                  {data.genre?.map((g: string, i: number) => (
+                  {data.genre?.length > 0 ? data.genre.map((g: string, i: number) => (
                     <Badge key={i} variant="secondary" className="bg-primary/5 text-primary/60 border-none px-3 py-1 rounded-lg text-[9px] uppercase font-bold tracking-wider">{g}</Badge>
-                  ))}
+                  )) : (
+                    <span className="text-[10px] text-muted-foreground italic">No genres listed</span>
+                  )}
                 </div>
              </div>
           </div>
@@ -182,14 +197,17 @@ export function AnichinExplorer() {
 
         <div className="lg:col-span-8 space-y-10">
           <h2 className="text-4xl font-bold font-headline leading-tight tracking-tight">{data.name}</h2>
+          
           <div className="space-y-4">
             <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
               <Info className="size-3" /> Synopsis
             </h4>
             <div className="space-y-4">
-              {data.synopsis.paragraphs.map((p: string, i: number) => (
+              {data.synopsis?.paragraphs?.length > 0 ? data.synopsis.paragraphs.map((p: string, i: number) => (
                 <p key={i} className="text-muted-foreground leading-relaxed text-base">{p}</p>
-              ))}
+              )) : (
+                <p className="text-muted-foreground italic">No synopsis available for this series.</p>
+              )}
             </div>
           </div>
 
@@ -198,7 +216,7 @@ export function AnichinExplorer() {
               <ListOrdered className="size-3" /> Episode List
             </h4>
             <div className="grid grid-cols-1 gap-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-              {data.episodes?.map((ep: any, i: number) => (
+              {data.episodes?.length > 0 ? data.episodes.map((ep: any, i: number) => (
                 <Button 
                   key={i} 
                   variant="outline" 
@@ -206,12 +224,16 @@ export function AnichinExplorer() {
                   className="h-16 rounded-2xl justify-between px-6 border-primary/5 hover:bg-orange-500/5 hover:text-orange-600 transition-all font-bold group shadow-sm"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="size-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-all">{ep.episode || 'EP'}</div>
+                    <div className="size-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-all">{ep.episode || i + 1}</div>
                     <span className="truncate max-w-[300px]">{ep.subtitle}</span>
                   </div>
                   <span className="text-[10px] opacity-40 font-mono uppercase tracking-widest">{ep.date}</span>
                 </Button>
-              ))}
+              )) : (
+                <div className="py-10 text-center border-2 border-dashed border-primary/5 rounded-2xl">
+                   <p className="text-sm text-muted-foreground italic">No episodes have been indexed yet.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -307,7 +329,7 @@ export function AnichinExplorer() {
             </div>
             <div>
               <CardTitle className="font-headline text-2xl">Anichin Explorer</CardTitle>
-              <CardDescription>Premium Donghua & Anime database with multi-server streaming.</CardDescription>
+              <CardDescription>Resilient Donghua & Anime database with multi-server streaming.</CardDescription>
             </div>
           </div>
 
@@ -326,7 +348,7 @@ export function AnichinExplorer() {
                   <HomeIcon className="size-3" /> Discover
                 </TabsTrigger>
                 <TabsTrigger value="list" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-orange-600 data-[state=active]:text-white transition-all">
-                  <LayoutGrid className="size-3" /> Anime List
+                  <LayoutGrid className="size-3" /> All Anime
                 </TabsTrigger>
                 <TabsTrigger value="genres" className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-orange-600 data-[state=active]:text-white transition-all">
                   <Library className="size-3" /> Genres
@@ -339,7 +361,7 @@ export function AnichinExplorer() {
               <Input 
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Search anime...`} 
+                placeholder={`Search titles...`} 
                 className="h-12 pl-12 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-orange-500/20"
               />
             </form>
@@ -365,7 +387,7 @@ export function AnichinExplorer() {
           </div>
         ) : error ? (
           <div className="p-12 text-center bg-destructive/5 rounded-[2.5rem] border border-destructive/10 space-y-4">
-             <Info className="size-10 text-destructive mx-auto opacity-40" />
+             <AlertCircle className="size-10 text-destructive mx-auto opacity-40" />
              <p className="text-sm font-medium text-destructive">{error}</p>
              <Button variant="outline" size="sm" onClick={() => handleFetch({ mode: 'home' })} className="rounded-full font-bold uppercase text-[10px] tracking-widest">Retry Connection</Button>
           </div>
@@ -375,7 +397,11 @@ export function AnichinExplorer() {
             {view === 'search' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-bold font-headline px-2">Results for "{query}"</h3>
-                {renderGrid(data?.results || [])}
+                {data?.results?.length > 0 ? renderGrid(data.results) : (
+                  <div className="py-20 text-center">
+                    <p className="text-muted-foreground">No matches found for your search.</p>
+                  </div>
+                )}
               </div>
             )}
             {view === 'list' && (
@@ -409,8 +435,8 @@ export function AnichinExplorer() {
                 </div>
               </div>
             )}
-            {view === 'detail' && renderDetail()}
-            {view === 'watch' && renderWatch()}
+            {view === 'detail' && data && renderDetail()}
+            {view === 'watch' && data && renderWatch()}
           </div>
         )}
       </CardContent>
