@@ -35,6 +35,7 @@ export function Lk21Explorer() {
   const fetchHome = async (type: MediaType) => {
     setLoading(true);
     setError(null);
+    setData([]); // Reset data to empty array before switching to home view
     setView('home');
     try {
       const mode = type === 'movie' ? 'home' : 'series-home';
@@ -57,6 +58,7 @@ export function Lk21Explorer() {
     if (!query.trim()) return;
     setLoading(true);
     setError(null);
+    setData([]); // Reset data to empty array before switching to search results
     setView('search');
     try {
       const mode = activeTab === 'movie' ? 'search' : 'series-search';
@@ -87,44 +89,48 @@ export function Lk21Explorer() {
     }
   };
 
-  const renderGrid = (items: any[]) => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">
-      {items.map((item, i) => (
-        <button 
-          key={i} 
-          onClick={() => handleDetail(item.slug)}
-          className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-primary/20 transition-all hover:shadow-xl"
-        >
-          <div className="relative aspect-[2/3] w-full bg-black/5">
-            <Image 
-              src={item.poster} 
-              alt={item.title} 
-              fill 
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              unoptimized
-            />
-            <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
-              {item.quality && <Badge className="bg-primary border-none rounded-lg text-[10px] uppercase font-bold">{item.quality}</Badge>}
-              {item.rating && (
-                <Badge variant="outline" className="bg-black/50 backdrop-blur-md text-white border-none rounded-lg text-[10px] uppercase font-bold flex items-center gap-1">
-                  <Star className="size-2.5 fill-yellow-400 text-yellow-400" /> {item.rating}
-                </Badge>
-              )}
+  const renderGrid = (items: any) => {
+    if (!Array.isArray(items)) return null;
+    
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">
+        {items.map((item, i) => (
+          <button 
+            key={i} 
+            onClick={() => handleDetail(item.slug)}
+            className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-primary/20 transition-all hover:shadow-xl"
+          >
+            <div className="relative aspect-[2/3] w-full bg-black/5">
+              <Image 
+                src={item.poster} 
+                alt={item.title} 
+                fill 
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                unoptimized
+              />
+              <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                {item.quality && <Badge className="bg-primary border-none rounded-lg text-[10px] uppercase font-bold">{item.quality}</Badge>}
+                {item.rating && (
+                  <Badge variant="outline" className="bg-black/50 backdrop-blur-md text-white border-none rounded-lg text-[10px] uppercase font-bold flex items-center gap-1">
+                    <Star className="size-2.5 fill-yellow-400 text-yellow-400" /> {item.rating}
+                  </Badge>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="p-4">
-            <h4 className="font-headline font-bold text-xs line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-              {item.title}
-            </h4>
-            <div className="flex items-center justify-between mt-2">
-               <span className="text-[10px] text-muted-foreground font-bold">{item.year}</span>
-               {item.duration && <span className="text-[10px] text-muted-foreground font-medium opacity-60">{item.duration}</span>}
+            <div className="p-4">
+              <h4 className="font-headline font-bold text-xs line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                {item.title}
+              </h4>
+              <div className="flex items-center justify-between mt-2">
+                 <span className="text-[10px] text-muted-foreground font-bold">{item.year}</span>
+                 {item.duration && <span className="text-[10px] text-muted-foreground font-medium opacity-60">{item.duration}</span>}
+              </div>
             </div>
-          </div>
-        </button>
-      ))}
-    </div>
-  );
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   const renderDetail = () => (
     <div className="space-y-10 animate-fade-in-up">
