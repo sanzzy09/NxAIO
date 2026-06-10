@@ -8,6 +8,7 @@ import { SnippetManager } from '@/components/dashboard/SnippetManager';
 import { LivePreviewer } from '@/components/dashboard/LivePreviewer';
 import { AIODownloader } from '@/components/dashboard/AIODownloader';
 import { ImageUpscaler } from '@/components/dashboard/ImageUpscaler';
+import { AnimeExplorer } from '@/components/dashboard/AnimeExplorer';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -33,6 +34,7 @@ export default function Home() {
       case "snippets": return <SnippetManager />;
       case "downloader": return <AIODownloader />;
       case "upscaler": return <ImageUpscaler />;
+      case "anime": return <AnimeExplorer />;
       case "logic": return <AIAssistant />;
       default: return null;
     }

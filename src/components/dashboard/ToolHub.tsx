@@ -9,7 +9,8 @@ import {
   Image as ImageIcon,
   ArrowRight,
   DownloadCloud,
-  Maximize
+  Maximize,
+  Tv
 } from "lucide-react";
 
 interface Tool {
@@ -48,6 +49,13 @@ const tools: Tool[] = [
     description: "Extract video and audio from TikTok, IG, and Twitter.",
     icon: <DownloadCloud className="size-6" />,
     color: "bg-emerald-50 text-emerald-600"
+  },
+  {
+    id: "anime",
+    name: "Anime Explorer",
+    description: "Explore, search, and stream anime details via AnimeXin.",
+    icon: <Tv className="size-6" />,
+    color: "bg-orange-50 text-orange-600"
   },
   {
     id: "snippets",
