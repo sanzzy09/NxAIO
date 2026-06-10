@@ -39,6 +39,7 @@ export interface AuthLayoutProps {
     linkLabel: string;
     href: string;
   };
+  forgotPasswordHref?: string;
   labels?: {
     divider?: string;
     terms?: string;
@@ -70,6 +71,7 @@ export function AuthLayout({
   socialProviders = [],
   fields = [],
   alternatePrompt,
+  forgotPasswordHref,
   labels = {},
   showcase,
   mediaPosition = "right",
@@ -124,27 +126,39 @@ export function AuthLayout({
                     <Field key={index}>
                       <FieldLabel htmlFor={inputId}>{field.label}</FieldLabel>
                       {isPassword ? (
-                        <div className="relative">
-                          <Input
-                            id={inputId}
-                            type={showPassword ? "text" : "password"}
-                            placeholder={field.placeholder}
-                            className="h-12 pr-11 rounded-xl"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            aria-label={passwordToggleLabel}
-                            onClick={() => setShowPassword((value) => !value)}
-                            className="absolute right-1 top-1/2 size-9 -translate-y-1/2 text-muted-foreground"
-                          >
-                            {showPassword ? (
-                              <EyeOff className="size-4" />
-                            ) : (
-                              <Eye className="size-4" />
-                            )}
-                          </Button>
+                        <div className="space-y-2">
+                          <div className="relative">
+                            <Input
+                              id={inputId}
+                              type={showPassword ? "text" : "password"}
+                              placeholder={field.placeholder}
+                              className="h-12 pr-11 rounded-xl"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              aria-label={passwordToggleLabel}
+                              onClick={() => setShowPassword((value) => !value)}
+                              className="absolute right-1 top-1/2 size-9 -translate-y-1/2 text-muted-foreground"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="size-4" />
+                              ) : (
+                                <Eye className="size-4" />
+                              )}
+                            </Button>
+                          </div>
+                          {forgotPasswordHref && (
+                            <div className="flex justify-end">
+                              <Link 
+                                href={forgotPasswordHref} 
+                                className="text-xs font-semibold text-primary/60 hover:text-primary transition-colors"
+                              >
+                                Forgot password?
+                              </Link>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <Input

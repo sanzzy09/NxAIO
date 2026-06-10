@@ -32,6 +32,7 @@ export default function LoginPage() {
         { label: "Email", placeholder: "you@example.com", type: "email" },
         { label: "Password", placeholder: "Enter your password", type: "password" },
       ]}
+      forgotPasswordHref="/forgot-password"
       alternatePrompt={{
         text: "Don't have an account?",
         linkLabel: "Sign up",
