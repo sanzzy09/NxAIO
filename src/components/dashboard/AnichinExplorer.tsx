@@ -78,34 +78,45 @@ export function AnichinExplorer() {
 
   const renderGrid = (items: any[]) => (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">
-      {items.map((item, i) => (
-        <button 
-          key={i} 
-          onClick={() => handleFetch({ mode: 'detail', slug: item.slug })}
-          className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-orange-500/30 transition-all hover:shadow-xl"
-        >
-          <div className="relative aspect-[3/4] w-full bg-black/5">
-            <Image 
-              src={item.thumbnail || "https://placehold.co/400x600/png?text=No+Cover"} 
-              alt={item.title} 
-              fill 
-              className="object-cover group-hover:scale-105 transition-transform duration-500" 
-              unoptimized 
-            />
-            <div className="absolute bottom-2 right-2 flex flex-col gap-1 items-end">
-              {item.type && item.type !== "Unknown" && <Badge className="bg-orange-600 border-none rounded-lg text-[10px] uppercase font-bold">{item.type}</Badge>}
-              {item.status && item.status !== "Unknown" && <Badge variant="outline" className="bg-black/50 backdrop-blur-md text-white border-none rounded-lg text-[10px] uppercase font-bold">{item.status}</Badge>}
-              {item.eps && <Badge className="bg-blue-600 border-none rounded-lg text-[10px] uppercase font-bold">EP {item.eps}</Badge>}
+      {items.map((item, i) => {
+        // Detect if the slug belongs to an episode or a series
+        // Episode slugs usually contain "-episode-" on this provider
+        const isEpisodeLink = item.slug.toLowerCase().includes('episode');
+
+        return (
+          <button 
+            key={i} 
+            onClick={() => handleFetch({ mode: isEpisodeLink ? 'watch' : 'detail', slug: item.slug })}
+            className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-orange-500/30 transition-all hover:shadow-xl"
+          >
+            <div className="relative aspect-[3/4] w-full bg-black/5">
+              <Image 
+                src={item.thumbnail || "https://placehold.co/400x600/png?text=No+Cover"} 
+                alt={item.title} 
+                fill 
+                className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                unoptimized 
+              />
+              <div className="absolute bottom-2 right-2 flex flex-col gap-1 items-end">
+                {item.type && item.type !== "Unknown" && <Badge className="bg-orange-600 border-none rounded-lg text-[10px] uppercase font-bold">{item.type}</Badge>}
+                {item.status && item.status !== "Unknown" && <Badge variant="outline" className="bg-black/50 backdrop-blur-md text-white border-none rounded-lg text-[10px] uppercase font-bold">{item.status}</Badge>}
+                {item.eps && <Badge className="bg-blue-600 border-none rounded-lg text-[10px] uppercase font-bold">EP {item.eps}</Badge>}
+              </div>
+              {isEpisodeLink && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[2px]">
+                   <PlayCircle className="size-12 text-white drop-shadow-2xl" />
+                </div>
+              )}
             </div>
-          </div>
-          <div className="p-4 space-y-1">
-            <h4 className="font-headline font-bold text-sm line-clamp-2 leading-tight group-hover:text-orange-600 transition-colors">{item.title}</h4>
-            {item.headline && item.headline !== item.title && (
-              <p className="text-[10px] text-muted-foreground opacity-60 font-medium line-clamp-1">{item.headline}</p>
-            )}
-          </div>
-        </button>
-      ))}
+            <div className="p-4 space-y-1">
+              <h4 className="font-headline font-bold text-sm line-clamp-2 leading-tight group-hover:text-orange-600 transition-colors">{item.title}</h4>
+              {item.headline && item.headline !== item.title && (
+                <p className="text-[10px] text-muted-foreground opacity-60 font-medium line-clamp-1">{item.headline}</p>
+              )}
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 
