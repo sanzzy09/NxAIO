@@ -7,6 +7,7 @@ import { AIAssistant } from '@/components/dashboard/AIAssistant';
 import { ImageOptimizer } from '@/components/dashboard/ImageOptimizer';
 import { SnippetManager } from '@/components/dashboard/SnippetManager';
 import { LivePreviewer } from '@/components/dashboard/LivePreviewer';
+import { AIODownloader } from '@/components/dashboard/AIODownloader';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -30,6 +31,7 @@ export default function Home() {
       case "optimizer": return <ImageOptimizer />;
       case "previewer": return <LivePreviewer />;
       case "snippets": return <SnippetManager />;
+      case "downloader": return <AIODownloader />;
       case "logic": return <AIAssistant />;
       default: return null;
     }

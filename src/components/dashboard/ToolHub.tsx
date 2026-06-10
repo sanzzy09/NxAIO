@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from 'react';
@@ -7,7 +8,8 @@ import {
   Eye, 
   Code2, 
   Image as ImageIcon,
-  ArrowRight
+  ArrowRight,
+  DownloadCloud
 } from "lucide-react";
 
 interface Tool {
@@ -34,11 +36,18 @@ const tools: Tool[] = [
     color: "bg-purple-50 text-purple-600"
   },
   {
+    id: "downloader",
+    name: "AIO Media Downloader",
+    description: "Extract video and audio from TikTok, IG, and Twitter.",
+    icon: <DownloadCloud className="size-6" />,
+    color: "bg-emerald-50 text-emerald-600"
+  },
+  {
     id: "snippets",
     name: "Interactive Snippet Manager",
     description: "Simplified storage with modern code highlighting.",
     icon: <Code2 className="size-6" />,
-    color: "bg-green-50 text-green-600"
+    color: "bg-cyan-50 text-cyan-600"
   },
   {
     id: "logic",
