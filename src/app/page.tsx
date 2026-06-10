@@ -98,7 +98,7 @@ export default function Home() {
                         <div className="p-2 bg-purple-500/10 rounded-xl">
                           <MousePointer2 className="w-5 h-5" />
                         </div>
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Visitors</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] font-medium opacity-50">Visitors</span>
                       </div>
                       <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                     </div>
@@ -116,7 +116,7 @@ export default function Home() {
                         <div className="p-2 bg-orange-500/10 rounded-xl">
                           <UserPlus className="w-5 h-5" />
                         </div>
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Registrations Today</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] font-medium opacity-50">Registrations Today</span>
                       </div>
                       <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
                     </div>
