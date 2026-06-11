@@ -2,12 +2,15 @@
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
-import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, getAdditionalUserInfo } from "firebase/auth";
 import { useAuth, useFirestore, useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { logActivity } from "@/lib/activity";
+import { doc, setDoc, serverTimestamp, increment } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const GoogleIcon = (
   <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
@@ -38,12 +41,51 @@ export default function LoginPage() {
     }
   }, [user, authLoading, router]);
 
+  const initUserProfile = async (uid: string, email: string, displayName: string, photoURL: string) => {
+    const userRef = doc(db, "users", uid);
+    const statsRef = doc(db, "system", "stats");
+
+    // Create Profile
+    setDoc(userRef, {
+      uid,
+      email,
+      displayName,
+      photoURL,
+      createdAt: serverTimestamp(),
+    }, { merge: true }).catch(async (error) => {
+      errorEmitter.emit("permission-error", new FirestorePermissionError({
+        path: userRef.path,
+        operation: "write",
+        requestResourceData: { uid, email, displayName }
+      }));
+    });
+
+    // Update Global Stats robustly
+    setDoc(statsRef, {
+      totalUsers: increment(1),
+      registrationsToday: increment(1)
+    }, { merge: true });
+  };
+
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      logActivity(db, result.user.uid, 'login', 'Signed in using Google account.');
+      const isNewUser = getAdditionalUserInfo(result)?.isNewUser;
+
+      if (isNewUser) {
+        await initUserProfile(
+          result.user.uid,
+          result.user.email || "",
+          result.user.displayName || "New User",
+          result.user.photoURL || ""
+        );
+        logActivity(db, result.user.uid, 'signup', 'Account created via Google authentication (Login page).');
+      } else {
+        logActivity(db, result.user.uid, 'login', 'Signed in using Google account.');
+      }
+
       toast({
         title: "Signed in successfully",
         description: "Welcome back to NxAIO!",

@@ -2,12 +2,12 @@
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
-import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, updateProfile, getAdditionalUserInfo } from "firebase/auth";
 import { useAuth, useFirestore, useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { doc, setDoc, serverTimestamp, increment, updateDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, increment } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { logActivity } from "@/lib/activity";
@@ -46,7 +46,7 @@ export default function SignUpPage() {
     const statsRef = doc(db, "system", "stats");
 
     // Create Profile
-    await setDoc(userRef, {
+    setDoc(userRef, {
       uid,
       email,
       displayName,
@@ -60,18 +60,11 @@ export default function SignUpPage() {
       }));
     });
 
-    // Update Global Stats
-    updateDoc(statsRef, {
+    // Update Global Stats robustly
+    setDoc(statsRef, {
       totalUsers: increment(1),
       registrationsToday: increment(1)
-    }).catch(() => {
-      // If doc doesn't exist, initialize it
-      setDoc(statsRef, {
-        totalUsers: 1,
-        registrationsToday: 1,
-        totalVisitors: 1
-      }, { merge: true });
-    });
+    }, { merge: true });
   };
 
   const handleGoogleSignIn = async () => {
@@ -79,15 +72,22 @@ export default function SignUpPage() {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      await initUserProfile(
-        result.user.uid, 
-        result.user.email || "", 
-        result.user.displayName || "New User", 
-        result.user.photoURL || ""
-      );
-      logActivity(db, result.user.uid, 'signup', 'Account created via Google authentication.');
+      const isNewUser = getAdditionalUserInfo(result)?.isNewUser;
+
+      if (isNewUser) {
+        await initUserProfile(
+          result.user.uid, 
+          result.user.email || "", 
+          result.user.displayName || "New User", 
+          result.user.photoURL || ""
+        );
+        logActivity(db, result.user.uid, 'signup', 'Account created via Google authentication.');
+      } else {
+        logActivity(db, result.user.uid, 'login', 'Signed in using existing Google account.');
+      }
+      
       toast({
-        title: "Account created",
+        title: "Success",
         description: "Welcome to NxAIO!",
       });
       router.push("/");
