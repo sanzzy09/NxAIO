@@ -43,9 +43,9 @@ export function LogoCloud3() {
   const duplicatedLogos = [...logos, ...logos, ...logos]
 
   return (
-    <section className="w-full py-16 overflow-hidden relative">
-      <div className="container px-4 md:px-6 mb-10 text-center">
-        <h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground/30">
+    <section className="w-full py-20 overflow-hidden relative">
+      <div className="container px-4 md:px-6 mb-12 text-center">
+        <h3 className="text-xs font-bold uppercase tracking-[0.4em] text-muted-foreground/30">
           Integrated Tool Ecosystems
         </h3>
       </div>
@@ -59,14 +59,14 @@ export function LogoCloud3() {
           {duplicatedLogos.map((logo, index) => (
             <div 
               key={`${logo.name}-${index}`} 
-              className="flex items-center gap-3 px-12 group cursor-default transition-all duration-500 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 scale-90 hover:scale-105"
+              className="flex items-center gap-4 px-14 group cursor-default transition-all duration-500 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 scale-95 hover:scale-105"
             >
               <img
                 src={logo.logo}
                 alt={logo.name}
-                className="h-7 w-7 object-contain drop-shadow-sm"
+                className="h-10 w-10 object-contain drop-shadow-sm transition-transform group-hover:rotate-6"
               />
-              <span className="font-headline font-bold text-sm tracking-tight text-foreground">
+              <span className="font-headline font-bold text-lg tracking-tighter text-foreground">
                 {logo.name}
               </span>
             </div>
