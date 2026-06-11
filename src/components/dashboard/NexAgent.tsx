@@ -60,6 +60,18 @@ import {
   AgentTools,
 } from "@/components/ai-elements/agent";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import {
+  Context,
+  ContextCacheUsage,
+  ContextContent,
+  ContextContentBody,
+  ContextContentFooter,
+  ContextContentHeader,
+  ContextInputUsage,
+  ContextOutputUsage,
+  ContextReasoningUsage,
+  ContextTrigger,
+} from "@/components/ai-elements/context";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -106,10 +118,6 @@ const agentToolsConfig = {
   search_anime: { description: 'Searches for anime in the Anichin database.', parameters: { type: 'object', properties: { query: { type: 'string', description: 'Anime title' } } } }
 };
 
-/**
- * Technical Execution Card
- * Renders raw tool calls in a sleek terminal-inspired block.
- */
 const ToolCallVisualizer = ({ content }: { content: string }) => {
   if (!content.includes('<tool_call>')) return null;
 
@@ -146,7 +154,13 @@ export function NexAgent() {
   const [selectedModel, setSelectedModel] = useState(models[0].id);
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [view, setView] = useState<'chat' | 'config'>('chat');
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
+  // Usage tracking state
+  const [usage, setUsage] = useState({
+    inputTokens: 0,
+    outputTokens: 0,
+    totalTokens: 0
+  });
 
   const selectedModelData = models.find((m) => m.id === selectedModel);
   const chefs = Array.from(new Set(models.map((m) => m.chef)));
@@ -165,6 +179,16 @@ export function NexAgent() {
     try {
       const response = await nexAgentChat(newMessages, selectedModel);
       setMessages(prev => [...prev, response as Message]);
+      
+      // Update usage state if returned
+      if ((response as any).usage) {
+        const u = (response as any).usage;
+        setUsage(prev => ({
+          inputTokens: prev.inputTokens + (u.prompt_tokens || 0),
+          outputTokens: prev.outputTokens + (u.completion_tokens || 0),
+          totalTokens: prev.totalTokens + (u.total_tokens || 0)
+        }));
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -202,9 +226,36 @@ export function NexAgent() {
                 <Settings2 className="size-3" /> Intel
               </Button>
             </div>
+
+            {/* AI Context Component */}
+            <Context
+              maxTokens={128000}
+              modelId={selectedModel}
+              usedTokens={usage.totalTokens}
+              usage={{
+                inputTokens: usage.inputTokens,
+                outputTokens: usage.outputTokens,
+                totalTokens: usage.totalTokens,
+                cachedInputTokens: 0,
+                reasoningTokens: 0
+              }}
+            >
+              <ContextTrigger />
+              <ContextContent>
+                <ContextContentHeader />
+                <ContextContentBody>
+                  <ContextInputUsage />
+                  <ContextOutputUsage />
+                  <ContextReasoningUsage />
+                  <ContextCacheUsage />
+                </ContextContentBody>
+                <ContextContentFooter />
+              </ContextContent>
+            </Context>
+
             <ModelSelector open={selectorOpen} onOpenChange={setSelectorOpen}>
               <ModelSelectorTrigger asChild>
-                <Button variant="outline" className="h-10 rounded-full border-primary/5 bg-background/50 hover:bg-indigo-500/5 px-4 min-w-[200px] justify-between shadow-sm">
+                <Button variant="outline" className="h-10 rounded-full border-primary/5 bg-background/50 hover:bg-indigo-500/5 px-4 min-w-[180px] justify-between shadow-sm">
                   <span className="text-[10px] font-bold uppercase tracking-wider">{selectedModelData?.name || "Select Engine"}</span>
                   <ChevronDown className="size-3 opacity-40" />
                 </Button>
@@ -278,7 +329,6 @@ export function NexAgent() {
                           prose-li:text-[12px] prose-li:font-medium prose-li:text-muted-foreground/90
                           prose-table:border-collapse prose-th:border-primary/5 prose-td:border-primary/5 prose-hr:border-primary/10">
                           
-                          {/* Special check for raw tool call XML - styling it technical */}
                           {msg.content.includes('<tool_call>') ? (
                             <div className="space-y-4">
                               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Handshaking with Utility Logic...</p>

@@ -1,4 +1,3 @@
-
 'use server';
 
 import OpenAI from 'openai';
@@ -11,6 +10,7 @@ import { fetchAnichin } from './anichin';
  * NexAgent Server Action
  * Handles chat interactions via OpenRouter and processes tool calls.
  * Enhanced system prompt for visual "Card" responses using Markdown.
+ * Includes usage tracking for token context.
  */
 
 const tools = [
@@ -67,7 +67,7 @@ const tools = [
   }
 ];
 
-export async function nexAgentChat(messages: any[], modelId: string = "google/gemini-2.0-flash-exp:free") {
+export async function nexAgentChat(messages: any[], modelId: string = "nvidia/llama-nemotron-rerank-vl-1b-v2:free") {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
@@ -128,6 +128,7 @@ VISUAL OUTPUT PROTOCOLS:
     });
 
     const message = response.choices[0].message;
+    const usage = response.usage;
 
     if (message.tool_calls && message.tool_calls.length > 0) {
       const toolResults: any[] = [];
@@ -175,10 +176,10 @@ VISUAL OUTPUT PROTOCOLS:
         ]
       });
 
-      // Clean the final response to be serializable
       return {
         role: "assistant",
         content: finalResponse.choices[0].message.content || "Request processed.",
+        usage: finalResponse.usage,
         toolCalls: message.tool_calls.map(tc => ({
           id: tc.id,
           type: tc.type,
@@ -192,13 +193,13 @@ VISUAL OUTPUT PROTOCOLS:
 
     return {
       role: "assistant",
-      content: message.content || "I'm not sure how to respond to that."
+      content: message.content || "I'm not sure how to respond to that.",
+      usage: usage
     };
 
   } catch (error: any) {
     console.error('NexAgent Chat Error:', error);
 
-    // Specific handling for models that don't support tool use
     if (error.message && error.message.includes("No endpoints found that support tool use")) {
       return {
         role: "assistant",
