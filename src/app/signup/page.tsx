@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
@@ -89,7 +90,7 @@ export default function SignUpPage() {
         title: "Success",
         description: "Welcome to NxAIO!",
       });
-      router.push("/");
+      // Redirection is handled by the useEffect hook watching the 'user' state
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
         setLoading(false);
@@ -101,7 +102,6 @@ export default function SignUpPage() {
         title: "Signup failed",
         description: error.message || "Could not sign up with Google.",
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -133,14 +133,13 @@ export default function SignUpPage() {
         title: "Account created",
         description: "Welcome to NxAIO!",
       });
-      router.push("/");
+      // Redirection is handled by the useEffect hook watching the 'user' state
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Signup failed",
         description: error.message || "Could not create account.",
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -151,7 +150,7 @@ export default function SignUpPage() {
   ];
 
   if (authLoading || user) {
-    return null; // Or a loading spinner
+    return null; 
   }
 
   return (
