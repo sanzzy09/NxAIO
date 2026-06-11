@@ -39,6 +39,7 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
     { label: 'Dashboard', href: '/', onClick: onDashboardClick },
     { label: 'Pricing', href: '/pricing' },
     { label: 'FAQ', href: '/faq' },
+    { label: 'Contact', href: '/contact' },
     { label: 'Changelog', href: '/changelog' },
   ];
 

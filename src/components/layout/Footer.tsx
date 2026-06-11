@@ -72,8 +72,8 @@ export function Footer() {
               <h4 className="font-headline font-bold text-xs uppercase tracking-[0.2em] text-primary-foreground/30">Resources</h4>
               <ul className="space-y-2 text-sm text-primary-foreground/60">
                 <li><Link href="/faq" className="hover:text-primary-foreground transition-colors">Utility Guide</Link></li>
+                <li><Link href="/contact" className="hover:text-primary-foreground transition-colors">Get Help</Link></li>
                 <li><Link href="/changelog" className="hover:text-primary-foreground transition-colors">Engineering Logs</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">API Keys</Link></li>
                 <li><Link href="#" className="hover:text-primary-foreground transition-colors">Community</Link></li>
               </ul>
             </div>
