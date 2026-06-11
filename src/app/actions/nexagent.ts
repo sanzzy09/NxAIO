@@ -1,3 +1,4 @@
+
 'use server';
 
 import OpenAI from 'openai';
@@ -122,7 +123,7 @@ Would you like me to find similar sci-fi titles?
       model: modelId,
       messages: [
         { role: "system", content: systemInstructions },
-        ...messages
+        ...messages.map(m => ({ role: m.role, content: m.content }))
       ],
       tools: tools as any,
       tool_choice: "auto",
@@ -170,7 +171,7 @@ Would you like me to find similar sci-fi titles?
       const finalResponse = await client.chat.completions.create({
         model: modelId,
         messages: [
-          ...messages,
+          ...messages.map(m => ({ role: m.role, content: m.content })),
           message,
           ...toolResults
         ]
@@ -178,14 +179,21 @@ Would you like me to find similar sci-fi titles?
 
       return {
         role: "assistant",
-        content: finalResponse.choices[0].message.content,
-        toolCalls: message.tool_calls
+        content: finalResponse.choices[0].message.content || "I have processed the request.",
+        toolCalls: message.tool_calls.map(tc => ({
+          id: tc.id,
+          type: tc.type,
+          function: {
+            name: tc.function.name,
+            arguments: tc.function.arguments
+          }
+        }))
       };
     }
 
     return {
       role: "assistant",
-      content: message.content
+      content: message.content || "I'm not sure how to respond to that."
     };
 
   } catch (error: any) {
