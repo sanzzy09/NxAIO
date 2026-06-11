@@ -64,6 +64,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'filegoat.s3.de.io.cloud.ovh.net',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
