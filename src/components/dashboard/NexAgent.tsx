@@ -101,16 +101,12 @@ export function NexAgent() {
 
   const selectedModelData = models.find((m) => m.id === selectedModel);
 
-  // Sync tool results to Firestore if a tool call was detected
   const syncToolResults = useCallback(async (toolCalls: any[], content: string) => {
     if (!user || !db || !toolCalls.length) return;
 
     for (const call of toolCalls) {
       try {
-        const name = call.function.name;
-        // The actual tool execution happens on the server, but we can't easily capture the *result* 
-        // in a separate record here unless the server action returned the raw tool results.
-        // For MVP, we log the activity. In a more complex setup, we'd return tool output separately.
+        // Activity logging handled by server actions
       } catch (e) {
         console.error("Sync error:", e);
       }
@@ -202,20 +198,60 @@ export function NexAgent() {
                     <div className={cn("size-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm", msg.role === 'user' ? "bg-indigo-600 text-white" : "bg-secondary text-primary")}>
                       {msg.role === 'user' ? <User className="size-5" /> : <Bot className="size-5" />}
                     </div>
-                    <div className="space-y-3 max-w-[85%]">
+                    <div className="space-y-3 max-w-[90%] md:max-w-[85%]">
                       {msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0 && (
                         <ChainOfThought defaultOpen>
                           <ChainOfThoughtHeader />
                           <ChainOfThoughtContent>
+                            <ChainOfThoughtStep label="Analyzing Natural Language Input" status="complete" />
                             {msg.toolCalls.map((tool, idx) => (
-                              <ChainOfThoughtStep key={idx} label={`Executing: ${tool.function.name}`} status="complete" />
+                              <ChainOfThoughtStep 
+                                key={idx} 
+                                label={`Executing: ${tool.function.name.replace(/_/g, ' ')}`} 
+                                description={`Provisioning underlying utility logic for ${tool.function.name}...`}
+                                status="complete" 
+                              />
                             ))}
+                            <ChainOfThoughtStep label="Synthesizing Neural Response" status="complete" />
                           </ChainOfThoughtContent>
                         </ChainOfThought>
                       )}
                       <div className={cn("p-6 rounded-[1.5rem] shadow-sm", msg.role === 'user' ? "bg-indigo-600 text-white rounded-tr-none" : "bg-background border border-primary/5 rounded-tl-none")}>
-                        <div className="prose prose-sm dark:prose-invert max-w-none prose-img:rounded-3xl prose-img:shadow-xl">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                        <div className="prose prose-sm dark:prose-invert max-w-none prose-img:rounded-3xl prose-img:shadow-xl prose-table:border-collapse prose-th:border-primary/5 prose-td:border-primary/5">
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              table: ({ children }) => (
+                                <div className="w-full overflow-x-auto my-6 rounded-2xl border border-primary/5 bg-secondary/10 shadow-inner">
+                                  <table className="w-full text-left border-collapse min-w-[500px]">
+                                    {children}
+                                  </table>
+                                </div>
+                              ),
+                              thead: ({ children }) => (
+                                <thead className="bg-secondary/30 border-b border-primary/5">
+                                  {children}
+                                </thead>
+                              ),
+                              th: ({ children }) => (
+                                <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+                                  {children}
+                                </th>
+                              ),
+                              td: ({ children }) => (
+                                <td className="px-5 py-3 text-xs font-medium border-t border-primary/5 align-top">
+                                  {children}
+                                </td>
+                              ),
+                              tr: ({ children }) => (
+                                <tr className="hover:bg-primary/[0.02] transition-colors">
+                                  {children}
+                                </tr>
+                              )
+                            }}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     </div>
@@ -227,7 +263,7 @@ export function NexAgent() {
                     <div className="space-y-3 max-w-[80%]">
                       <div className="bg-background border border-primary/5 p-4 rounded-[1.5rem] flex items-center gap-3">
                          <Loader2 className="size-4 animate-spin text-indigo-600" />
-                         <span className="text-xs font-bold text-muted-foreground uppercase">NexAgent is Thinking...</span>
+                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">NexAgent is Thinking...</span>
                       </div>
                     </div>
                   </div>
@@ -247,11 +283,17 @@ export function NexAgent() {
               <Agent>
                 <AgentHeader name="NexAgent Utility Orchestrator" model={selectedModelData?.name} />
                 <AgentContent>
-                  <AgentInstructions>You are NexAgent, the premium orchestrator of NxAIO. Your goal is to deliver visual, Indonesian-optimized utility responses.</AgentInstructions>
+                  <AgentInstructions>You are NexAgent, the premium orchestrator of NxAIO. Your goal is to deliver high-fidelity, visual, Indonesian-optimized utility responses using Markdown. prioritized Card Layouts for media search results.</AgentInstructions>
                   <AgentTools defaultValue={["generate_music"]}>
                     <AgentTool value="generate_temp_mail" tool={agentToolsConfig.generate_temp_mail} />
                     <AgentTool value="generate_music" tool={agentToolsConfig.generate_music} />
+                    <AgentTool value="search_media" tool={agentToolsConfig.search_media} />
                   </AgentTools>
+                  <AgentOutput schema={`{
+  role: "assistant",
+  content: "Markdown string with Visual Cards or Data Tables",
+  toolCalls: Array<ToolCall>
+}`} />
                 </AgentContent>
               </Agent>
             </div>
