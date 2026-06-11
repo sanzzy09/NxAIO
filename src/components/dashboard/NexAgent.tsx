@@ -14,7 +14,9 @@ import {
   Cpu,
   BrainCircuit,
   CheckIcon,
-  ChevronDown
+  ChevronDown,
+  Search,
+  Database
 } from "lucide-react";
 import { nexAgentChat } from "@/app/actions/nexagent";
 import { cn } from "@/lib/utils";
@@ -32,6 +34,14 @@ import {
   ModelSelectorName,
   ModelSelectorTrigger,
 } from "@/components/ai-elements/model-selector";
+import {
+  ChainOfThought,
+  ChainOfThoughtContent,
+  ChainOfThoughtHeader,
+  ChainOfThoughtSearchResult,
+  ChainOfThoughtSearchResults,
+  ChainOfThoughtStep,
+} from "@/components/ai-elements/chain-of-thought";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -193,6 +203,26 @@ export function NexAgent() {
     }
   };
 
+  const getToolIcon = (name: string) => {
+    switch (name) {
+      case 'generate_temp_mail': return Database;
+      case 'generate_music': return Sparkles;
+      case 'search_media': return Search;
+      case 'search_anime': return Search;
+      default: return Terminal;
+    }
+  };
+
+  const getToolLabel = (name: string) => {
+    switch (name) {
+      case 'generate_temp_mail': return "Provisioning Disposable Identity";
+      case 'generate_music': return "Composing AI Music Track";
+      case 'search_media': return "Searching Vidbox Database";
+      case 'search_anime': return "Querying Anichin Archives";
+      default: return `Executing Logic: ${name}`;
+    }
+  };
+
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem] flex flex-col h-[700px]">
       <CardHeader className="p-8 pb-6 border-b border-primary/5">
@@ -274,6 +304,28 @@ export function NexAgent() {
                 </div>
                 
                 <div className="space-y-3 max-w-[80%]">
+                  {msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0 && (
+                    <ChainOfThought defaultOpen>
+                      <ChainOfThoughtHeader />
+                      <ChainOfThoughtContent>
+                        {msg.toolCalls.map((tool, idx) => (
+                          <ChainOfThoughtStep
+                            key={idx}
+                            icon={getToolIcon(tool.function.name)}
+                            label={getToolLabel(tool.function.name)}
+                            status="complete"
+                          >
+                             <ChainOfThoughtSearchResults>
+                               <ChainOfThoughtSearchResult>
+                                 Execution ID: {tool.id.slice(0, 8)}
+                               </ChainOfThoughtSearchResult>
+                             </ChainOfThoughtSearchResults>
+                          </ChainOfThoughtStep>
+                        ))}
+                      </ChainOfThoughtContent>
+                    </ChainOfThought>
+                  )}
+                  
                   <div className={cn(
                     "p-5 rounded-[1.5rem] text-sm leading-relaxed shadow-sm",
                     msg.role === 'user' 
@@ -282,38 +334,46 @@ export function NexAgent() {
                   )}>
                     {msg.content}
                   </div>
-                  
-                  {msg.toolCalls && (
-                    <div className="flex flex-wrap gap-2">
-                      {msg.toolCalls.map((tool: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-2 px-3 py-1 rounded-lg bg-secondary/50 border border-primary/5 text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
-                          <Terminal className="size-3" /> Tool Executed: {tool.function.name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
+            
             {loading && (
               <div className="flex gap-4 animate-fade-in-up">
                 <div className="size-10 rounded-2xl bg-secondary text-primary flex items-center justify-center animate-pulse">
                   <Bot className="size-5" />
                 </div>
-                <div className="bg-background border border-primary/5 p-4 rounded-[1.5rem] rounded-tl-none flex items-center gap-3">
-                   <div className="flex gap-1">
-                      <div className="size-1.5 bg-indigo-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                      <div className="size-1.5 bg-indigo-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                      <div className="size-1.5 bg-indigo-600 rounded-full animate-bounce" />
-                   </div>
-                   <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Orchestrating...</span>
+                <div className="space-y-3 max-w-[80%]">
+                  <ChainOfThought defaultOpen>
+                    <ChainOfThoughtHeader />
+                    <ChainOfThoughtContent>
+                      <ChainOfThoughtStep
+                        icon={BrainCircuit}
+                        label="Analyzing Natural Language Input"
+                        status="complete"
+                      />
+                      <ChainOfThoughtStep
+                        icon={Loader2}
+                        label="Synthesizing Neural Response"
+                        status="active"
+                      />
+                    </ChainOfThoughtContent>
+                  </ChainOfThought>
+                  
+                  <div className="bg-background border border-primary/5 p-4 rounded-[1.5rem] rounded-tl-none flex items-center gap-3">
+                     <div className="flex gap-1">
+                        <div className="size-1.5 bg-indigo-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                        <div className="size-1.5 bg-indigo-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                        <div className="size-1.5 bg-indigo-600 rounded-full animate-bounce" />
+                     </div>
+                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Orchestrating...</span>
+                  </div>
                 </div>
               </div>
             )}
           </div>
         </ScrollArea>
 
-        {/* Input Area */}
         <div className="p-8 border-t border-primary/5 bg-secondary/10 backdrop-blur-md">
            <form onSubmit={handleSend} className="max-w-3xl mx-auto flex gap-3">
               <div className="relative flex-1 group">
@@ -337,7 +397,7 @@ export function NexAgent() {
               </Button>
            </form>
            <p className="mt-4 text-center text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-40">
-             NexAgent Skill Integration v1.2 • Powered by AI-Elements
+             NexAgent Intelligence v1.5 • Reasoning Enabled
            </p>
         </div>
       </CardContent>
