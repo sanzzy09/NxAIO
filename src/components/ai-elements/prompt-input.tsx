@@ -26,6 +26,7 @@ export function usePromptInputAttachments() {
   return {
     files: context.files,
     remove: context.removeFile,
+    add: context.addFiles,
   };
 }
 
@@ -153,11 +154,40 @@ export function PromptInputActionMenuContent({ children }: { children: React.Rea
 }
 
 export function PromptInputActionAddAttachments() {
+  const { add } = usePromptInputAttachments();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      add(Array.from(e.target.files));
+    }
+  };
+
   return (
-    <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer">
-      <Paperclip className="size-4 opacity-40" />
-      <span className="text-xs font-bold uppercase tracking-widest">Add Attachments</span>
-    </DropdownMenuItem>
+    <>
+      <input
+        type="file"
+        multiple
+        ref={fileInputRef}
+        className="hidden"
+        onChange={handleChange}
+        accept="image/*"
+      />
+      <DropdownMenuItem 
+        className="gap-3 py-3 rounded-xl cursor-pointer"
+        onSelect={(e) => {
+          e.preventDefault();
+          handleClick();
+        }}
+      >
+        <Paperclip className="size-4 opacity-40" />
+        <span className="text-xs font-bold uppercase tracking-widest">Add Attachments</span>
+      </DropdownMenuItem>
+    </>
   );
 }
 
