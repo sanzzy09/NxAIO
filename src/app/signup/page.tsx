@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
@@ -172,7 +171,7 @@ export default function SignUpPage() {
       }}
       labels={{
         divider: "or sign up with email",
-        terms: 'I agree to the <a href="#">Terms</a> and <a href="/privacy">Privacy Policy</a>',
+        terms: 'I agree to the <a href="/privacy">Terms</a> and <a href="/privacy">Privacy Policy</a>',
         submit: "Create Account",
         passwordToggle: "Toggle password visibility",
       }}
