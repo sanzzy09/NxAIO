@@ -1,10 +1,10 @@
-
 "use client"
 
 import React, { useMemo } from "react"
-import { BarChart3, Mail, Eraser, Music, Info, BrainCircuit } from "lucide-react"
+import { BarChart3, Mail, Eraser, Music, Info, BrainCircuit, Zap } from "lucide-react"
 import { getWIBDate } from "@/lib/utils"
 import { cn } from "@/lib/utils"
+import { Progress } from "@/components/ui/progress"
 
 const ROLE_LIMITS = {
   tempmail: { free: 3, pro: 25, sultan: 50 },
@@ -23,7 +23,8 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const limit = ROLE_LIMITS.tempmail[role]
     const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
-    return { current: count, limit: limit, remaining }
+    const percentage = (remaining / limit) * 100
+    return { current: count, limit: limit, remaining, percentage }
   }, [profile, role])
 
   // 2. BG Remover Stats (Daily WIB reset)
@@ -33,7 +34,8 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const limit = ROLE_LIMITS.remover[role]
     const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
-    return { current: count, limit: limit, remaining }
+    const percentage = (remaining / limit) * 100
+    return { current: count, limit: limit, remaining, percentage }
   }, [profile, role])
 
   // 3. AI Music Stats (Weekly rolling reset)
@@ -46,7 +48,8 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const count = isReset ? 0 : (usage.count || 0)
     const limit = ROLE_LIMITS.music[role]
     const remaining = Math.max(0, limit - count)
-    return { current: count, limit: limit, remaining }
+    const percentage = (remaining / limit) * 100
+    return { current: count, limit: limit, remaining, percentage }
   }, [profile, role])
 
   // 4. AI Token Stats (Daily WIB reset)
@@ -56,7 +59,8 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const limit = ROLE_LIMITS.ai[role]
     const tokens = (usage.lastReset === todayWIB) ? (usage.tokens || 0) : 0
     const remaining = Math.max(0, limit - tokens)
-    return { current: tokens, limit: limit, remaining }
+    const percentage = (remaining / limit) * 100
+    return { current: tokens, limit: limit, remaining, percentage }
   }, [profile, role])
 
   const formatTokens = (n: number) => {
@@ -66,39 +70,40 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     }).format(n);
   };
 
-  const renderQuotaCard = (title: string, icon: any, stats: any, desc: string, color: string, isTokens = false) => (
-    <div className="flex flex-col p-6 sm:p-8 rounded-[2.5rem] bg-secondary/20 border border-primary/5 hover:border-primary/10 transition-all group overflow-hidden h-full min-h-[240px]">
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex items-start justify-between gap-3">
-          <div className={cn("p-3 rounded-2xl bg-background border border-primary/5 shrink-0", color)}>
+  const renderQuotaBar = (title: string, icon: any, stats: any, color: string, resetLabel: string, isTokens = false) => (
+    <div className="space-y-4 p-6 rounded-[2rem] bg-secondary/20 border border-primary/5 group transition-all hover:bg-secondary/30">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={cn("p-2 rounded-xl bg-background border border-primary/5 transition-transform group-hover:scale-110", color)}>
             {icon}
           </div>
-          <div className="text-right shrink-0">
-            <p className="text-lg font-bold font-headline leading-none">
-              {isTokens ? formatTokens(stats.remaining) : stats.remaining}
-            </p>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-40 mt-1">Remaining</p>
-          </div>
+          <span className="text-sm font-bold font-headline uppercase tracking-tight">{title}</span>
         </div>
-        <div className="space-y-1">
-          <h4 className="text-sm font-bold font-headline leading-tight">{title}</h4>
-          <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground opacity-50 line-clamp-1">{desc}</p>
+        <div className="text-right">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">{resetLabel}</span>
         </div>
       </div>
 
-      <div className="mt-auto pt-6 border-t border-primary/5 space-y-3">
-         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
-            <span className="text-muted-foreground opacity-40">Consumed</span>
-            <span className={cn("font-headline", stats.current >= stats.limit ? "text-destructive" : "text-primary")}>
-              {((stats.current / stats.limit) * 100).toFixed(0)}%
-            </span>
-         </div>
-         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
-            <span className="text-foreground/60 font-mono">
-              {isTokens ? formatTokens(stats.current) : stats.current} / {isTokens ? formatTokens(stats.limit) : stats.limit}
-            </span>
-            <span className="text-muted-foreground opacity-30">Utilized</span>
-         </div>
+      <div className="space-y-2">
+        <Progress 
+          value={stats.percentage} 
+          className="h-2 bg-background/50 border border-primary/5"
+          indicatorClassName={cn(
+            "transition-all duration-1000",
+            stats.percentage < 20 ? "bg-destructive" : stats.percentage < 50 ? "bg-orange-500" : "bg-primary"
+          )}
+        />
+        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 text-muted-foreground/60">
+            <Zap className="size-3 text-primary/40" />
+            <span>Capacity: {isTokens ? formatTokens(stats.remaining) : stats.remaining} {isTokens ? 'Tokens' : 'Units'} Available</span>
+          </div>
+          <span className={cn(
+            stats.percentage < 20 ? "text-destructive" : "text-primary/40"
+          )}>
+            {stats.percentage.toFixed(0)}%
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -110,24 +115,24 @@ export function UsageAnalytics({ profile }: { profile: any }) {
            <BarChart3 className="size-5" />
          </div>
          <div>
-            <h3 className="text-2xl font-bold font-headline tracking-tight">Utility Quotas & Analytics</h3>
-            <p className="text-sm text-muted-foreground">Daily limits reset at 00:00 WIB (Asia/Jakarta).</p>
+            <h3 className="text-2xl font-bold font-headline tracking-tight">Utility Quotas</h3>
+            <p className="text-sm text-muted-foreground font-medium">Real-time capacity tracking for your {role} identity.</p>
          </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {renderQuotaCard("AI Intelligence", <BrainCircuit className="size-5" />, aiStats, "Daily Token Bandwidth", "text-blue-600", true)}
-        {renderQuotaCard("Temp-Mail", <Mail className="size-5" />, mailStats, "Daily Identity Rotation", "text-indigo-600")}
-        {renderQuotaCard("BG Remover", <Eraser className="size-5" />, removerStats, "Daily AI GPU Units", "text-pink-600")}
-        {renderQuotaCard("AI Music", <Music className="size-5" />, musicStats, "Weekly Audio Sessions", "text-blue-600")}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {renderQuotaBar("NexAgent Tokens", <BrainCircuit className="size-4" />, aiStats, "text-blue-600", "Daily Reset", true)}
+        {renderQuotaBar("Temp-Mail IDs", <Mail className="size-4" />, mailStats, "text-indigo-600", "Daily Reset")}
+        {renderQuotaBar("Background Removal", <Eraser className="size-4" />, removerStats, "text-pink-600", "Daily Reset")}
+        {renderQuotaBar("AI Music Studio", <Music className="size-4" />, musicStats, "text-blue-600", "Weekly Reset")}
       </div>
 
-      <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 flex items-start gap-4">
+      <div className="p-6 rounded-[2.5rem] bg-primary/5 border border-primary/10 flex items-start gap-4">
         <Info className="size-5 text-primary/40 mt-0.5" />
         <div className="space-y-1">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Quota Intelligence</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Your limits refresh automatically based on your current tier. {role === 'sultan' ? 'You are enjoying elite-tier bandwidth.' : 'Upgrade your identity to sultan for 10x higher quotas and priority processing.'}
+          <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Intelligent Throttling</p>
+          <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
+            Capacities start full and drain as you perform logic operations. All metrics reset automatically at 00:00 WIB. Upgrade to Sultan tier to expand your bandwidth by up to 20x.
           </p>
         </div>
       </div>
