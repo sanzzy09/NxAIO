@@ -235,7 +235,11 @@ export function NexAgent() {
                         </ChainOfThought>
                       )}
                       <div className={cn("p-6 rounded-[1.5rem] shadow-sm", msg.role === 'user' ? "bg-indigo-600 text-white rounded-tr-none" : "bg-background border border-primary/5 rounded-tl-none")}>
-                        <div className="prose prose-sm dark:prose-invert max-w-none prose-img:rounded-3xl prose-img:shadow-xl prose-table:border-collapse prose-th:border-primary/5 prose-td:border-primary/5">
+                        <div className="prose prose-sm dark:prose-invert max-w-none 
+                          prose-img:rounded-[1.5rem] prose-img:shadow-2xl prose-img:border prose-img:border-primary/5 prose-img:mx-auto prose-img:max-h-[350px] prose-img:object-cover
+                          prose-h3:text-xl prose-h3:font-bold prose-h3:font-headline prose-h3:mb-2 prose-h3:tracking-tight
+                          prose-li:text-[11px] prose-li:font-medium prose-li:text-muted-foreground/80
+                          prose-table:border-collapse prose-th:border-primary/5 prose-td:border-primary/5 prose-hr:border-primary/10">
                           <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
                             components={{
@@ -265,6 +269,12 @@ export function NexAgent() {
                                 <tr className="hover:bg-primary/[0.02] transition-colors">
                                   {children}
                                 </tr>
+                              ),
+                              // Enhance Card Pattern
+                              h3: ({ children }) => (
+                                <h3 className="mt-4 border-l-4 border-indigo-500 pl-4 py-1 bg-indigo-500/5 rounded-r-xl">
+                                  {children}
+                                </h3>
                               )
                             }}
                           >
