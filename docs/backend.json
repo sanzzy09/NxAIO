@@ -123,6 +123,31 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["songId", "title", "audio", "timestamp"]
+    },
+    "RemovalRecord": {
+      "title": "RemovalRecord",
+      "description": "Record of a background removal task.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sourceUrl": { "type": "string" },
+        "resultUrl": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "resultUrl", "timestamp"]
+    },
+    "MailboxRecord": {
+      "title": "MailboxRecord",
+      "description": "Record of a temporary mailbox session.",
+      "type": "object",
+      "properties": {
+        "address": { "type": "string" },
+        "token": { "type": "string" },
+        "cookies": { "type": "object" },
+        "isActive": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["address", "token", "timestamp"]
     }
   },
   "auth": {
@@ -156,6 +181,14 @@
     "/users/{userId}/music/{musicId}": {
       "schema": "MusicRecord",
       "description": "User's generated music history."
+    },
+    "/users/{userId}/removals/{removalId}": {
+      "schema": "RemovalRecord",
+      "description": "User's background removal history."
+    },
+    "/users/{userId}/mailboxes/{mailboxId}": {
+      "schema": "MailboxRecord",
+      "description": "User's temporary mailbox history."
     }
   }
 }

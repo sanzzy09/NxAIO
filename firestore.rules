@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deployment Sync Trigger: v10 - Added music history rules.
+    // Deployment Sync Trigger: v11 - Added removals and mailbox rules.
     
     // Global stats are publicly readable and writable for real-time tracking
     match /system/stats {
@@ -20,7 +20,6 @@ service cloud.firestore {
 
       // Follower management
       match /followers/{followerId} {
-        // Can read if profile is public OR requester is owner
         allow read: if (get(/databases/$(database)/documents/users/$(userId)).data.isPrivate == false) || (request.auth != null && request.auth.uid == userId);
         allow write: if request.auth != null && request.auth.uid == followerId;
       }
@@ -31,18 +30,28 @@ service cloud.firestore {
         allow write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Activity logs: only the owner can read and write their logs
+      // Activity logs
       match /activities/{activityId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // File uploads: only the owner can read and write their upload history
+      // File uploads
       match /uploads/{uploadId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Music history: only the owner can read and write their generated tracks
+      // Music history
       match /music/{musicId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Removal history
+      match /removals/{removalId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Mailbox history
+      match /mailboxes/{mailboxId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
