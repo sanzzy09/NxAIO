@@ -28,6 +28,7 @@ import { StaggeredFadeUp } from '@/components/ui/staggered-fade-up';
 import { SkeletonStats } from '@/components/ui/skeleton-stats';
 import { LogoCloud3 } from '@/components/ui/logo-cloud-3';
 import { Features6 } from '@/components/ui/features-6';
+import { Features4 } from '@/components/ui/features-4';
 import Link from 'next/link';
 import { useFirestore, useDoc } from '@/firebase';
 import { doc, increment, setDoc, updateDoc } from 'firebase/firestore';
@@ -184,6 +185,10 @@ export default function Home() {
 
             <div className="animate-fade-in-up [animation-delay:500ms]">
                <Features6 />
+            </div>
+
+            <div className="full-bleed-technical-section -mx-4 lg:-mx-24 bg-black">
+               <Features4 />
             </div>
 
             <div className="space-y-8 animate-fade-in-up [animation-delay:700ms]">
