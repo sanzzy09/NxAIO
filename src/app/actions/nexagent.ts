@@ -10,9 +10,10 @@ import { fetchAnichin } from './anichin';
 /**
  * NexAgent Server Action
  * Handles chat interactions via OpenRouter and processes tool calls.
+ * Uses a free model from the OpenRouter catalog.
  */
 
-const MODEL = "meta-llama/llama-3.1-8b-instruct:free";
+const MODEL = "google/gemini-2.0-flash-exp:free";
 
 // Define tools available to the AI
 const tools = [
@@ -75,7 +76,7 @@ export async function nexAgentChat(messages: any[]) {
   if (!apiKey) {
     return {
       role: "assistant",
-      content: "System configuration missing: OpenRouter API key is not set. Please add OPENROUTER_API_KEY to your environment variables."
+      content: "System configuration missing: OpenRouter API key is not set. Please ensure OPENROUTER_API_KEY is present in your environment variables."
     };
   }
 
@@ -173,7 +174,7 @@ export async function nexAgentChat(messages: any[]) {
        return { role: "assistant", content: "Invalid OpenRouter API Key. Please verify the key in your .env configuration." };
     }
     if (error.status === 402) {
-       return { role: "assistant", content: "Insufficient OpenRouter balance. Please check your credit status." };
+       return { role: "assistant", content: "Insufficient OpenRouter balance or limit reached for this free model." };
     }
 
     return {
