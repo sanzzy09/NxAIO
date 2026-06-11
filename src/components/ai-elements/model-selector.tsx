@@ -114,6 +114,11 @@ export function ModelSelectorLogo({ provider, className }: { provider: string; c
           <path d="M7 7c2-1 4.5-1 10 0" />
         </svg>
       );
+      case 'openrouter': return (
+        <svg viewBox="0 0 24 24" fill="currentColor" className="size-3.5">
+          <path d="M2 2h20v20H2V2zm10 15a4 4 0 100-8 4 4 0 000 8z" fillRule="evenodd" clipRule="evenodd" />
+        </svg>
+      );
       default: return <Monitor className="size-3.5" />;
     }
   };
