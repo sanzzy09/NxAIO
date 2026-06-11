@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -29,6 +30,7 @@ const plans = [
       {
         category: "Daily & Weekly Quotas",
         items: [
+          "64,000 AI Agent Tokens / day",
           "3 Temp-Mail Identities / day", 
           "3 AI Background Removals / day", 
           "5 AI Music Tracks / week"
@@ -63,6 +65,7 @@ const plans = [
       {
         category: "Enhanced Quotas",
         items: [
+          "256,000 AI Agent Tokens / day",
           "25 Temp-Mail Identities / day", 
           "10 AI Background Removals / day", 
           "15 AI Music Tracks / week"
@@ -97,6 +100,7 @@ const plans = [
       {
         category: "Maximum Quotas",
         items: [
+          "1,000,000 AI Agent Tokens / day",
           "50 Temp-Mail Identities / day", 
           "20 AI Background Removals / day", 
           "30 AI Music Tracks / week"

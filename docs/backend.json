@@ -42,6 +42,13 @@
             "lastReset": { "type": "string", "format": "date" }
           }
         },
+        "aiUsage": {
+          "type": "object",
+          "properties": {
+            "tokens": { "type": "number", "default": 0 },
+            "lastReset": { "type": "string", "format": "date" }
+          }
+        },
         "musicUsage": {
           "type": "object",
           "properties": {

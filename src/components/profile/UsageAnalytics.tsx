@@ -1,13 +1,15 @@
+
 "use client"
 
 import React, { useMemo } from "react"
-import { BarChart3, Mail, Eraser, Music, Info } from "lucide-react"
+import { BarChart3, Mail, Eraser, Music, Info, BrainCircuit } from "lucide-react"
 import { getWIBDate } from "@/lib/utils"
 
 const ROLE_LIMITS = {
   tempmail: { free: 3, pro: 25, sultan: 50 },
   remover: { free: 3, pro: 10, sultan: 20 },
-  music: { free: 5, pro: 15, sultan: 30 }
+  music: { free: 5, pro: 15, sultan: 30 },
+  ai: { free: 64000, pro: 256000, sultan: 1000000 }
 }
 
 export function UsageAnalytics({ profile }: { profile: any }) {
@@ -16,15 +18,11 @@ export function UsageAnalytics({ profile }: { profile: any }) {
   // 1. Temp-Mail Stats (Daily WIB reset)
   const mailStats = useMemo(() => {
     const todayWIB = getWIBDate();
-    const usage = profile?.tempMailUsage || { count: 0, lastReset: todayWIB }
+    const usage = profile?.tempmailUsage || { count: 0, lastReset: todayWIB }
     const limit = ROLE_LIMITS.tempmail[role]
     const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
-    return {
-      current: count,
-      limit: limit,
-      remaining
-    }
+    return { current: count, limit: limit, remaining }
   }, [profile, role])
 
   // 2. BG Remover Stats (Daily WIB reset)
@@ -34,11 +32,7 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const limit = ROLE_LIMITS.remover[role]
     const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
-    return {
-      current: count,
-      limit: limit,
-      remaining
-    }
+    return { current: count, limit: limit, remaining }
   }, [profile, role])
 
   // 3. AI Music Stats (Weekly rolling reset)
@@ -51,14 +45,27 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const count = isReset ? 0 : (usage.count || 0)
     const limit = ROLE_LIMITS.music[role]
     const remaining = Math.max(0, limit - count)
-    return {
-      current: count,
-      limit: limit,
-      remaining
-    }
+    return { current: count, limit: limit, remaining }
   }, [profile, role])
 
-  const renderQuotaCard = (title: string, icon: any, stats: any, desc: string, color: string) => (
+  // 4. AI Token Stats (Daily WIB reset)
+  const aiStats = useMemo(() => {
+    const todayWIB = getWIBDate();
+    const usage = profile?.aiUsage || { tokens: 0, lastReset: todayWIB }
+    const limit = ROLE_LIMITS.ai[role]
+    const tokens = (usage.lastReset === todayWIB) ? (usage.tokens || 0) : 0
+    const remaining = Math.max(0, limit - tokens)
+    return { current: tokens, limit: limit, remaining }
+  }, [profile, role])
+
+  const formatTokens = (n: number) => {
+    return Intl.NumberFormat("en-US", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(n);
+  };
+
+  const renderQuotaCard = (title: string, icon: any, stats: any, desc: string, color: string, isTokens = false) => (
     <div className="flex flex-col p-8 rounded-[2.5rem] bg-secondary/20 border border-primary/5 hover:border-primary/10 transition-all group overflow-hidden">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -71,13 +78,17 @@ export function UsageAnalytics({ profile }: { profile: any }) {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-lg font-bold font-headline">{stats.remaining}</p>
+          <p className="text-lg font-bold font-headline">
+            {isTokens ? formatTokens(stats.remaining) : stats.remaining}
+          </p>
           <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Left</p>
         </div>
       </div>
 
       <div className="mt-auto pt-6 border-t border-primary/5 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
-         <span className="text-muted-foreground opacity-40">Consumed: {stats.current} / {stats.limit}</span>
+         <span className="text-muted-foreground opacity-40">
+           Consumed: {isTokens ? formatTokens(stats.current) : stats.current} / {isTokens ? formatTokens(stats.limit) : stats.limit}
+         </span>
          <span className={stats.current >= stats.limit ? "text-destructive" : "text-primary"}>
            {((stats.current / stats.limit) * 100).toFixed(0)}% Utilized
          </span>
@@ -97,7 +108,8 @@ export function UsageAnalytics({ profile }: { profile: any }) {
          </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {renderQuotaCard("AI Intelligence", <BrainCircuit className="size-5" />, aiStats, "Daily Token Bandwidth", "text-blue-600", true)}
         {renderQuotaCard("Temp-Mail", <Mail className="size-5" />, mailStats, "Daily Identity Rotation", "text-indigo-600")}
         {renderQuotaCard("BG Remover", <Eraser className="size-5" />, removerStats, "Daily AI GPU Units", "text-pink-600")}
         {renderQuotaCard("AI Music", <Music className="size-5" />, musicStats, "Weekly Audio Sessions", "text-blue-600")}

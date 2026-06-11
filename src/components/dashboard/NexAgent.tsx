@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState, useCallback, memo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, memo, useEffect, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -15,14 +16,17 @@ import {
   Search,
   Settings2,
   MessageSquare,
-  GlobeIcon
+  GlobeIcon,
+  AlertCircle
 } from "lucide-react";
 import { nexAgentChat } from "@/app/actions/nexagent";
-import { cn } from "@/lib/utils";
+import { cn, getWIBDate } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, useDoc } from "@/firebase";
+import { doc, updateDoc, increment } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 import {
   ModelSelector,
   ModelSelectorContent,
@@ -92,6 +96,12 @@ interface Message {
   content: string;
   toolCalls?: any[];
 }
+
+const AI_LIMITS = {
+  free: 64000,
+  pro: 256000,
+  sultan: 1000000
+};
 
 const models = [
   { 
@@ -219,6 +229,12 @@ const PromptInputAttachmentsDisplay = () => {
 
 export function NexAgent() {
   const { user } = useUser();
+  const db = useFirestore();
+  const { toast } = useToast();
+  
+  const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
+  const { data: profile } = useDoc(userRef);
+
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: "Hello! I am NexAgent. I can generate mailboxes, compose music, or explore movie databases. How can I help you today?" }
   ]);
@@ -228,11 +244,13 @@ export function NexAgent() {
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [view, setView] = useState<'chat' | 'config'>('chat');
   
-  const [usage, setUsage] = useState({
-    inputTokens: 0,
-    outputTokens: 0,
-    totalTokens: 0
-  });
+  const role = (profile?.role as keyof typeof AI_LIMITS) || 'free';
+  const limit = AI_LIMITS[role];
+  const aiUsage = profile?.aiUsage || { tokens: 0, lastReset: getWIBDate() };
+  
+  const isResetNeeded = aiUsage.lastReset !== getWIBDate();
+  const currentTokens = isResetNeeded ? 0 : (aiUsage.tokens || 0);
+  const isLimitReached = currentTokens >= limit;
 
   const selectedModelData = models.find((m) => m.id === selectedModel);
   const chefs = Array.from(new Set(models.map((m) => m.chef)));
@@ -240,6 +258,15 @@ export function NexAgent() {
   const handleSend = async (customInput?: string) => {
     const finalInput = customInput || input;
     if (!finalInput.trim() || loading) return;
+
+    if (isLimitReached) {
+      toast({
+        variant: "destructive",
+        title: "Daily Limit Reached",
+        description: `You have consumed your daily quota of ${limit.toLocaleString()} tokens. Please upgrade or wait until 00:00 WIB.`,
+      });
+      return;
+    }
 
     const userMsg: Message = { role: 'user', content: finalInput };
     const newMessages = [...messages, userMsg];
@@ -251,16 +278,24 @@ export function NexAgent() {
       const response = await nexAgentChat(newMessages, selectedModel);
       setMessages(prev => [...prev, response as Message]);
       
-      if ((response as any).usage) {
+      if ((response as any).usage && userRef) {
         const u = (response as any).usage;
-        setUsage(prev => ({
-          inputTokens: prev.inputTokens + (u.prompt_tokens || 0),
-          outputTokens: prev.outputTokens + (u.completion_tokens || 0),
-          totalTokens: prev.totalTokens + (u.total_tokens || 0)
-        }));
+        const totalUsed = (u.total_tokens || 0);
+        
+        await updateDoc(userRef, {
+          aiUsage: {
+            tokens: (isResetNeeded ? 0 : aiUsage.tokens) + totalUsed,
+            lastReset: getWIBDate()
+          }
+        });
       }
     } catch (err) {
       console.error(err);
+      toast({
+        variant: "destructive",
+        title: "Nexus Failure",
+        description: "Encountered a neural transmission error. Please retry.",
+      });
     } finally {
       setLoading(false);
     }
@@ -410,10 +445,22 @@ export function NexAgent() {
               </ScrollArea>
               
               <div className="p-8 border-t border-primary/5 bg-secondary/10 backdrop-blur-md space-y-4">
+                 {isLimitReached && (
+                   <div className="max-w-3xl mx-auto p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-center gap-3 animate-fade-in-up">
+                      <AlertCircle className="size-5 text-destructive" />
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-destructive">Quota Exhausted</p>
+                        <p className="text-[10px] text-destructive/60 font-medium leading-relaxed">Daily token limit reached. Access will restore at 00:00 WIB.</p>
+                      </div>
+                      <Button variant="outline" size="sm" asChild className="h-8 rounded-lg border-destructive/20 text-destructive hover:bg-destructive/10 font-bold text-[9px] uppercase tracking-widest">
+                        <a href="/pricing">Upgrade Plan</a>
+                      </Button>
+                   </div>
+                 )}
                  <div className="max-w-3xl mx-auto space-y-4">
                    <Suggestions>
                      {SUGGESTIONS.map((s) => (
-                       <Suggestion key={s} suggestion={s} onClick={(v) => handleSend(v)} disabled={loading} />
+                       <Suggestion key={s} suggestion={s} onClick={(v) => handleSend(v)} disabled={loading || isLimitReached} />
                      ))}
                    </Suggestions>
 
@@ -424,8 +471,8 @@ export function NexAgent() {
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
                           onKeyDown={handleKeyDown}
-                          disabled={loading}
-                          placeholder={selectedModelData?.chefSlug === 'sourceful' ? "Describe the image you want to generate..." : "What would you like to know?"}
+                          disabled={loading || isLimitReached}
+                          placeholder={isLimitReached ? "Daily limit reached..." : (selectedModelData?.chefSlug === 'sourceful' ? "Describe the image you want to generate..." : "What would you like to know?")}
                         />
                       </PromptInputBody>
                       <PromptInputFooter>
@@ -440,14 +487,14 @@ export function NexAgent() {
                             </PromptInputActionMenu>
                           )}
                           
-                          <PromptInputButton>
+                          <PromptInputButton disabled={isLimitReached}>
                             <GlobeIcon className="size-4" />
                             <span>Search</span>
                           </PromptInputButton>
 
                           <ModelSelector open={selectorOpen} onOpenChange={setSelectorOpen}>
                             <ModelSelectorTrigger asChild>
-                              <PromptInputButton>
+                              <PromptInputButton disabled={isLimitReached}>
                                 {selectedModelData?.chefSlug && (
                                   <ModelSelectorLogo provider={selectedModelData.chefSlug} />
                                 )}
@@ -488,13 +535,13 @@ export function NexAgent() {
                           </ModelSelector>
 
                           <Context
-                            maxTokens={128000}
+                            maxTokens={limit}
                             modelId={selectedModel}
-                            usedTokens={usage.totalTokens}
+                            usedTokens={currentTokens}
                             usage={{
-                              inputTokens: usage.inputTokens,
-                              outputTokens: usage.outputTokens,
-                              totalTokens: usage.totalTokens,
+                              inputTokens: currentTokens,
+                              outputTokens: 0,
+                              totalTokens: currentTokens,
                               cachedInputTokens: 0,
                               reasoningTokens: 0
                             }}
@@ -516,6 +563,7 @@ export function NexAgent() {
                         <PromptInputSubmit 
                           onClick={() => handleSend()}
                           status={loading ? "streaming" : "ready"} 
+                          disabled={isLimitReached}
                         />
                       </PromptInputFooter>
                    </PromptInput>
