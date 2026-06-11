@@ -20,6 +20,7 @@ import { MusicGenerator } from '@/components/dashboard/MusicGenerator';
 import { VidboxExplorer } from '@/components/dashboard/VidboxExplorer';
 import { MoviekuExplorer } from '@/components/dashboard/MoviekuExplorer';
 import { TempMailTool } from '@/components/dashboard/TempMailTool';
+import { NexAgent } from '@/components/dashboard/NexAgent';
 import { LayoutGrid, ChevronLeft, Users, MousePointer2, UserPlus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -65,6 +66,7 @@ export default function Home() {
 
   const renderTool = () => {
     switch (activeTool) {
+      case "nexagent": return <NexAgent />;
       case "tempmail": return <TempMailTool />;
       case "movieku": return <MoviekuExplorer />;
       case "vidbox": return <VidboxExplorer />;

@@ -19,7 +19,8 @@ import {
   Film,
   Music,
   Video,
-  Mail
+  Mail,
+  Bot
 } from "lucide-react";
 
 interface Tool {
@@ -31,6 +32,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "nexagent",
+    name: "NexAgent Intelligence",
+    description: "Autonomous AI agent that can orchestrate all your NxAIO utilities via chat.",
+    icon: <Bot className="size-6" />,
+    color: "bg-indigo-600 text-white"
+  },
   {
     id: "tempmail",
     name: "Disposable Temp-Mail",
