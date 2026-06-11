@@ -37,19 +37,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, updateDoc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-
-interface TempMessage {
-  id: string;
-  from: string;
-  subject: string;
-  time: string;
-  content: string;
-  preview: string;
-  code: string | null;
-}
 
 const ROLE_LIMITS = {
   free: 3,
@@ -115,13 +105,13 @@ export function TempMailTool() {
         return;
       }
 
-      // Update Usage in Firestore
+      // Update Usage in Firestore (Reliable)
       const newUsage = {
         count: currentCount + 1,
         lastReset: today
       };
 
-      updateDoc(userRef, { tempMailUsage: newUsage }).catch(e => {
+      setDoc(userRef, { tempMailUsage: newUsage }, { merge: true }).catch(e => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: userRef.path,
           operation: 'write',
@@ -452,4 +442,14 @@ export function TempMailTool() {
       </Dialog>
     </Card>
   );
+}
+
+interface TempMessage {
+  id: string;
+  from: string;
+  subject: string;
+  time: string;
+  content: string;
+  preview: string;
+  code: string | null;
 }

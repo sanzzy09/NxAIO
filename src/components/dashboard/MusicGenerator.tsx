@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -31,7 +32,7 @@ import { cn } from "@/lib/utils";
 import { createMusicJob, pollMusicStatus } from "@/app/actions/remusic";
 import { useToast } from "@/hooks/use-toast";
 import { useUser, useFirestore, useCollection, useDoc } from "@/firebase";
-import { doc, setDoc, collection, query, orderBy, serverTimestamp, deleteDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, collection, query, orderBy, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { logActivity } from "@/lib/activity";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -106,8 +107,11 @@ export function MusicGenerator() {
       return;
     }
 
-    if (!prompt.trim() && activeTab === 'simple') return;
-    if (!title.trim() && activeTab === 'custom') return;
+    const currentPrompt = prompt.trim() || selectedStyles.join(", ");
+    if (!currentPrompt && activeTab === 'simple') {
+      toast({ variant: "destructive", title: "Prompt required", description: "Please describe your sound or select a style." });
+      return;
+    }
 
     if (remainingCredits <= 0) {
       toast({
@@ -121,7 +125,7 @@ export function MusicGenerator() {
     setLoading(true);
     try {
       const res = await createMusicJob({
-        prompt,
+        prompt: currentPrompt,
         styles: selectedStyles,
         title: title || undefined,
         lyrics: lyrics || undefined,
@@ -130,17 +134,17 @@ export function MusicGenerator() {
 
       if (!res.status) throw new Error(res.error);
 
-      // Increment Usage Count in Firestore
+      // Increment Usage Count in Firestore (Reliable)
       if (userRef) {
         const newCount = isResetNeeded ? 1 : (usage.count || 0) + 1;
         const newWeekStart = isResetNeeded ? new Date().toISOString() : usage.weekStart;
         
-        updateDoc(userRef, {
+        setDoc(userRef, {
           musicUsage: {
             count: newCount,
             weekStart: newWeekStart
           }
-        }).catch(e => {
+        }, { merge: true }).catch(e => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: userRef.path,
             operation: 'write',
@@ -154,7 +158,7 @@ export function MusicGenerator() {
         id: j.song_id,
         status: 'pending',
         percentage: 0,
-        originalPrompt: prompt,
+        originalPrompt: currentPrompt,
         originalMode: activeTab
       }));
       
@@ -227,7 +231,7 @@ export function MusicGenerator() {
       for (const job of pendingJobs) {
         const update = await pollMusicStatus(job.id);
         
-        if (update.status === 'success') {
+        if (update.status === 'success' && update.result) {
           setJobs(prev => prev.filter(j => j.id !== job.id));
           saveToHistory(update.result, job);
           toast({
@@ -268,7 +272,7 @@ export function MusicGenerator() {
               <div className="space-y-1">
                  <h3 className="text-xl font-bold font-headline leading-tight">{song.title}</h3>
                  <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-widest">
-                   {song.duration}s · {song.mode || 'AI'} Render
+                   {song.duration ? `${song.duration}s · ` : ''} {song.mode || 'AI'} Render
                  </p>
               </div>
               <div className="flex gap-2">
@@ -397,7 +401,7 @@ export function MusicGenerator() {
                </div>
 
                <Button 
-                disabled={loading || !prompt.trim() || remainingCredits <= 0}
+                disabled={loading || remainingCredits <= 0}
                 onClick={handleGenerate}
                 className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xl shadow-indigo-500/10 transition-all active:scale-95"
               >
@@ -444,7 +448,7 @@ export function MusicGenerator() {
                   value={lyrics}
                   onChange={(e) => setLyrics(e.target.value)}
                   placeholder="[Verse 1]..." 
-                  className="min-h-[120px] rounded-[1.5rem] bg-secondary/30 border-primary/5 focus-visible:ring-indigo-500/20"
+                  className="min-h-[120px] rounded-[1.5rem] bg-secondary/30 border border-primary/5 focus-visible:ring-indigo-500/20"
                 />
               </div>
 
@@ -471,7 +475,7 @@ export function MusicGenerator() {
                </div>
 
               <Button 
-                disabled={loading || !title.trim() || remainingCredits <= 0}
+                disabled={loading || remainingCredits <= 0}
                 onClick={handleGenerate}
                 className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xl shadow-indigo-500/10 transition-all active:scale-95"
               >

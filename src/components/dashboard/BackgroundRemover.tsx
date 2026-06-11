@@ -25,7 +25,7 @@ import { removeImageBackground } from "@/app/actions/remove-bg";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -109,19 +109,6 @@ export function BackgroundRemover() {
     setStatus("Analyzing subject...");
 
     try {
-      // Status simulation
-      const statusUpdates = [
-        { msg: "Detecting foreground...", delay: 2000 },
-        { msg: "Generating alpha mask...", delay: 6000 },
-        { msg: "Finalizing transparency...", delay: 10000 },
-      ];
-
-      statusUpdates.forEach(({ msg, delay }) => {
-        setTimeout(() => {
-          if (!result && !error) setStatus(msg);
-        }, delay);
-      });
-
       const res = await removeImageBackground({ 
         file: file || undefined, 
         url: url.trim() || undefined 
@@ -129,16 +116,16 @@ export function BackgroundRemover() {
 
       if (!res.status) throw new Error(res.error);
 
-      // Increment usage in Firestore
+      // Increment usage in Firestore (Reliable)
       if (userRef) {
         const today = new Date().toISOString().split('T')[0];
         const newCount = isResetNeeded ? 1 : (usage.count || 0) + 1;
-        updateDoc(userRef, {
+        setDoc(userRef, {
           removerUsage: {
             count: newCount,
             lastReset: today
           }
-        }).catch(e => {
+        }, { merge: true }).catch(e => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: userRef.path,
             operation: 'write',
@@ -267,7 +254,7 @@ export function BackgroundRemover() {
                   setFile(null);
                 }}
                 placeholder="Paste remote image link..." 
-                className="h-14 pl-12 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-pink-500/20"
+                className="h-14 rounded-2xl bg-secondary/30 border-primary/5 focus-visible:ring-pink-500/20"
               />
             </div>
 
@@ -332,16 +319,6 @@ export function BackgroundRemover() {
                     </a>
                   </Button>
                 </div>
-              </div>
-            </div>
-
-            <div className="p-6 rounded-[2rem] bg-blue-500/5 border border-blue-500/10 flex items-start gap-4">
-              <Info className="size-5 text-blue-500 mt-0.5 opacity-60" />
-              <div className="space-y-1">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-blue-600/60">Pro Tip</p>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Use this isolated subject in the <span className="font-bold text-foreground">Live Creative Previewer</span> to see how it looks against different backgrounds and layouts.
-                </p>
               </div>
             </div>
           </div>

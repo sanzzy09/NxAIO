@@ -1,3 +1,4 @@
+
 'use server';
 
 import crypto from 'crypto';
@@ -31,6 +32,9 @@ export async function createMusicJob(input: {
     const { prompt, styles = [], title, lyrics, mode } = input;
     const tags = styles.filter(Boolean).join(", ");
     
+    // Safety check for prompt
+    const finalPrompt = String(prompt || tags || title || "chill vibe");
+
     const body = mode === 'custom'
       ? { 
           mode: 2, 
@@ -38,7 +42,7 @@ export async function createMusicJob(input: {
           mv: "v4", 
           is_instrumental: false, 
           is_public: true, 
-          prompt: String(prompt || tags || title), 
+          prompt: finalPrompt, 
           title: title || "Untitled Track", 
           tags, 
           lyrics: lyrics || "" 
@@ -49,7 +53,7 @@ export async function createMusicJob(input: {
           mv: "v4", 
           is_instrumental: false, 
           is_public: true, 
-          prompt: tags ? `${prompt}, ${tags}` : String(prompt) 
+          prompt: tags ? `${finalPrompt}, ${tags}` : finalPrompt
         };
 
     const res = await fetch(API, {
@@ -63,8 +67,9 @@ export async function createMusicJob(input: {
       return { status: true, data: json.data };
     }
 
-    return { status: false, error: json?.message || "Failed to create music generation job." };
+    return { status: false, error: json?.message || json?.msg || "Failed to create music generation job." };
   } catch (error: any) {
+    console.error('remusic create error:', error.message);
     return { status: false, error: error.message };
   }
 }
@@ -73,8 +78,10 @@ export async function pollMusicStatus(songId: string) {
   try {
     const res = await fetch(`${API}/${songId}`, { headers: getHeaders() });
     const json = await res.json();
-    const row = Array.isArray(json?.data) ? json.data[0] : json?.data;
-
+    
+    if (!json?.data) return { status: 'pending', percentage: 0 };
+    
+    const row = Array.isArray(json.data) ? json.data[0] : json.data;
     if (!row) return { status: 'pending', percentage: 0 };
 
     if (row.status === "success" && row.audio_url) {
@@ -94,7 +101,7 @@ export async function pollMusicStatus(songId: string) {
       };
     }
 
-    if (["failed", "error", "fail"].includes(row.status)) {
+    if (["failed", "error", "fail"].includes(String(row.status).toLowerCase())) {
       return { status: 'failed', error: "Generation failed on the server." };
     }
 
