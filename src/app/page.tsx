@@ -187,7 +187,7 @@ export default function Home() {
                <Features6 />
             </div>
 
-            <div className="full-bleed-technical-section -mx-4 lg:-mx-24 bg-black">
+            <div className="full-bleed-technical-section -mx-4 lg:-mx-24 bg-primary">
                <Features4 />
             </div>
 
