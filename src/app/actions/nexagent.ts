@@ -18,7 +18,7 @@ const tools = [
     type: 'function',
     function: {
       name: 'generate_temp_mail',
-      description: 'Generates a new temporary email address for the user.',
+      description: 'Provision a disposable identity session with real-time mailbox monitoring.',
       parameters: { type: 'object', properties: {} }
     }
   },
@@ -26,7 +26,7 @@ const tools = [
     type: 'function',
     function: {
       name: 'generate_music',
-      description: 'Creates a new AI music generation job based on a prompt.',
+      description: 'Trigger a high-fidelity AI music composition job with custom styles.',
       parameters: {
         type: 'object',
         properties: {
@@ -41,11 +41,11 @@ const tools = [
     type: 'function',
     function: {
       name: 'search_media',
-      description: 'Searches for movies and TV series in the Vidbox database.',
+      description: 'Scrape Vidbox/TMDB archives for cinematic metadata and mirrors.',
       parameters: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'Movie or series title' }
+          query: { type: 'string', description: 'Movie title' }
         },
         required: ['query']
       }
@@ -197,6 +197,15 @@ VISUAL OUTPUT PROTOCOLS:
 
   } catch (error: any) {
     console.error('NexAgent Chat Error:', error);
+
+    // Specific handling for models that don't support tool use
+    if (error.message && error.message.includes("No endpoints found that support tool use")) {
+      return {
+        role: "assistant",
+        content: "Tools Cant Use On This Model : Try Another Model"
+      };
+    }
+
     return {
       role: "assistant",
       content: `I'm having trouble reaching the neural network. (Reason: ${error.message || 'Connection failure'})`
