@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
@@ -182,15 +181,6 @@ export default function SignUpPage() {
         image: {
           src: "https://filegoat.s3.de.io.cloud.ovh.net/d72273d2-b8ee-42c3-b7f1-f6dcfd539df5/takanashi-hoshino-3840x2160-25273.jpg",
           alt: "Creative team collaborating",
-        },
-        quote: "NxAIO transformed our workflow. The automated logic chains saved us dozens of hours in our first month alone.",
-        author: {
-          name: "Maria Santos",
-          title: "Product Lead, Northwind",
-          author: {
-            src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop",
-            alt: "Maria Santos profile",
-          },
         },
       }}
       mediaPosition="right"

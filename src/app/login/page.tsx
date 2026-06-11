@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AuthLayout, SocialProvider } from "@/components/auth/auth-layout";
@@ -177,15 +176,6 @@ export default function LoginPage() {
         image: {
           src: "https://filegoat.s3.de.io.cloud.ovh.net/da1b76cd-753e-40a3-a1a3-40145d31e94b/16162.jpg",
           alt: "Modern minimalist workspace",
-        },
-        quote: "The reliability and speed of NxAIO are unparalleled. It's the backbone of our creative engineering team.",
-        author: {
-          name: "Alex Rivera",
-          title: "CTO, Quantum Digital",
-          author: {
-            src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop",
-            alt: "Alex Rivera profile",
-          },
         },
       }}
       mediaPosition="left"
