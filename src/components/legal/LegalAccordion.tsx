@@ -10,6 +10,7 @@ import {
 import { Shield, FileText, ChevronDown } from "lucide-react";
 import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 import { cn } from "@/lib/utils";
+import Link from 'next/link';
 
 interface PolicySection {
   title: string;
@@ -72,7 +73,7 @@ export function LegalAccordion({ title, lastUpdated, sections, className }: Lega
       {/* Footer */}
       <div className="p-8 text-center border-t border-white/5 animate-fade-in-up [animation-delay:800ms]">
         <p className="text-xs text-primary-foreground/30">
-          If you have questions about this policy, please <a href="#" className="text-primary-foreground underline hover:text-primary-foreground/80 transition-colors font-semibold">contact us</a>.
+          If you have questions about this policy, please <Link href="/contact" className="text-primary-foreground underline hover:text-primary-foreground/80 transition-colors font-semibold">contact us</Link>.
         </p>
       </div>
     </div>
