@@ -36,8 +36,8 @@ export default function ContactPage() {
              </p>
              <div className="animate-fade-in-up [animation-delay:800ms]">
                <LocationMap 
-                 location="Jakarta, Indonesia" 
-                 coordinates="6.2088° S, 106.8456° E"
+                 location="Lampung, Indonesia" 
+                 coordinates="5.3538° S, 105.3216° E"
                />
              </div>
            </div>
