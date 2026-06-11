@@ -4,6 +4,7 @@
 import React, { useMemo } from "react"
 import { BarChart3, Mail, Eraser, Music, Info, BrainCircuit } from "lucide-react"
 import { getWIBDate } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 const ROLE_LIMITS = {
   tempmail: { free: 3, pro: 25, sultan: 50 },
@@ -18,7 +19,7 @@ export function UsageAnalytics({ profile }: { profile: any }) {
   // 1. Temp-Mail Stats (Daily WIB reset)
   const mailStats = useMemo(() => {
     const todayWIB = getWIBDate();
-    const usage = profile?.tempmailUsage || { count: 0, lastReset: todayWIB }
+    const usage = profile?.tempMailUsage || { count: 0, lastReset: todayWIB }
     const limit = ROLE_LIMITS.tempmail[role]
     const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
@@ -66,32 +67,38 @@ export function UsageAnalytics({ profile }: { profile: any }) {
   };
 
   const renderQuotaCard = (title: string, icon: any, stats: any, desc: string, color: string, isTokens = false) => (
-    <div className="flex flex-col p-8 rounded-[2.5rem] bg-secondary/20 border border-primary/5 hover:border-primary/10 transition-all group overflow-hidden">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-2xl bg-background border border-primary/5 ${color}`}>
+    <div className="flex flex-col p-6 sm:p-8 rounded-[2.5rem] bg-secondary/20 border border-primary/5 hover:border-primary/10 transition-all group overflow-hidden h-full min-h-[240px]">
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex items-start justify-between gap-3">
+          <div className={cn("p-3 rounded-2xl bg-background border border-primary/5 shrink-0", color)}>
             {icon}
           </div>
-          <div>
-            <h4 className="text-sm font-bold font-headline">{title}</h4>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">{desc}</p>
+          <div className="text-right shrink-0">
+            <p className="text-lg font-bold font-headline leading-none">
+              {isTokens ? formatTokens(stats.remaining) : stats.remaining}
+            </p>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-40 mt-1">Remaining</p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-lg font-bold font-headline">
-            {isTokens ? formatTokens(stats.remaining) : stats.remaining}
-          </p>
-          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Left</p>
+        <div className="space-y-1">
+          <h4 className="text-sm font-bold font-headline leading-tight">{title}</h4>
+          <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground opacity-50 line-clamp-1">{desc}</p>
         </div>
       </div>
 
-      <div className="mt-auto pt-6 border-t border-primary/5 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
-         <span className="text-muted-foreground opacity-40">
-           Consumed: {isTokens ? formatTokens(stats.current) : stats.current} / {isTokens ? formatTokens(stats.limit) : stats.limit}
-         </span>
-         <span className={stats.current >= stats.limit ? "text-destructive" : "text-primary"}>
-           {((stats.current / stats.limit) * 100).toFixed(0)}% Utilized
-         </span>
+      <div className="mt-auto pt-6 border-t border-primary/5 space-y-3">
+         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+            <span className="text-muted-foreground opacity-40">Consumed</span>
+            <span className={cn("font-headline", stats.current >= stats.limit ? "text-destructive" : "text-primary")}>
+              {((stats.current / stats.limit) * 100).toFixed(0)}%
+            </span>
+         </div>
+         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+            <span className="text-foreground/60 font-mono">
+              {isTokens ? formatTokens(stats.current) : stats.current} / {isTokens ? formatTokens(stats.limit) : stats.limit}
+            </span>
+            <span className="text-muted-foreground opacity-30">Utilized</span>
+         </div>
       </div>
     </div>
   )
