@@ -37,6 +37,34 @@
     --radius: 0.75rem;
   }
 
+  .dark {
+    /* Reverse/Deep palette for Dark Mode */
+    --background: 215 14% 10%;
+    --foreground: 53 27% 96.5%;
+    
+    --card: 215 14% 12%;
+    --card-foreground: 53 27% 96.5%;
+    
+    --popover: 215 14% 12%;
+    --popover-foreground: 53 27% 96.5%;
+    
+    --primary: 53 27% 96.5%;
+    --primary-foreground: 215 14% 10%;
+    
+    --secondary: 215 14% 18%;
+    --secondary-foreground: 53 27% 96.5%;
+    
+    --muted: 215 14% 18%;
+    --muted-foreground: 215 14% 65%;
+    
+    --accent: 215 14% 25%;
+    --accent-foreground: 53 27% 96.5%;
+    
+    --border: 215 14% 20%;
+    --input: 215 14% 20%;
+    --ring: 53 27% 96.5%;
+  }
+
   * {
     @apply border-border;
   }
@@ -58,6 +86,17 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tight;
   }
+}
+
+/* Theme Toggler View Transitions */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-magicui-theme-vt="active"]::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration);
 }
 
 .perspective-1000 {

@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
 
 export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
@@ -78,7 +79,12 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
           ))}
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-1 md:gap-3">
+          <AnimatedThemeToggler 
+            variant="circle" 
+            className="text-primary-foreground/60 hover:text-primary-foreground"
+          />
+
           <Button variant="ghost" size="icon" asChild className="hidden sm:flex rounded-full text-primary-foreground/60 hover:text-primary-foreground hover:bg-white/10">
             <Link href="https://github.com/sanzzy09" target="_blank" rel="noopener noreferrer">
               <Github className="w-5 h-5" />
