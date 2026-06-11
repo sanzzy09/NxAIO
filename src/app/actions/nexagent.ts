@@ -9,10 +9,9 @@ import { fetchAnichin } from './anichin';
 /**
  * NexAgent Server Action
  * Handles chat interactions via OpenRouter and processes tool calls.
- * Now supports dynamic model selection.
+ * Enhanced system prompt for rich Markdown output (tables, lists, points).
  */
 
-// Define tools available to the AI
 const tools = [
   {
     type: 'function',
@@ -77,7 +76,6 @@ export async function nexAgentChat(messages: any[], modelId: string = "google/ge
     };
   }
 
-  // Initialize client inside function to ensure fresh env vars
   const client = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
     apiKey: apiKey,
@@ -87,14 +85,43 @@ export async function nexAgentChat(messages: any[], modelId: string = "google/ge
     }
   });
 
+  const systemInstructions = `
+You are NexAgent, the intelligent orchestrator of NxAIO. Your goal is to help users manage utilities efficiently.
+
+RESPONSIVE PROTOCOL:
+1. Always respond using high-fidelity Markdown.
+2. For structured data (like movie details, search results, or email logs), USE TABLES.
+3. For steps or features, USE BULLET POINTS or numbered lists.
+4. Bold important technical terms, identifiers, and codes.
+5. If you search for a movie/anime, provide a detailed table including Title, Year, and Rating if available.
+6. Use horizontal dividers (---) to separate different sections of a complex response.
+7. Maintain a premium, helpful, and engineering-focused tone.
+8. If a tool call fails, explain why clearly in a formatted block.
+
+Available Tools:
+- generate_temp_mail: Provision a new disposable inbox.
+- generate_music: Start an AI composition job.
+- search_media: Find movies/TV in Vidbox database.
+- search_anime: Query Anichin archives.
+
+RESPONSE STYLE EXAMPLE:
+### Movie Search Result: "Inception"
+| Detail | Value |
+| :--- | :--- |
+| **Title** | Inception |
+| **Year** | 2010 |
+| **Rating** | 8.8/10 |
+
+**Status**: Ready for streaming on Vidsrc mirror.
+---
+Would you like me to find similar sci-fi titles?
+`;
+
   try {
     const response = await client.chat.completions.create({
       model: modelId,
       messages: [
-        { 
-          role: "system", 
-          content: "You are NexAgent, the intelligent orchestrator of NxAIO. You help users manage their utilities. You can generate temp mail, create music, and search for anime or movies. Be concise, helpful, and premium in your tone. If a user asks for something you have a tool for, use the tool. Always respond in plain text or markdown, do not use JSON blocks for the final user response."
-        },
+        { role: "system", content: systemInstructions },
         ...messages
       ],
       tools: tools as any,
@@ -103,7 +130,6 @@ export async function nexAgentChat(messages: any[], modelId: string = "google/ge
 
     const message = response.choices[0].message;
 
-    // Handle tool calls
     if (message.tool_calls && message.tool_calls.length > 0) {
       const toolResults: any[] = [];
       
@@ -141,7 +167,6 @@ export async function nexAgentChat(messages: any[], modelId: string = "google/ge
         });
       }
 
-      // Get final response after tools
       const finalResponse = await client.chat.completions.create({
         model: modelId,
         messages: [
@@ -165,15 +190,6 @@ export async function nexAgentChat(messages: any[], modelId: string = "google/ge
 
   } catch (error: any) {
     console.error('NexAgent Chat Error:', error);
-    
-    // Provide user-friendly feedback for common API errors
-    if (error.status === 401) {
-       return { role: "assistant", content: "Invalid OpenRouter API Key. Please verify the key in your .env configuration." };
-    }
-    if (error.status === 402) {
-       return { role: "assistant", content: "Insufficient OpenRouter balance or limit reached for this free model." };
-    }
-
     return {
       role: "assistant",
       content: `I'm having trouble reaching the neural network. (Reason: ${error.message || 'Connection failure'})`

@@ -23,6 +23,8 @@ import {
 import { nexAgentChat } from "@/app/actions/nexagent";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   ModelSelector,
   ModelSelectorContent,
@@ -179,7 +181,7 @@ const agentToolsConfig = {
 };
 
 const agentOutputProtocol = `type AgentResponse = {
-  content: string; // The primary natural language response
+  content: string; // The primary natural language response (Markdown Supported)
   toolCalls?: Array<{
     id: string;
     function: {
@@ -343,7 +345,7 @@ export function NexAgent() {
                   <ChevronDown className="size-3 text-muted-foreground opacity-40 group-hover:opacity-100 transition-opacity" />
                 </Button>
               </ModelSelectorTrigger>
-              <ModelSelectorContent>
+              <ModelSelectorContent title="Select Neural Engine">
                 <ModelSelectorInput placeholder="Filter neural engines..." />
                 <ModelSelectorList>
                   <ModelSelectorEmpty>No engines matching the criteria.</ModelSelectorEmpty>
@@ -372,7 +374,7 @@ export function NexAgent() {
         {view === 'chat' ? (
           <>
             <ScrollArea className="flex-1 p-8 h-full">
-              <div className="space-y-6 max-w-3xl mx-auto">
+              <div className="space-y-6 max-w-3xl mx-auto pb-8">
                 {messages.map((msg, i) => (
                   <div 
                     key={i} 
@@ -388,7 +390,7 @@ export function NexAgent() {
                       {msg.role === 'user' ? <User className="size-5" /> : <Bot className="size-5" />}
                     </div>
                     
-                    <div className="space-y-3 max-w-[80%]">
+                    <div className="space-y-3 max-w-[85%]">
                       {msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0 && (
                         <ChainOfThought defaultOpen>
                           <ChainOfThoughtHeader />
@@ -402,7 +404,7 @@ export function NexAgent() {
                               >
                                 <ChainOfThoughtSearchResults>
                                   <ChainOfThoughtSearchResult>
-                                    Execution ID: {tool.id.slice(0, 8)}
+                                    ID: {tool.id.slice(0, 8)}
                                   </ChainOfThoughtSearchResult>
                                 </ChainOfThoughtSearchResults>
                               </ChainOfThoughtStep>
@@ -412,12 +414,20 @@ export function NexAgent() {
                       )}
                       
                       <div className={cn(
-                        "p-5 rounded-[1.5rem] text-sm leading-relaxed shadow-sm",
+                        "p-6 rounded-[1.5rem] shadow-sm",
                         msg.role === 'user' 
                           ? "bg-indigo-600 text-white rounded-tr-none" 
                           : "bg-background border border-primary/5 text-foreground rounded-tl-none"
                       )}>
-                        {msg.content}
+                        {msg.role === 'user' ? (
+                          <p className="text-sm leading-relaxed">{msg.content}</p>
+                        ) : (
+                          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-headline prose-headings:font-bold prose-headings:tracking-tight prose-a:text-indigo-600 prose-strong:text-foreground prose-table:border prose-table:border-primary/5 prose-th:bg-secondary/30 prose-th:p-3 prose-td:p-3 prose-td:border prose-td:border-primary/5 prose-li:marker:text-indigo-600">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {msg.content}
+                            </ReactMarkdown>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -466,7 +476,7 @@ export function NexAgent() {
                        value={input}
                        onChange={(e) => setInput(e.target.value)}
                        disabled={loading}
-                       placeholder="Ask NexAgent to generate music, a temp mail, or find a movie..."
+                       placeholder="Ask NexAgent to manage your tools..."
                        className="w-full h-14 pl-6 pr-12 rounded-2xl bg-background border border-primary/5 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 transition-all text-sm shadow-inner"
                      />
                      <div className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-600/5 text-indigo-600 rounded-lg group-focus-within:bg-indigo-600/10 transition-colors">
@@ -482,7 +492,7 @@ export function NexAgent() {
                   </Button>
                </form>
                <p className="mt-4 text-center text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-40">
-                 NexAgent Intelligence v1.5 • Reasoning Enabled
+                 NexAgent Intelligence v1.5 • Rich Markdown Enabled
                </p>
             </div>
           </>
@@ -525,7 +535,7 @@ export function NexAgent() {
               <div className="mt-8 p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 flex items-center gap-4">
                  <Info className="size-5 text-indigo-600 opacity-40" />
                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                   This configuration defines the core logic boundary for the current session. The agent is strictly bound to these response protocols to ensure system stability.
+                   This configuration defines the core logic boundary for the current session. The agent is strictly bound to these response protocols to ensure system stability and rich formatting.
                  </p>
               </div>
             </div>
