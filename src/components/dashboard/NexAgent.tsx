@@ -6,23 +6,15 @@ import { Button } from "@/components/ui/button";
 import { 
   Sparkles, 
   Bot, 
-  Send, 
   Loader2, 
   User, 
   Zap, 
   Terminal,
-  Cpu,
   BrainCircuit,
   CheckIcon,
-  ChevronDown,
   Search,
-  Database,
-  Info,
-  MessageSquare,
-  Code2,
   Settings2,
-  Globe,
-  CornerDownLeft,
+  MessageSquare,
   GlobeIcon
 } from "lucide-react";
 import { nexAgentChat } from "@/app/actions/nexagent";
@@ -48,8 +40,6 @@ import {
   ChainOfThought,
   ChainOfThoughtContent,
   ChainOfThoughtHeader,
-  ChainOfThoughtSearchResult,
-  ChainOfThoughtSearchResults,
   ChainOfThoughtStep,
 } from "@/components/ai-elements/chain-of-thought";
 import {
@@ -88,7 +78,14 @@ import {
   PromptInputActionMenuContent,
   PromptInputActionAddAttachments,
   PromptInputActionAddScreenshot,
+  usePromptInputAttachments,
 } from "@/components/ai-elements/prompt-input";
+import {
+  Attachments,
+  Attachment,
+  AttachmentPreview,
+  AttachmentRemove,
+} from "@/components/ai-elements/attachments";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -97,11 +94,60 @@ interface Message {
 }
 
 const models = [
-  { chef: "NVIDIA", chefSlug: "nvidia", id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", name: "Llama Nemotron Rerank", providers: ["openrouter"] },
-  { chef: "Nex AGI", chefSlug: "nex-agi", id: "nex-agi/nex-n2-pro:free", name: "Nex N2 Pro", providers: ["openrouter"] },
-  { chef: "OpenAI", chefSlug: "openai", id: "openai/gpt-4o-mini", name: "GPT-4o Mini", providers: ["openai"] },
-  { chef: "Google", chefSlug: "google", id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B", providers: ["openrouter"] },
-  { chef: "OpenAI", chefSlug: "openai", id: "openai/gpt-oss-120b:free", name: "GPT OSS 120B", providers: ["openrouter"] }
+  { 
+    chef: "NVIDIA", 
+    chefSlug: "nvidia", 
+    id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", 
+    name: "Llama Nemotron Rerank", 
+    providers: ["openrouter"],
+    supportsImage: true,
+    description: "Supports image + text + tools."
+  },
+  { 
+    chef: "Nex AGI", 
+    chefSlug: "nex-agi", 
+    id: "nex-agi/nex-n2-pro:free", 
+    name: "Nex N2 Pro", 
+    providers: ["openrouter"],
+    supportsImage: true,
+    description: "Supports image + text + tools."
+  },
+  { 
+    chef: "Sourceful", 
+    chefSlug: "sourceful", 
+    id: "sourceful/riverflow-v2.5-pro", 
+    name: "Riverflow v2.5 Pro", 
+    providers: ["openrouter"],
+    supportsImage: true,
+    description: "Image generator: support img2img or txt2img."
+  },
+  { 
+    chef: "NVIDIA", 
+    chefSlug: "nvidia", 
+    id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", 
+    name: "Nemotron Omni Reasoning", 
+    providers: ["openrouter"],
+    supportsImage: true,
+    description: "Support text, voice, img and video to text + tools."
+  },
+  { 
+    chef: "OpenRouter", 
+    chefSlug: "openrouter", 
+    id: "openrouter/owl-alpha", 
+    name: "Owl Alpha", 
+    providers: ["openrouter"],
+    supportsImage: false,
+    description: "Support text + tools."
+  },
+  { 
+    chef: "Poolside", 
+    chefSlug: "poolside", 
+    id: "poolside/laguna-m.1:free", 
+    name: "Laguna M.1", 
+    providers: ["openrouter"],
+    supportsImage: false,
+    description: "Support text + tools."
+  }
 ];
 
 const SUGGESTIONS = [
@@ -152,6 +198,22 @@ const ToolCallVisualizer = ({ content }: { content: string }) => {
         </div>
       </div>
     </div>
+  );
+};
+
+const PromptInputAttachmentsDisplay = () => {
+  const attachments = usePromptInputAttachments();
+  const handleRemove = useCallback((id: string) => attachments.remove(id), [attachments]);
+  if (attachments.files.length === 0) return null;
+  return (
+    <Attachments variant="inline">
+      {attachments.files.map((attachment) => (
+        <Attachment data={attachment} key={attachment.id} onRemove={() => handleRemove(attachment.id)}>
+          <AttachmentPreview />
+          <AttachmentRemove />
+        </Attachment>
+      ))}
+    </Attachments>
   );
 };
 
@@ -355,7 +417,8 @@ export function NexAgent() {
                      ))}
                    </Suggestions>
 
-                   <PromptInput>
+                   <PromptInput onSubmit={(m) => handleSend(m.text)}>
+                      <PromptInputAttachmentsDisplay />
                       <PromptInputBody>
                         <PromptInputTextarea 
                           value={input}
@@ -366,13 +429,15 @@ export function NexAgent() {
                       </PromptInputBody>
                       <PromptInputFooter>
                         <PromptInputTools>
-                          <PromptInputActionMenu>
-                            <PromptInputActionMenuTrigger />
-                            <PromptInputActionMenuContent>
-                              <PromptInputActionAddAttachments />
-                              <PromptInputActionAddScreenshot />
-                            </PromptInputActionMenuContent>
-                          </PromptInputActionMenu>
+                          {selectedModelData?.supportsImage && (
+                            <PromptInputActionMenu>
+                              <PromptInputActionMenuTrigger />
+                              <PromptInputActionMenuContent>
+                                <PromptInputActionAddAttachments />
+                                <PromptInputActionAddScreenshot />
+                              </PromptInputActionMenuContent>
+                            </PromptInputActionMenu>
+                          )}
                           
                           <PromptInputButton>
                             <GlobeIcon className="size-4" />
@@ -407,6 +472,11 @@ export function NexAgent() {
                                         >
                                           <ModelSelectorLogo provider={m.chefSlug} />
                                           <ModelSelectorName>{m.name}</ModelSelectorName>
+                                          <ModelSelectorLogoGroup>
+                                            {m.providers.map((p) => (
+                                              <ModelSelectorLogo key={p} provider={p} />
+                                            ))}
+                                          </ModelSelectorLogoGroup>
                                           {selectedModel === m.id && <CheckIcon className="ml-auto size-4" />}
                                         </ModelSelectorItem>
                                       ))}

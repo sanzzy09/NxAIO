@@ -102,20 +102,41 @@ export function ModelSelectorLogo({ provider, className }: { provider: string; c
     switch (provider.toLowerCase()) {
       case 'google': return <BrainCircuit className="size-3.5" />;
       case 'nvidia': return (
-        <svg viewBox="0 0 24 24" fill="currentColor" className="size-3.5">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1.5-12c-2.48 0-4.5 2.02-4.5 4.5S8.02 17 10.5 17c.56 0 1.1-.11 1.6-.3l-1.1-1.1c-.16.03-.33.05-.5.05-1.65 0-3-1.35-3-3s1.35-3 3-3c.27 0 .53.05.77.13L12.5 8.5c-.6-.32-1.28-.5-2-.5zm3 2c-.56 0-1.1.11-1.6.3l1.1 1.1c.16-.03.33-.05.5-.05 1.65 0 3 1.35 3 3s-1.35 3-3 3c-.27 0-.53-.05-.77-.13l-1.23 1.23c.6.32 1.28.5 2 .5 2.48 0 4.5-2.02 4.5-4.5s-2.02-4.5-4.5-4.5z" />
+        <svg viewBox="0 0 24 24" fill="none" className="size-3.5" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C15.31 6 18 8.69 18 12C18 15.31 15.31 18 12 18Z" fill="currentColor"/>
+          <path d="M12 16C14.21 16 16 14.21 16 12C16 9.79 14.21 8 12 8C9.79 8 8 9.79 8 12C8 14.21 9.79 16 12 16Z" fill="currentColor"/>
         </svg>
       );
-      case 'openai': return <Monitor className="size-3.5" />;
-      case 'nex-agi': return <Sparkles className="size-3.5" />;
-      case 'poolside': return (
+      case 'openai': return (
         <svg viewBox="0 0 24 24" fill="currentColor" className="size-3.5">
-          <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM11.25 7a.75.75 0 011.5 0v2.25h2.25a.75.75 0 010 1.5H12.75V13c0 .324.083.628.23.893l.07.122 1.2 1.8a.75.75 0 11-1.248.83l-.071-.107-1.115-1.672-1.115 1.672a.75.75 0 01-1.32-.723l.071-.107 1.2-1.8a1.5 1.5 0 00.3-1.015V10.75H8.75a.75.75 0 010-1.5h2.25V7z" />
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+        </svg>
+      );
+      case 'nex-agi': return <Sparkles className="size-3.5 text-indigo-400" />;
+      case 'poolside': return (
+        <svg viewBox="0 0 24 24" fill="none" className="size-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 12a14.5 14.5 0 0 0 0 10M12 12c-4 0-7 2-8 6M12 12c4 0 7 2 8 6M12 12c0-4.5 3-8 8-8M12 12c0-4.5-3-8-8-8M12 12c0-4 0-10 0-10" />
         </svg>
       );
       case 'openrouter': return (
         <svg viewBox="0 0 24 24" fill="currentColor" className="size-3.5">
-          <path d="M2 2h20v20H2V2zm10 15a4 4 0 100-8 4 4 0 000 8z" fillRule="evenodd" clipRule="evenodd" />
+          <rect x="4" y="4" width="16" height="16" rx="2" fillOpacity="0.2"/>
+          <rect x="8" y="8" width="8" height="8" rx="1"/>
+        </svg>
+      );
+      case 'owl': return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-3.5">
+          <path d="M12 2C9 2 7 4 7 7C7 10 9 12 12 12C15 12 17 10 17 7C17 4 15 2 12 2Z" />
+          <path d="M7 7C4 7 2 10 2 14C2 18 5 22 12 22C19 22 22 18 22 14C22 10 20 7 17 7" />
+          <circle cx="9.5" cy="7" r="1" fill="currentColor"/>
+          <circle cx="14.5" cy="7" r="1" fill="currentColor"/>
+        </svg>
+      );
+      case 'sourceful': return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-3.5">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+          <path d="M2 17L12 22L22 17" />
+          <path d="M2 12L12 17L22 12" />
         </svg>
       );
       default: return <Monitor className="size-3.5" />;
