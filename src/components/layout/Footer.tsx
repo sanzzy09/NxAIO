@@ -51,10 +51,10 @@ export function Footer() {
             <div className="space-y-4">
               <h4 className="font-headline font-bold text-xs uppercase tracking-[0.2em] text-primary-foreground/30">AI Utilities</h4>
               <ul className="space-y-2 text-sm text-primary-foreground/60">
-                <li><Link href="/" className="hover:text-primary-foreground transition-colors">Music Generator</Link></li>
-                <li><Link href="/" className="hover:text-primary-foreground transition-colors">BG Remover</Link></li>
-                <li><Link href="/" className="hover:text-primary-foreground transition-colors">Temp-Mail Tool</Link></li>
-                <li><Link href="/" className="hover:text-primary-foreground transition-colors">File Hosting</Link></li>
+                <li><Link href="/tools" className="hover:text-primary-foreground transition-colors">Music Generator</Link></li>
+                <li><Link href="/tools" className="hover:text-primary-foreground transition-colors">BG Remover</Link></li>
+                <li><Link href="/tools" className="hover:text-primary-foreground transition-colors">Temp-Mail Tool</Link></li>
+                <li><Link href="/tools" className="hover:text-primary-foreground transition-colors">File Hosting</Link></li>
               </ul>
             </div>
             
@@ -95,7 +95,7 @@ export function Footer() {
           <p>© {currentYear} NxAIO Labs. Engineered for performance.</p>
           <div className="flex gap-8">
             <Link href="/privacy" className="hover:text-primary-foreground transition-colors">Privacy</Link>
-            <Link href="#" className="hover:text-primary-foreground transition-colors">Terms</Link>
+            <Link href="/privacy" className="hover:text-primary-foreground transition-colors">Terms</Link>
             <Link href="#" className="hover:text-primary-foreground transition-colors">Cookie Data</Link>
           </div>
         </div>
