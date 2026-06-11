@@ -173,7 +173,7 @@ export default function ChangelogPage() {
 
                 <div className="flex flex-wrap gap-4 pt-4 border-t border-primary/5">
                   <Button size="lg" className="rounded-2xl px-8 h-14 text-sm font-bold shadow-xl shadow-primary/10" asChild>
-                    <Link href="/">Explore Tools</Link>
+                    <Link href="/tools">Explore Tools</Link>
                   </Button>
                   <Button size="lg" variant="outline" className="rounded-2xl px-8 h-14 text-sm font-bold border-primary/5">
                     View Roadmap

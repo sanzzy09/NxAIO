@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Boxes, Github, Menu, X, User as UserIcon, LogOut, ChevronRight } from 'lucide-react';
+import { Boxes, Github, Menu, X, User as UserIcon, LogOut, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -37,7 +37,7 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
   }, []);
 
   const navLinks = [
-    { label: 'Dashboard', href: '/', onClick: onDashboardClick },
+    { label: 'Tools', href: '/tools', onClick: onDashboardClick },
     { label: 'Pricing', href: '/pricing' },
     { label: 'FAQ', href: '/faq' },
     { label: 'Contact', href: '/contact' },
@@ -112,6 +112,12 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-primary-foreground py-3 px-6 cursor-pointer rounded-none">
+                    <Link href="/tools" className="flex items-center w-full">
+                      <LayoutGrid className="mr-3 h-4 w-4 opacity-40" />
+                      <span className="font-bold text-xs uppercase tracking-widest">Tool Hub</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-primary-foreground py-3 px-6 cursor-pointer rounded-none">
                     <Link href="/profile" className="flex items-center w-full">
                       <UserIcon className="mr-3 h-4 w-4 opacity-40" />
