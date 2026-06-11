@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -13,17 +12,41 @@ import {
   Zap, 
   Terminal,
   Cpu,
-  BrainCircuit
+  BrainCircuit,
+  Settings2
 } from "lucide-react";
 import { nexAgentChat } from "@/app/actions/nexagent";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   toolCalls?: any[];
 }
+
+const AVAILABLE_MODELS = [
+  { id: "google/gemini-2.0-flash-exp:free", name: "Gemini 2.0 Flash Exp" },
+  { id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", name: "Llama Nemotron Rerank" },
+  { id: "nex-agi/nex-n2-pro:free", name: "Nex N2 Pro" },
+  { id: "nvidia/nemotron-3.5-content-safety:free", name: "Nemotron 3.5 Safety" },
+  { id: "nvidia/nemotron-3-ultra-550b-a55b:free", name: "Nemotron 3 Ultra" },
+  { id: "openrouter/owl-alpha", name: "Owl Alpha" },
+  { id: "poolside/laguna-xs.2:free", name: "Laguna XS.2" },
+  { id: "poolside/laguna-m.1:free", name: "Laguna M.1" },
+  { id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B" },
+  { id: "nvidia/nemotron-3-super-120b-a12b:free", name: "Nemotron 3 Super" },
+  { id: "openai/gpt-oss-120b:free", name: "GPT OSS 120B" },
+];
 
 export function NexAgent() {
   const [messages, setMessages] = useState<Message[]>([
@@ -34,6 +57,7 @@ export function NexAgent() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0].id);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +71,7 @@ export function NexAgent() {
     setLoading(true);
 
     try {
-      const response = await nexAgentChat(newMessages);
+      const response = await nexAgentChat(newMessages, selectedModel);
       setMessages(prev => [...prev, response as Message]);
     } catch (err) {
       console.error(err);
@@ -59,7 +83,7 @@ export function NexAgent() {
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem] flex flex-col h-[700px]">
       <CardHeader className="p-8 pb-6 border-b border-primary/5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-500/10 text-indigo-600 rounded-xl relative">
               <Sparkles className="size-6" />
@@ -72,9 +96,28 @@ export function NexAgent() {
               </CardDescription>
             </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 border border-primary/5">
-             <Cpu className="size-3 text-indigo-600" />
-             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Llama 3 Instruct</span>
+          
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 border border-primary/5">
+               <Cpu className="size-3 text-indigo-600" />
+               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Neural Engine</span>
+            </div>
+            
+            <Select value={selectedModel} onValueChange={setSelectedModel}>
+              <SelectTrigger className="w-[200px] h-9 rounded-full bg-background/50 border-primary/5 text-[10px] font-bold uppercase tracking-widest">
+                <SelectValue placeholder="Select Model" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl bg-card border-primary/10">
+                <SelectGroup>
+                  <SelectLabel className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/40 px-2 py-1.5">Free Intelligence Models</SelectLabel>
+                  {AVAILABLE_MODELS.map((model) => (
+                    <SelectItem key={model.id} value={model.id} className="rounded-xl text-[10px] font-bold uppercase tracking-wider focus:bg-indigo-500/10 focus:text-indigo-600 cursor-pointer">
+                      {model.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </CardHeader>
@@ -161,7 +204,7 @@ export function NexAgent() {
               </Button>
            </form>
            <p className="mt-4 text-center text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-40">
-             NexAgent Skill Integration v1.0 • Powered by OpenRouter
+             NexAgent Skill Integration v1.1 • Powered by OpenRouter
            </p>
         </div>
       </CardContent>

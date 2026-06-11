@@ -1,4 +1,3 @@
-
 'use server';
 
 import OpenAI from 'openai';
@@ -10,10 +9,8 @@ import { fetchAnichin } from './anichin';
 /**
  * NexAgent Server Action
  * Handles chat interactions via OpenRouter and processes tool calls.
- * Uses a free model from the OpenRouter catalog.
+ * Now supports dynamic model selection.
  */
-
-const MODEL = "google/gemini-2.0-flash-exp:free";
 
 // Define tools available to the AI
 const tools = [
@@ -70,7 +67,7 @@ const tools = [
   }
 ];
 
-export async function nexAgentChat(messages: any[]) {
+export async function nexAgentChat(messages: any[], modelId: string = "google/gemini-2.0-flash-exp:free") {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
@@ -92,7 +89,7 @@ export async function nexAgentChat(messages: any[]) {
 
   try {
     const response = await client.chat.completions.create({
-      model: MODEL,
+      model: modelId,
       messages: [
         { 
           role: "system", 
@@ -146,7 +143,7 @@ export async function nexAgentChat(messages: any[]) {
 
       // Get final response after tools
       const finalResponse = await client.chat.completions.create({
-        model: MODEL,
+        model: modelId,
         messages: [
           ...messages,
           message,
