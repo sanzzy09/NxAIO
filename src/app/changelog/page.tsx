@@ -10,7 +10,8 @@ import {
   Eraser,
   ShieldCheck,
   Mail,
-  CloudUpload
+  BarChart3,
+  Clock
 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
@@ -41,20 +42,20 @@ export default function ChangelogPage() {
           {/* Left Column: Version & Intro */}
           <div className="lg:col-span-5 space-y-8">
             <div className="flex items-center gap-3 text-muted-foreground font-mono text-sm bg-secondary/50 w-fit px-4 py-1.5 rounded-full border border-primary/5">
-              <span className="text-primary font-bold">v3.5.0</span>
+              <span className="text-primary font-bold">v3.8.0</span>
               <span>·</span>
               <span>March 2025</span>
             </div>
             
             <div className="space-y-6">
               <Badge className="bg-indigo-600 text-white rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider">
-                Major Update
+                Stable Release
               </Badge>
               <h2 className="text-3xl lg:text-4xl font-bold font-headline">
-                The AI Utility <br />Suite Launch
+                Quota Intelligence <br />& Analytics
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                This version introduces our core AI engines: Background Isolation, Music Orchestration, and Temporary Identity Rotation. We've also finalized our tiered identity limits.
+                This version introduces our real-time Quota Analytics engine and synchronizes all utility limits with WIB (Western Indonesia Time). We've also resolved critical issues in AI music generation.
               </p>
             </div>
           </div>
@@ -67,37 +68,37 @@ export default function ChangelogPage() {
                 <ul className="space-y-6">
                   <li className="flex items-start gap-4 group">
                     <div className="mt-1 p-3 rounded-xl bg-indigo-50 text-indigo-600 group-hover:scale-110 transition-transform">
-                      <Music className="w-5 h-5" />
+                      <BarChart3 className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-foreground font-bold block">AI Music Orchestrator</span>
-                      <p className="text-sm text-muted-foreground">Generate high-fidelity tracks from lyrics or descriptions with real-time session tracking.</p>
+                      <span className="text-foreground font-bold block">EvilRadial Quota Analytics</span>
+                      <p className="text-sm text-muted-foreground">Visualize tool consumption with high-fidelity, glowing radial charts on your profile.</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-4 group">
-                    <div className="mt-1 p-3 rounded-xl bg-pink-50 text-pink-600 group-hover:scale-110 transition-transform">
-                      <Eraser className="w-5 h-5" />
+                    <div className="mt-1 p-3 rounded-xl bg-emerald-50 text-emerald-600 group-hover:scale-110 transition-transform">
+                      <Clock className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-foreground font-bold block">High-Precision BG Remover</span>
-                      <p className="text-sm text-muted-foreground">GPU-accelerated background isolation with tiered daily quotas for all users.</p>
+                      <span className="text-foreground font-bold block">00:00 WIB Reset Sync</span>
+                      <p className="text-sm text-muted-foreground">All daily limits now reset precisely at midnight Western Indonesia Time (Asia/Jakarta).</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-4 group">
-                    <div className="mt-1 p-3 rounded-xl bg-blue-50 text-blue-600 group-hover:scale-110 transition-transform">
-                      <ShieldCheck className="w-5 h-5" />
+                    <div className="mt-1 p-3 rounded-xl bg-orange-50 text-orange-600 group-hover:scale-110 transition-transform">
+                      <Zap className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-foreground font-bold block">Tiered Identity System</span>
-                      <p className="text-sm text-muted-foreground">Introduction of Starter, Pro, and Sultan tiers with specific daily/weekly utility limits.</p>
+                      <span className="text-foreground font-bold block">Logic Hub Optimizations</span>
+                      <p className="text-sm text-muted-foreground">Improved stability for music generation polling and fixed bandwidth deduction logic.</p>
                     </div>
                   </li>
                 </ul>
               </div>
 
               <div className="flex flex-wrap gap-4 pt-4 border-t border-primary/5">
-                <Button size="lg" className="rounded-2xl px-8 h-14 text-sm font-bold shadow-xl shadow-primary/10">
-                  Explore Hub
+                <Button size="lg" className="rounded-2xl px-8 h-14 text-sm font-bold shadow-xl shadow-primary/10" asChild>
+                  <Link href="/">Explore Hub</Link>
                 </Button>
                 <Button size="lg" variant="outline" className="rounded-2xl px-8 h-14 text-sm font-bold border-primary/5">
                   View Roadmap
@@ -113,19 +114,19 @@ export default function ChangelogPage() {
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-80">
               <div className="p-8 rounded-[2rem] border border-primary/5 bg-secondary/20 hover:bg-secondary/40 transition-colors">
                 <div className="flex justify-between items-start mb-4">
+                  <span className="font-mono text-[10px] text-muted-foreground font-bold uppercase">v3.5.0</span>
+                  <span className="text-[10px] text-muted-foreground font-bold">Mar 2025</span>
+                </div>
+                <h4 className="font-headline font-bold text-lg mb-2">AI Utility Suite Launch</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">Introduced core AI engines: Background Isolation, Music Orchestration, and Temporary Identity Rotation.</p>
+              </div>
+              <div className="p-8 rounded-[2rem] border border-primary/5 bg-secondary/20 hover:bg-secondary/40 transition-colors">
+                <div className="flex justify-between items-start mb-4">
                   <span className="font-mono text-[10px] text-muted-foreground font-bold uppercase">v3.2.0</span>
                   <span className="text-[10px] text-muted-foreground font-bold">Feb 2025</span>
                 </div>
                 <h4 className="font-headline font-bold text-lg mb-2">Temp-Mail Revolution</h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">Launched real-time temporary mailbox system with automatic OTP code extraction and session persistence.</p>
-              </div>
-              <div className="p-8 rounded-[2rem] border border-primary/5 bg-secondary/20 hover:bg-secondary/40 transition-colors">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="font-mono text-[10px] text-muted-foreground font-bold uppercase">v3.0.0</span>
-                  <span className="text-[10px] text-muted-foreground font-bold">Jan 2025</span>
-                </div>
-                <h4 className="font-headline font-bold text-lg mb-2">The Bone White System</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">Full redesign of the UI system to our signature Bone White aesthetic with glassmorphic dashboards.</p>
               </div>
            </div>
         </div>
