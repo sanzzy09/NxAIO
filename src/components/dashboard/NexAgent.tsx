@@ -425,6 +425,7 @@ export function NexAgent() {
                           onChange={(e) => setInput(e.target.value)}
                           onKeyDown={handleKeyDown}
                           disabled={loading}
+                          placeholder={selectedModelData?.chefSlug === 'sourceful' ? "Describe the image you want to generate..." : "What would you like to know?"}
                         />
                       </PromptInputBody>
                       <PromptInputFooter>
