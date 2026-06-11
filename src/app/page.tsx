@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -27,6 +26,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
 import { StaggeredFadeUp } from '@/components/ui/staggered-fade-up';
 import { SkeletonStats } from '@/components/ui/skeleton-stats';
+import { LogoCloud3 } from '@/components/ui/logo-cloud-3';
 import Link from 'next/link';
 import { useFirestore, useDoc } from '@/firebase';
 import { doc, increment, setDoc, updateDoc } from 'firebase/firestore';
@@ -178,6 +178,8 @@ export default function Home() {
                 </StaggeredFadeUp>
               )}
             </div>
+
+            <LogoCloud3 />
 
             <div className="space-y-8 animate-fade-in-up [animation-delay:600ms]">
               <div className="flex items-center justify-between">
