@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "cmdk";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Search, Monitor, Cpu, Sparkles, BrainCircuit } from "lucide-react";
 
@@ -39,9 +39,10 @@ export function ModelSelectorTrigger({ children, asChild, className }: { childre
   return <DialogTrigger asChild={asChild} className={className}>{children}</DialogTrigger>;
 }
 
-export function ModelSelectorContent({ children, className }: { children: React.ReactNode; className?: string }) {
+export function ModelSelectorContent({ children, className, title = "Select Model" }: { children: React.ReactNode; className?: string; title?: string }) {
   return (
     <DialogContent className={cn("p-0 overflow-hidden border-none bg-transparent shadow-2xl sm:max-w-[450px]", className)}>
+      <DialogTitle className="sr-only">{title}</DialogTitle>
       <Command className="rounded-xl border border-primary/10 bg-card overflow-hidden">
         {children}
       </Command>
