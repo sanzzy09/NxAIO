@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -103,6 +102,13 @@ export default function SettingsPage() {
       });
     }
   }, [profileData]);
+
+  // Auth Guard
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,7 +228,6 @@ export default function SettingsPage() {
   }
 
   if (!user) {
-    router.push("/login");
     return null;
   }
 

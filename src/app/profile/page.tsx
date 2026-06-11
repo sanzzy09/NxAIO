@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
@@ -36,6 +36,13 @@ export default function ProfilePage() {
   const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
   const { data: profileData, loading: profileLoading } = useDoc(userRef);
 
+  // Auth Guard
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
   // Subscription Logic
   const role = profileData?.role || 'free';
   const subEnd = profileData?.subscriptionEnd ? new Date(profileData.subscriptionEnd) : null;
@@ -68,7 +75,7 @@ export default function ProfilePage() {
   const getActivityColor = (type: string) => {
     switch (type) {
       case 'login': return 'bg-blue-500/10 text-blue-500';
-      case 'signup': return 'bg-emerald-500/10 text-emerald-500';
+      case 'signup': return 'bg-emerald-500/10 text-emerald-600';
       case 'profile_update': return 'bg-purple-500/10 text-purple-500';
       case 'follow': return 'bg-emerald-500/10 text-emerald-500';
       case 'unfollow': return 'bg-destructive/10 text-destructive';
@@ -85,7 +92,6 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    router.push("/login");
     return null;
   }
 

@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -46,6 +45,13 @@ export default function Home() {
   const statsRef = useMemo(() => doc(db, 'system', 'stats'), [db]);
   const { data: stats, loading: statsLoading } = useDoc(statsRef);
 
+  // Auth Guard for active tools
+  useEffect(() => {
+    if (!authLoading && !user && activeTool) {
+      router.push("/login");
+    }
+  }, [user, authLoading, activeTool, router]);
+
   // Track real-time visitors
   useEffect(() => {
     if (!db) return;
@@ -72,9 +78,8 @@ export default function Home() {
   }, [db]);
 
   const renderTool = () => {
-    // Auth Guard: Prevent tool usage if not logged in
-    if (!authLoading && !user && activeTool) {
-      router.push("/login");
+    // If not logged in and tool is active, don't render content (useEffect handles redirect)
+    if (!user && activeTool) {
       return null;
     }
 
