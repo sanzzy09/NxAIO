@@ -12,12 +12,12 @@ import { fetchAnichin } from './anichin';
  * Handles chat interactions via OpenRouter and processes tool calls.
  */
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "sk-or-v1-43577583643758364375836"; // Placeholder if not set
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const MODEL = "meta-llama/llama-3.1-8b-instruct:free";
 
 const client = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
-  apiKey: OPENROUTER_API_KEY,
+  apiKey: OPENROUTER_API_KEY || "",
   defaultHeaders: {
     "HTTP-Referer": "https://nxaio.app", // Optional, for OpenRouter tracking
     "X-Title": "NxAIO NexAgent",
@@ -80,6 +80,13 @@ const tools = [
 ];
 
 export async function nexAgentChat(messages: any[]) {
+  if (!OPENROUTER_API_KEY) {
+    return {
+      role: "assistant",
+      content: "System configuration missing: OpenRouter API key is not set. Please contact the administrator."
+    };
+  }
+
   try {
     const response = await client.chat.completions.create({
       model: MODEL,
