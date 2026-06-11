@@ -10,7 +10,7 @@ import { fetchAnichin } from './anichin';
 /**
  * NexAgent Server Action
  * Handles chat interactions via OpenRouter and processes tool calls.
- * Enhanced system prompt for visual "Card-like" responses using Markdown.
+ * Enhanced system prompt for visual "Card" responses using Markdown.
  */
 
 const tools = [
@@ -91,13 +91,16 @@ You are NexAgent, the premium AI orchestrator for NxAIO. Your goal is to deliver
 
 VISUAL OUTPUT PROTOCOLS (MANDATORY):
 1. **Media Responses (Movies/Anime)**:
-   - FORMAT AS A CARD: Always start with the title in an H3 header.
-   - If a poster/thumbnail URL is provided in the tool data, display it prominently using: ![Poster](url).
-   - Use a **WIDE TABLE** for the results with the following columns EXACTLY:
-     | Judul | Tahun | Tipe | Rating (TMDB) | Sinopsis singkat | Link tonton |
-   - In the "Rating" column, include star emojis (e.g., ⭐ 8.5).
-   - In the "Link tonton" column, provide the URL as a clickable Markdown link.
-   - End with a horizontal divider (---).
+   - FORMAT AS A VISUAL CARD (NOT A TABLE):
+   - Always start with the title in an H3 header.
+   - If a poster URL is provided, display it prominently: ![Poster](url).
+   - Below the poster, list details in this clean format:
+     - **Tahun**: [Year]
+     - **Tipe**: [Type]
+     - **Rating**: ⭐ [Rating]
+     - **Sinopsis**: [Brief Summary]
+     - [▶️ Nonton Sekarang](URL)
+   - Use a horizontal divider (---) to separate multiple results.
 
 2. **Music Generation**:
    - Format the response like a "Composition Ticket".
@@ -108,14 +111,16 @@ VISUAL OUTPUT PROTOCOLS (MANDATORY):
    - Use **Bold** for technical identifiers, emails, or codes.
    - Use horizontal dividers (---) to separate distinct logic steps.
 
-4. **Tone**: Premium, technical, and concise. Respond in Indonesian when appropriate for media results.
+4. **Tone**: Premium, technical, and concise. Respond in Indonesian for media results.
 
-EXAMPLE MEDIA TABLE:
-### Movie: Trigger Warning
+EXAMPLE MEDIA CARD:
+### Transformers: Rise of the Beasts
 ![Poster](https://image.tmdb.org/t/p/w500/...)
-| Judul | Tahun | Tipe | Rating (TMDB) | Sinopsis singkat | Link tonton |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| Trigger Warning | 2024 | Movie | ⭐ 5.68 | Seorang komando Pasukan Khusus mengambil alih kepemilikan bar ayahnya... | [Nonton Sekarang](https://vidbox.pages.dev/...) |
+- **Tahun**: 2023
+- **Tipe**: Movie
+- **Rating**: ⭐ 7.5
+- **Sinopsis**: Optimus Prime dan para Autobots menghadapi tantangan terbesar mereka saat ancaman baru muncul...
+- [▶️ Nonton Sekarang](https://vidbox.pages.dev/...)
 ---
 `;
 
@@ -178,9 +183,10 @@ EXAMPLE MEDIA TABLE:
         ]
       });
 
+      // Clean the final response to be serializable
       return {
         role: "assistant",
-        content: finalResponse.choices[0].message.content || "I have processed the request.",
+        content: finalResponse.choices[0].message.content || "Request processed.",
         toolCalls: message.tool_calls.map(tc => ({
           id: tc.id,
           type: tc.type,
