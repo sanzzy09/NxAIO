@@ -27,6 +27,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { StaggeredFadeUp } from '@/components/ui/staggered-fade-up';
 import { SkeletonStats } from '@/components/ui/skeleton-stats';
 import { LogoCloud3 } from '@/components/ui/logo-cloud-3';
+import { Features6 } from '@/components/ui/features-6';
 import Link from 'next/link';
 import { useFirestore, useDoc } from '@/firebase';
 import { doc, increment, setDoc, updateDoc } from 'firebase/firestore';
@@ -181,7 +182,11 @@ export default function Home() {
 
             <LogoCloud3 />
 
-            <div className="space-y-8 animate-fade-in-up [animation-delay:600ms]">
+            <div className="animate-fade-in-up [animation-delay:500ms]">
+               <Features6 />
+            </div>
+
+            <div className="space-y-8 animate-fade-in-up [animation-delay:700ms]">
               <div className="flex items-center justify-between">
                 <h2 className="font-headline text-2xl font-bold flex items-center gap-3">
                   <div className="p-2 bg-primary/5 rounded-xl">
