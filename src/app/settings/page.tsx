@@ -114,7 +114,7 @@ export default function SettingsPage() {
         toast({
           variant: "destructive",
           title: "Identity restriction",
-          description: "GIF profile photos require a Pro subscription.",
+          description: "Pro required for GIF avatars.",
         });
         return;
       }
@@ -122,15 +122,7 @@ export default function SettingsPage() {
         toast({
           variant: "destructive",
           title: "Identity restriction",
-          description: "Profile banners require a Pro subscription.",
-        });
-        return;
-      }
-      if (formData.frameId !== 'none') {
-        toast({
-          variant: "destructive",
-          title: "Identity restriction",
-          description: "Avatar frames require a Pro subscription.",
+          description: "Pro required for Profile banners.",
         });
         return;
       }
@@ -185,22 +177,37 @@ export default function SettingsPage() {
 
     setDeleting(true);
     try {
-      logActivity(db, user.uid, 'profile_update', 'Account deletion initiated.');
+      // 1. Delete Firestore User Document
       if (userRef) {
         await deleteDoc(userRef);
       }
+      
+      // 2. Delete Auth User
       await deleteUser(user);
+      
+      logActivity(db, user.uid, 'profile_update', 'Account deletion completed.');
+      
       toast({
-        title: "Account deleted",
-        description: "Your account and data have been removed. We're sorry to see you go.",
+        title: "Account purged",
+        description: "Your profile and data have been removed. Redirecting...",
       });
-      router.push("/");
+      
+      router.push("/login");
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Deletion failed",
-        description: error.message || "Please re-authenticate and try again.",
-      });
+      // Handle Firebase sensitive operation error
+      if (error.code === 'auth/requires-recent-login') {
+        toast({
+          variant: "destructive",
+          title: "Security Timeout",
+          description: "For security, please sign out and sign back in to delete your account.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Deletion failed",
+          description: error.message || "Please re-authenticate and try again.",
+        });
+      }
     } finally {
       setDeleting(false);
     }

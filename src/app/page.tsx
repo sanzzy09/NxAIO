@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -31,12 +32,15 @@ import { Features6 } from '@/components/ui/features-6';
 import { Features4 } from '@/components/ui/features-4';
 import { GradualSpacingText } from '@/components/ui/gradual-spacing-text';
 import Link from 'next/link';
-import { useFirestore, useDoc } from '@/firebase';
+import { useFirestore, useDoc, useUser } from '@/firebase';
 import { doc, increment, setDoc, updateDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const db = useFirestore();
+  const { user, loading: authLoading } = useUser();
+  const router = useRouter();
 
   // Real-time statistics from Firestore
   const statsRef = useMemo(() => doc(db, 'system', 'stats'), [db]);
@@ -68,6 +72,12 @@ export default function Home() {
   }, [db]);
 
   const renderTool = () => {
+    // Auth Guard: Prevent tool usage if not logged in
+    if (!authLoading && !user && activeTool) {
+      router.push("/login");
+      return null;
+    }
+
     switch (activeTool) {
       case "nexagent": return <NexAgent />;
       case "tempmail": return <TempMailTool />;
