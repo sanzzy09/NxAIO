@@ -17,16 +17,19 @@ import {
   Settings2,
   MessageSquare,
   GlobeIcon,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from "lucide-react";
 import { nexAgentChat } from "@/app/actions/nexagent";
 import { cn, getWIBDate } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, updateDoc, increment } from "firebase/firestore";
+import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
+import { doc, updateDoc, increment, collection, query, orderBy, addDoc, serverTimestamp, getDocs, deleteDoc, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 import {
   ModelSelector,
   ModelSelectorContent,
@@ -95,6 +98,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   toolCalls?: any[];
+  usage?: any;
 }
 
 const AI_LIMITS = {
@@ -231,13 +235,22 @@ export function NexAgent() {
   const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const userRef = useMemo(() => user ? doc(db, "users", user.uid) : null, [db, user]);
   const { data: profile } = useDoc(userRef);
 
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: "Hello! I am NexAgent. I can generate mailboxes, compose music, or explore movie databases. How can I help you today?" }
-  ]);
+  // Firestore Chat History Sync
+  const messagesQuery = useMemo(() => {
+    if (!db || !user) return null;
+    return query(
+      collection(db, "users", user.uid, "agent_messages"),
+      orderBy("timestamp", "asc")
+    );
+  }, [db, user]);
+
+  const { data: syncedMessages, loading: historyLoading } = useCollection<Message>(messagesQuery);
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState(models[0].id);
@@ -255,6 +268,48 @@ export function NexAgent() {
   const selectedModelData = models.find((m) => m.id === selectedModel);
   const chefs = Array.from(new Set(models.map((m) => m.chef)));
 
+  // Auto-scroll to bottom when messages update
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  }, [syncedMessages, loading]);
+
+  const saveMessage = async (msg: Message) => {
+    if (!user || !db) return;
+    const msgRef = collection(db, "users", user.uid, "agent_messages");
+    await addDoc(msgRef, {
+      ...msg,
+      timestamp: serverTimestamp()
+    }).catch(e => {
+       errorEmitter.emit('permission-error', new FirestorePermissionError({
+         path: msgRef.path,
+         operation: 'create',
+         requestResourceData: msg
+       }));
+    });
+  };
+
+  const handleClearHistory = async () => {
+    if (!user || !db) return;
+    setLoading(true);
+    try {
+      const q = collection(db, "users", user.uid, "agent_messages");
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+      await batch.commit();
+      toast({ title: "Nexus Purged", description: "Conversation history cleared successfully." });
+    } catch (err) {
+      toast({ variant: "destructive", title: "Purge Failed", description: "Could not clear memory banks." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSend = async (customInput?: string) => {
     const finalInput = customInput || input;
     if (!finalInput.trim() || loading) return;
@@ -269,15 +324,24 @@ export function NexAgent() {
     }
 
     const userMsg: Message = { role: 'user', content: finalInput };
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
+    
+    // 1. Save user message to Firestore (this will update syncedMessages via hook)
+    await saveMessage(userMsg);
     setInput("");
     setLoading(true);
 
     try {
-      const response = await nexAgentChat(newMessages, selectedModel);
-      setMessages(prev => [...prev, response as Message]);
+      // 2. Prepare full context from synced messages + new user message
+      const historyForContext = syncedMessages.map(m => ({ role: m.role, content: m.content }));
+      const fullContext = [...historyForContext, userMsg];
+
+      // 3. Call AI with continuity
+      const response = await nexAgentChat(fullContext, selectedModel);
       
+      // 4. Save AI response to Firestore
+      await saveMessage(response as Message);
+      
+      // 5. Update token usage
       if ((response as any).usage && userRef) {
         const u = (response as any).usage;
         const totalUsed = (u.total_tokens || 0);
@@ -308,6 +372,11 @@ export function NexAgent() {
     }
   };
 
+  // Base welcome message if history is empty
+  const displayMessages = syncedMessages.length > 0 ? syncedMessages : [
+    { role: 'assistant', content: "Hello! I am NexAgent. My neural memory is active. I can generate mailboxes, compose music, or explore movie databases. How can I help you today?" }
+  ] as Message[];
+
   return (
     <PromptInputProvider>
       <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem] flex flex-col h-[800px]">
@@ -335,6 +404,9 @@ export function NexAgent() {
                   <Settings2 className="size-3" /> Intel
                 </Button>
               </div>
+              <Button variant="ghost" size="icon" onClick={handleClearHistory} disabled={loading || historyLoading} className="rounded-full hover:bg-destructive/5 hover:text-destructive transition-all" title="Clear History">
+                <Trash2 className="size-4" />
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -342,9 +414,14 @@ export function NexAgent() {
         <CardContent className="flex-1 p-0 flex flex-col overflow-hidden bg-secondary/[0.01]">
           {view === 'chat' ? (
             <>
-              <ScrollArea className="flex-1 p-8 h-full">
+              <ScrollArea ref={scrollAreaRef} className="flex-1 p-8 h-full">
                 <div className="space-y-8 max-w-3xl mx-auto pb-12">
-                  {messages.map((msg, i) => (
+                  {historyLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                      <Loader2 className="size-8 animate-spin text-indigo-600/20" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Synchronizing Memory banks...</p>
+                    </div>
+                  ) : displayMessages.map((msg, i) => (
                     <div key={i} className={cn("flex gap-5 animate-fade-in-up", msg.role === 'user' ? "flex-row-reverse" : "flex-row")}>
                       <div className={cn("size-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md border", msg.role === 'user' ? "bg-indigo-600 text-white border-indigo-500" : "bg-white text-primary border-primary/5")}>
                         {msg.role === 'user' ? <User className="size-5" /> : <Bot className="size-5" />}
@@ -460,7 +537,7 @@ export function NexAgent() {
                  <div className="max-w-3xl mx-auto space-y-4">
                    <Suggestions>
                      {SUGGESTIONS.map((s) => (
-                       <Suggestion key={s} suggestion={s} onClick={(v) => handleSend(v)} disabled={loading || isLimitReached} />
+                       <Suggestion key={s} suggestion={s} onClick={(v) => handleSend(v)} disabled={loading || isLimitReached || historyLoading} />
                      ))}
                    </Suggestions>
 
@@ -471,7 +548,7 @@ export function NexAgent() {
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
                           onKeyDown={handleKeyDown}
-                          disabled={loading || isLimitReached}
+                          disabled={loading || isLimitReached || historyLoading}
                           placeholder={isLimitReached ? "Daily limit reached..." : (selectedModelData?.chefSlug === 'sourceful' ? "Describe the image you want to generate..." : "What would you like to know?")}
                         />
                       </PromptInputBody>
@@ -563,7 +640,7 @@ export function NexAgent() {
                         <PromptInputSubmit 
                           onClick={() => handleSend()}
                           status={loading ? "streaming" : "ready"} 
-                          disabled={isLimitReached}
+                          disabled={isLimitReached || historyLoading}
                         />
                       </PromptInputFooter>
                    </PromptInput>
@@ -576,7 +653,7 @@ export function NexAgent() {
                 <Agent>
                   <AgentHeader name="NexAgent Neural Orchestrator" model={selectedModelData?.name} />
                   <AgentContent>
-                    <AgentInstructions>You are NexAgent, the premium orchestrator of NxAIO. Your goal is to deliver high-fidelity, visual, Indonesian-optimized utility responses using Markdown. prioritized Card Layouts for media search results. If you trigger a tool, provide clear reasoning in the thinking chain.</AgentInstructions>
+                    <AgentInstructions>You are NexAgent, the premium orchestrator of NxAIO. Your goal is to deliver high-fidelity, visual, Indonesian-optimized utility responses using Markdown. prioritized Card Layouts for media search results. If you trigger a tool, provide clear reasoning in the thinking chain. Now with multi-turn persistent memory enabled.</AgentInstructions>
                     <AgentTools defaultValue={["generate_music", "search_anime"]}>
                       <AgentTool value="generate_temp_mail" tool={agentToolsConfig.generate_temp_mail} />
                       <AgentTool value="generate_music" tool={agentToolsConfig.generate_music} />
