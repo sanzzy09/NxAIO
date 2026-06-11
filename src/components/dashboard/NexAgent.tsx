@@ -18,7 +18,10 @@ import {
   Search,
   Database,
   Info,
-  MessageSquare
+  MessageSquare,
+  Code2,
+  Settings2,
+  Globe
 } from "lucide-react";
 import { nexAgentChat } from "@/app/actions/nexagent";
 import { cn } from "@/lib/utils";
@@ -26,7 +29,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useUser, useFirestore } from "@/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import {
   ModelSelector,
   ModelSelectorContent,
@@ -100,12 +102,42 @@ const agentToolsConfig = {
       required: ['prompt']
     }
   },
-  search_media: { description: 'Scrape Vidbox/TMDB archives for cinematic metadata and mirrors.', parameters: { type: 'object', properties: { query: { type: 'string', description: 'Movie title' } } } }
+  search_media: { description: 'Scrape Vidbox/TMDB archives for cinematic metadata and mirrors.', parameters: { type: 'object', properties: { query: { type: 'string', description: 'Movie title' } } } },
+  search_anime: { description: 'Searches for anime in the Anichin database.', parameters: { type: 'object', properties: { query: { type: 'string', description: 'Anime title' } } } }
+};
+
+/**
+ * Technical Execution Card
+ * Renders raw tool calls in a sleek terminal-inspired block.
+ */
+const ToolCallVisualizer = ({ content }: { content: string }) => {
+  if (!content.includes('<tool_call>')) return null;
+
+  return (
+    <div className="my-4 group relative">
+      <div className="absolute inset-0 bg-indigo-500/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="relative bg-[#1a1b1e] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+        <div className="bg-white/[0.03] px-6 py-3 border-b border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Terminal className="size-3.5 text-indigo-400" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Utility Protocol Orchestration</span>
+          </div>
+          <div className="flex gap-1.5">
+            <div className="size-2 rounded-full bg-red-500/20" />
+            <div className="size-2 rounded-full bg-yellow-500/20" />
+            <div className="size-2 rounded-full bg-green-500/20" />
+          </div>
+        </div>
+        <div className="p-6 font-mono text-[11px] leading-relaxed text-indigo-100/90 overflow-x-auto whitespace-pre-wrap">
+          {content}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export function NexAgent() {
   const { user } = useUser();
-  const db = useFirestore();
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: "Hello! I am NexAgent. I can generate mailboxes, compose music, or explore movie databases. How can I help you?" }
   ]);
@@ -146,33 +178,33 @@ export function NexAgent() {
 
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem] flex flex-col h-[750px]">
-      <CardHeader className="p-8 pb-6 border-b border-primary/5">
+      <CardHeader className="p-8 pb-6 border-b border-primary/5 bg-background/20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-500/10 text-indigo-600 rounded-xl relative">
+            <div className="p-2.5 bg-indigo-500/10 text-indigo-600 rounded-2xl relative border border-indigo-500/10">
               <Sparkles className="size-6" />
-              <div className="absolute -top-1 -right-1 size-3 bg-emerald-500 rounded-full border-2 border-background animate-pulse" />
+              <div className="absolute -top-1 -right-1 size-3 bg-emerald-500 rounded-full border-2 border-background shadow-sm" />
             </div>
             <div>
-              <CardTitle className="font-headline text-2xl">NexAgent Core</CardTitle>
-              <CardDescription className="flex items-center gap-2">
-                <BrainCircuit className="size-3" /> Autonomous Utility Orchestrator
+              <CardTitle className="font-headline text-2xl tracking-tight">NexAgent Intelligence</CardTitle>
+              <CardDescription className="flex items-center gap-2 font-medium">
+                <BrainCircuit className="size-3 text-indigo-500" /> Neural Orchestration Hub
               </CardDescription>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
             <div className="flex items-center bg-secondary/30 p-1 rounded-full border border-primary/5">
-              <Button variant="ghost" size="sm" onClick={() => setView('chat')} className={cn("rounded-full h-8 px-4 gap-2 text-[10px] font-bold uppercase", view === 'chat' ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>
+              <Button variant="ghost" size="sm" onClick={() => setView('chat')} className={cn("rounded-full h-8 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", view === 'chat' ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground/60")}>
                 <MessageSquare className="size-3" /> Chat
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setView('config')} className={cn("rounded-full h-8 px-4 gap-2 text-[10px] font-bold uppercase", view === 'config' ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>
-                <Info className="size-3" /> Intel
+              <Button variant="ghost" size="sm" onClick={() => setView('config')} className={cn("rounded-full h-8 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", view === 'config' ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground/60")}>
+                <Settings2 className="size-3" /> Intel
               </Button>
             </div>
             <ModelSelector open={selectorOpen} onOpenChange={setSelectorOpen}>
               <ModelSelectorTrigger asChild>
-                <Button variant="outline" className="h-10 rounded-full border-primary/5 bg-background/50 hover:bg-indigo-500/5 px-4 min-w-[200px] justify-between">
+                <Button variant="outline" className="h-10 rounded-full border-primary/5 bg-background/50 hover:bg-indigo-500/5 px-4 min-w-[200px] justify-between shadow-sm">
                   <span className="text-[10px] font-bold uppercase tracking-wider">{selectedModelData?.name || "Select Engine"}</span>
                   <ChevronDown className="size-3 opacity-40" />
                 </Button>
@@ -206,14 +238,14 @@ export function NexAgent() {
         </div>
       </CardHeader>
       
-      <CardContent className="flex-1 p-0 flex flex-col overflow-hidden bg-secondary/[0.02]">
+      <CardContent className="flex-1 p-0 flex flex-col overflow-hidden bg-secondary/[0.01]">
         {view === 'chat' ? (
           <>
             <ScrollArea className="flex-1 p-8 h-full">
-              <div className="space-y-6 max-w-3xl mx-auto pb-8">
+              <div className="space-y-8 max-w-3xl mx-auto pb-12">
                 {messages.map((msg, i) => (
-                  <div key={i} className={cn("flex gap-4 animate-fade-in-up", msg.role === 'user' ? "flex-row-reverse" : "flex-row")}>
-                    <div className={cn("size-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm", msg.role === 'user' ? "bg-indigo-600 text-white" : "bg-secondary text-primary")}>
+                  <div key={i} className={cn("flex gap-5 animate-fade-in-up", msg.role === 'user' ? "flex-row-reverse" : "flex-row")}>
+                    <div className={cn("size-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md border", msg.role === 'user' ? "bg-indigo-600 text-white border-indigo-500" : "bg-white text-primary border-primary/5")}>
                       {msg.role === 'user' ? <User className="size-5" /> : <Bot className="size-5" />}
                     </div>
                     <div className="space-y-3 max-w-[90%] md:max-w-[85%]">
@@ -225,72 +257,86 @@ export function NexAgent() {
                             {msg.toolCalls.map((tool: any, idx: number) => (
                               <ChainOfThoughtStep 
                                 key={idx} 
-                                label={`Executing: ${tool.function.name.replace(/_/g, ' ')}`} 
-                                description={`Provisioning underlying utility logic for ${tool.function.name}...`}
+                                label={`Provisioning Utility: ${tool.function.name.replace(/_/g, ' ')}`} 
+                                description={`Orchestrating logic for ${tool.function.name} with parameters...`}
                                 status="complete" 
+                                icon={tool.function.name.includes('search') ? Search : tool.function.name.includes('mail') ? MessageSquare : Settings2}
                               />
                             ))}
                             <ChainOfThoughtStep label="Synthesizing Neural Response" status="complete" />
                           </ChainOfThoughtContent>
                         </ChainOfThought>
                       )}
-                      <div className={cn("p-6 rounded-[1.5rem] shadow-sm", msg.role === 'user' ? "bg-indigo-600 text-white rounded-tr-none" : "bg-background border border-primary/5 rounded-tl-none")}>
+                      <div className={cn(
+                        "p-7 rounded-[2rem] shadow-sm relative group transition-all",
+                        msg.role === 'user' ? "bg-indigo-600 text-white rounded-tr-none" : "bg-background border border-primary/5 rounded-tl-none hover:border-primary/10"
+                      )}>
                         <div className="prose prose-sm dark:prose-invert max-w-none 
-                          prose-img:rounded-[1.5rem] prose-img:shadow-2xl prose-img:border prose-img:border-primary/5 prose-img:mx-auto prose-img:max-h-[350px] prose-img:object-cover
-                          prose-h3:text-xl prose-h3:font-bold prose-h3:font-headline prose-h3:mb-2 prose-h3:tracking-tight
-                          prose-li:text-[11px] prose-li:font-medium prose-li:text-muted-foreground/80
+                          prose-img:rounded-3xl prose-img:shadow-2xl prose-img:border prose-img:border-primary/5 prose-img:mx-auto prose-img:max-h-[380px] prose-img:object-cover
+                          prose-h3:text-2xl prose-h3:font-bold prose-h3:font-headline prose-h3:mb-4 prose-h3:tracking-tighter
+                          prose-p:leading-relaxed prose-p:font-medium prose-p:opacity-90
+                          prose-li:text-[12px] prose-li:font-medium prose-li:text-muted-foreground/90
                           prose-table:border-collapse prose-th:border-primary/5 prose-td:border-primary/5 prose-hr:border-primary/10">
-                          <ReactMarkdown 
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              table: ({ children }) => (
-                                <div className="w-full overflow-x-auto my-6 rounded-2xl border border-primary/5 bg-secondary/10 shadow-inner">
-                                  <table className="w-full text-left border-collapse min-w-[500px]">
+                          
+                          {/* Special check for raw tool call XML - styling it technical */}
+                          {msg.content.includes('<tool_call>') ? (
+                            <div className="space-y-4">
+                              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Handshaking with Utility Logic...</p>
+                              <ToolCallVisualizer content={msg.content} />
+                            </div>
+                          ) : (
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                table: ({ children }) => (
+                                  <div className="w-full overflow-x-auto my-6 rounded-[2rem] border border-primary/5 bg-secondary/10 shadow-inner">
+                                    <table className="w-full text-left border-collapse min-w-[550px]">
+                                      {children}
+                                    </table>
+                                  </div>
+                                ),
+                                thead: ({ children }) => (
+                                  <thead className="bg-secondary/30 border-b border-primary/5">
                                     {children}
-                                  </table>
-                                </div>
-                              ),
-                              thead: ({ children }) => (
-                                <thead className="bg-secondary/30 border-b border-primary/5">
-                                  {children}
-                                </thead>
-                              ),
-                              th: ({ children }) => (
-                                <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
-                                  {children}
-                                </th>
-                              ),
-                              td: ({ children }) => (
-                                <td className="px-5 py-3 text-xs font-medium border-t border-primary/5 align-top">
-                                  {children}
-                                </td>
-                              ),
-                              tr: ({ children }) => (
-                                <tr className="hover:bg-primary/[0.02] transition-colors">
-                                  {children}
-                                </tr>
-                              ),
-                              h3: ({ children }) => (
-                                <h3 className="mt-4 border-l-4 border-indigo-500 pl-4 py-1 bg-indigo-500/5 rounded-r-xl">
-                                  {children}
-                                </h3>
-                              )
-                            }}
-                          >
-                            {msg.content}
-                          </ReactMarkdown>
+                                  </thead>
+                                ),
+                                th: ({ children }) => (
+                                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+                                    {children}
+                                  </th>
+                                ),
+                                td: ({ children }) => (
+                                  <td className="px-6 py-4 text-xs font-medium border-t border-primary/5 align-top">
+                                    {children}
+                                  </td>
+                                ),
+                                tr: ({ children }) => (
+                                  <tr className="hover:bg-primary/[0.02] transition-colors">
+                                    {children}
+                                  </tr>
+                                ),
+                                h3: ({ children }) => (
+                                  <h3 className="mt-6 border-l-4 border-indigo-500 pl-5 py-1 bg-indigo-500/5 rounded-r-2xl">
+                                    {children}
+                                  </h3>
+                                )
+                              }}
+                            >
+                              {msg.content}
+                            </ReactMarkdown>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
                 {loading && (
-                  <div className="flex gap-4 animate-fade-in-up">
-                    <div className="size-10 rounded-2xl bg-secondary text-primary flex items-center justify-center animate-pulse"><Bot className="size-5" /></div>
+                  <div className="flex gap-5 animate-fade-in-up">
+                    <div className="size-10 rounded-2xl bg-secondary text-primary flex items-center justify-center animate-pulse border border-primary/5 shadow-sm"><Bot className="size-5" /></div>
                     <div className="space-y-3 max-w-[80%]">
-                      <div className="bg-background border border-primary/5 p-4 rounded-[1.5rem] flex items-center gap-3">
+                      <div className="bg-background border border-primary/5 p-5 rounded-[1.5rem] flex items-center gap-3 shadow-sm">
                          <Loader2 className="size-4 animate-spin text-indigo-600" />
-                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">NexAgent is Thinking...</span>
+                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">NexAgent Synthesis in Progress...</span>
                       </div>
                     </div>
                   </div>
@@ -306,15 +352,18 @@ export function NexAgent() {
                  </Suggestions>
                </div>
                <form onSubmit={handleSend} className="max-w-3xl mx-auto flex gap-3">
-                  <input 
-                    value={input} 
-                    onChange={(e) => setInput(e.target.value)} 
-                    disabled={loading} 
-                    placeholder="Command NexAgent..." 
-                    className="w-full h-14 pl-6 pr-12 rounded-2xl bg-background border border-primary/5 focus:outline-none shadow-inner" 
-                  />
-                  <Button type="submit" disabled={loading || !input.trim()} className="size-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl transition-transform active:scale-95">
-                    <Send className="size-5" />
+                  <div className="relative flex-1 group">
+                    <input 
+                      value={input} 
+                      onChange={(e) => setInput(e.target.value)} 
+                      disabled={loading} 
+                      placeholder="Command NexAgent Intelligence..." 
+                      className="w-full h-16 pl-6 pr-14 rounded-3xl bg-background border border-primary/5 focus:outline-none focus:border-indigo-500/20 shadow-inner transition-all" 
+                    />
+                    <Zap className="absolute right-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/30 group-focus-within:text-indigo-500 transition-colors" />
+                  </div>
+                  <Button type="submit" disabled={loading || !input.trim()} className="size-16 rounded-3xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl transition-all active:scale-95 hover:scale-[1.02]">
+                    <Send className="size-6" />
                   </Button>
                </form>
             </div>
@@ -323,18 +372,22 @@ export function NexAgent() {
           <ScrollArea className="flex-1 p-8">
             <div className="max-w-3xl mx-auto">
               <Agent>
-                <AgentHeader name="NexAgent Utility Orchestrator" model={selectedModelData?.name} />
+                <AgentHeader name="NexAgent Neural Orchestrator" model={selectedModelData?.name} />
                 <AgentContent>
-                  <AgentInstructions>You are NexAgent, the premium orchestrator of NxAIO. Your goal is to deliver high-fidelity, visual, Indonesian-optimized utility responses using Markdown. prioritized Card Layouts for media search results.</AgentInstructions>
-                  <AgentTools defaultValue={["generate_music"]}>
+                  <AgentInstructions>You are NexAgent, the premium orchestrator of NxAIO. Your goal is to deliver high-fidelity, visual, Indonesian-optimized utility responses using Markdown. prioritized Card Layouts for media search results. If you trigger a tool, provide clear reasoning in the thinking chain.</AgentInstructions>
+                  <AgentTools defaultValue={["generate_music", "search_anime"]}>
                     <AgentTool value="generate_temp_mail" tool={agentToolsConfig.generate_temp_mail} />
                     <AgentTool value="generate_music" tool={agentToolsConfig.generate_music} />
                     <AgentTool value="search_media" tool={agentToolsConfig.search_media} />
+                    <AgentTool value="search_anime" tool={agentToolsConfig.search_anime} />
                   </AgentTools>
                   <AgentOutput schema={`{
   role: "assistant",
-  content: "Markdown string with Visual Cards or Data Tables",
-  toolCalls: Array<ToolCall>
+  content: "Markdown visual components (Cards/Tables/Text)",
+  toolCalls: Array<{
+    id: string,
+    function: { name: string, arguments: string }
+  }>
 }`} />
                 </AgentContent>
               </Agent>
