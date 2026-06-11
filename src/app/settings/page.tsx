@@ -1,10 +1,11 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import { doc, setDoc, deleteDoc, collection, getDocs, writeBatch, increment } from "firebase/firestore";
 import { updateProfile, deleteUser } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -183,19 +184,66 @@ export default function SettingsPage() {
 
     setDeleting(true);
     try {
-      // 1. Delete Firestore User Document
+      // 1. Purge User Subcollections (Music, Uploads, Activities, etc.)
+      const subcollections = [
+        "activities",
+        "uploads",
+        "music",
+        "removals",
+        "mailboxes",
+        "agent_messages"
+      ];
+
+      for (const sub of subcollections) {
+        const q = collection(db, "users", user.uid, sub);
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const batch = writeBatch(db);
+          snapshot.docs.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+        }
+      }
+
+      // 2. Cleanup bi-directional follow records
+      // Find who I follow and remove me from their followers
+      const followingSnapshot = await getDocs(collection(db, "users", user.uid, "following"));
+      for (const followDoc of followingSnapshot.docs) {
+        const targetUserId = followDoc.id;
+        const batch = writeBatch(db);
+        batch.delete(doc(db, "users", targetUserId, "followers", user.uid));
+        batch.update(doc(db, "users", targetUserId), { followersCount: increment(-1) });
+        batch.delete(followDoc.ref); // Also delete my following entry
+        await batch.commit();
+      }
+
+      // Find who follows me and remove them from following me
+      const followersSnapshot = await getDocs(collection(db, "users", user.uid, "followers"));
+      for (const followerDoc of followersSnapshot.docs) {
+        const followerId = followerDoc.id;
+        const batch = writeBatch(db);
+        batch.delete(doc(db, "users", followerId, "following", user.uid));
+        batch.update(doc(db, "users", followerId), { followingCount: increment(-1) });
+        batch.delete(followerDoc.ref); // Also delete my follower entry
+        await batch.commit();
+      }
+
+      // 3. Update Global Stats (Decrement user count)
+      const statsRef = doc(db, "system", "stats");
+      await setDoc(statsRef, {
+        totalUsers: increment(-1)
+      }, { merge: true });
+      
+      // 4. Delete Main User Document
       if (userRef) {
         await deleteDoc(userRef);
       }
       
-      // 2. Delete Auth User
+      // 5. Delete Auth User (The most critical part - will trigger re-auth if token is old)
       await deleteUser(user);
-      
-      logActivity(db, user.uid, 'profile_update', 'Account deletion completed.');
       
       toast({
         title: "Account purged",
-        description: "Your profile and data have been removed. Redirecting...",
+        description: "Your profile and all associated data have been permanently removed.",
       });
       
       router.push("/login");
@@ -434,7 +482,7 @@ export default function SettingsPage() {
                               </div>
                               <DialogTitle className="text-2xl font-bold font-headline">Are you absolutely sure?</DialogTitle>
                               <DialogDescription className="text-muted-foreground leading-relaxed">
-                                This deletes your profile, activity history, and following data. To confirm, type <span className="font-bold text-foreground">"{CONFIRM_WORD}"</span> below.
+                                This permanently deletes your profile, activity history, following data, and all cloud-synced assets. To confirm, type <span className="font-bold text-foreground">"{CONFIRM_WORD}"</span> below.
                               </DialogDescription>
                             </DialogHeader>
 
