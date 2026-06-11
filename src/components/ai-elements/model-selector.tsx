@@ -104,6 +104,16 @@ export function ModelSelectorLogo({ provider, className }: { provider: string; c
       case 'nvidia': return <Cpu className="size-3.5" />;
       case 'openai': return <Monitor className="size-3.5" />;
       case 'nex-agi': return <Sparkles className="size-3.5" />;
+      case 'poolside': return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-3.5">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 12V21" />
+          <path d="M12 12c0-3.5 1.5-5 5-5" />
+          <path d="M12 12c0-3.5-1.5-5-5-5" />
+          <path d="M12 12c0-3.5 0-5 0-5" />
+          <path d="M7 7c2-1 4.5-1 10 0" />
+        </svg>
+      );
       default: return <Monitor className="size-3.5" />;
     }
   };
