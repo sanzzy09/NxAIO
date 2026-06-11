@@ -2,8 +2,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { ToolHub } from '@/components/dashboard/ToolHub';
-import { AIAssistant } from '@/components/dashboard/AIAssistant';
-import { SnippetManager } from '@/components/dashboard/SnippetManager';
 import { AIODownloader } from '@/components/dashboard/AIODownloader';
 import { AnimeExplorer } from '@/components/dashboard/AnimeExplorer';
 import { Lk21Explorer } from '@/components/dashboard/Lk21Explorer';
@@ -56,14 +54,12 @@ export default function ToolsPage() {
       case "hosting": return <FileHosting />;
       case "bypass": return <AdlinkBypasser />;
       case "anichin": return <AnichinExplorer />;
-      case "snippets": return <SnippetManager />;
       case "downloader": return <AIODownloader />;
       case "anime": return <AnimeExplorer />;
       case "lk21": return <Lk21Explorer />;
       case "donghua": return <DonghuaExplorer />;
       case "transcribe": return <TranscribeTool />;
       case "ocr": return <OCRTool />;
-      case "logic": return <AIAssistant />;
       default: return null;
     }
   };

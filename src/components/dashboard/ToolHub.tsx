@@ -1,11 +1,9 @@
-
 'use client';
 
 import React from 'react';
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { 
   Zap, 
-  Code2, 
   ArrowRight,
   DownloadCloud,
   Tv,
@@ -45,20 +43,6 @@ const tools: Tool[] = [
     description: "Instant anonymous mailbox with real-time sync and OTP auto-extraction.",
     icon: <Mail className="size-6" />,
     color: "bg-indigo-50 text-indigo-600"
-  },
-  {
-    id: "snippets",
-    name: "Interactive Snippet Manager",
-    description: "Simplified storage with modern code highlighting.",
-    icon: <Code2 className="size-6" />,
-    color: "bg-cyan-50 text-cyan-600"
-  },
-  {
-    id: "logic",
-    name: "Logic Command Center",
-    description: "Chain utilities with natural language commands.",
-    icon: <Zap className="size-6" />,
-    color: "bg-orange-50 text-orange-600"
   },
   {
     id: "movieku",
