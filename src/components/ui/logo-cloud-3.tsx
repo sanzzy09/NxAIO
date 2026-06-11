@@ -3,6 +3,12 @@
 import React from "react"
 import { cn } from "@/lib/utils"
 
+const TailwindIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-10 w-10 fill-[#38BDF8] drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8 0.913 0.228 1.565 0.921 2.288 1.664 1.177 1.211 2.538 2.611 5.512 2.611 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-0.913-0.228-1.565-0.921-2.288-1.664-1.177-1.211-2.538-2.611-5.512-2.611zM6.001 12c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8 0.913 0.228 1.565 0.921 2.288 1.664 1.177 1.211 2.538 2.611 5.512 2.611 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-0.913-0.228-1.565-0.921-2.288-1.664-1.177-1.211-2.538-2.611-5.512-2.611z" />
+  </svg>
+)
+
 const logos = [
   {
     name: "OpenRouter",
@@ -22,7 +28,7 @@ const logos = [
   },
   {
     name: "Tailwind",
-    logo: "https://tailwindcss.com/favicon-32x32.png",
+    icon: <TailwindIcon />,
   },
   {
     name: "Shadcn",
@@ -61,11 +67,17 @@ export function LogoCloud3() {
               key={`${logo.name}-${index}`} 
               className="flex items-center gap-4 px-14 group cursor-default transition-all duration-500 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 scale-95 hover:scale-105"
             >
-              <img
-                src={logo.logo}
-                alt={logo.name}
-                className="h-10 w-10 object-contain drop-shadow-sm transition-transform group-hover:rotate-6"
-              />
+              {logo.icon ? (
+                <div className="transition-transform group-hover:rotate-6">
+                  {logo.icon}
+                </div>
+              ) : (
+                <img
+                  src={logo.logo}
+                  alt={logo.name}
+                  className="h-10 w-10 object-contain drop-shadow-sm transition-transform group-hover:rotate-6"
+                />
+              )}
               <span className="font-headline font-bold text-lg tracking-tighter text-foreground">
                 {logo.name}
               </span>
