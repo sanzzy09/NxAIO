@@ -12,17 +12,7 @@ import { fetchAnichin } from './anichin';
  * Handles chat interactions via OpenRouter and processes tool calls.
  */
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const MODEL = "meta-llama/llama-3.1-8b-instruct:free";
-
-const client = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: OPENROUTER_API_KEY || "",
-  defaultHeaders: {
-    "HTTP-Referer": "https://nxaio.app", // Optional, for OpenRouter tracking
-    "X-Title": "NxAIO NexAgent",
-  }
-});
 
 // Define tools available to the AI
 const tools = [
@@ -80,12 +70,24 @@ const tools = [
 ];
 
 export async function nexAgentChat(messages: any[]) {
-  if (!OPENROUTER_API_KEY) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+
+  if (!apiKey) {
     return {
       role: "assistant",
-      content: "System configuration missing: OpenRouter API key is not set. Please contact the administrator."
+      content: "System configuration missing: OpenRouter API key is not set. Please add OPENROUTER_API_KEY to your environment variables."
     };
   }
+
+  // Initialize client inside function to ensure fresh env vars
+  const client = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: apiKey,
+    defaultHeaders: {
+      "HTTP-Referer": "https://nxaio.app",
+      "X-Title": "NxAIO NexAgent",
+    }
+  });
 
   try {
     const response = await client.chat.completions.create({
@@ -93,7 +95,7 @@ export async function nexAgentChat(messages: any[]) {
       messages: [
         { 
           role: "system", 
-          content: "You are NexAgent, the intelligent orchestrator of NxAIO. You help users manage their utilities. You can generate temp mail, create music, and search for anime or movies. Be concise, helpful, and premium in your tone. If a user asks for something you have a tool for, use the tool."
+          content: "You are NexAgent, the intelligent orchestrator of NxAIO. You help users manage their utilities. You can generate temp mail, create music, and search for anime or movies. Be concise, helpful, and premium in your tone. If a user asks for something you have a tool for, use the tool. Always respond in plain text or markdown, do not use JSON blocks for the final user response."
         },
         ...messages
       ],
@@ -104,7 +106,7 @@ export async function nexAgentChat(messages: any[]) {
     const message = response.choices[0].message;
 
     // Handle tool calls
-    if (message.tool_calls) {
+    if (message.tool_calls && message.tool_calls.length > 0) {
       const toolResults: any[] = [];
       
       for (const toolCall of message.tool_calls) {
@@ -154,7 +156,7 @@ export async function nexAgentChat(messages: any[]) {
       return {
         role: "assistant",
         content: finalResponse.choices[0].message.content,
-        toolCalls: message.tool_calls // To show in UI
+        toolCalls: message.tool_calls
       };
     }
 
@@ -164,10 +166,19 @@ export async function nexAgentChat(messages: any[]) {
     };
 
   } catch (error: any) {
-    console.error('NexAgent Chat Error:', error.message);
+    console.error('NexAgent Chat Error:', error);
+    
+    // Provide user-friendly feedback for common API errors
+    if (error.status === 401) {
+       return { role: "assistant", content: "Invalid OpenRouter API Key. Please verify the key in your .env configuration." };
+    }
+    if (error.status === 402) {
+       return { role: "assistant", content: "Insufficient OpenRouter balance. Please check your credit status." };
+    }
+
     return {
       role: "assistant",
-      content: "I'm having trouble reaching the neural network. Please check your OpenRouter configuration."
+      content: `I'm having trouble reaching the neural network. (Reason: ${error.message || 'Connection failure'})`
     };
   }
 }
