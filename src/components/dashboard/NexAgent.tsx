@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -13,20 +13,25 @@ import {
   Terminal,
   Cpu,
   BrainCircuit,
-  Settings2
+  CheckIcon,
+  ChevronDown
 } from "lucide-react";
 import { nexAgentChat } from "@/app/actions/nexagent";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  ModelSelector,
+  ModelSelectorContent,
+  ModelSelectorEmpty,
+  ModelSelectorGroup,
+  ModelSelectorInput,
+  ModelSelectorItem,
+  ModelSelectorList,
+  ModelSelectorLogo,
+  ModelSelectorLogoGroup,
+  ModelSelectorName,
+  ModelSelectorTrigger,
+} from "@/components/ai-elements/model-selector";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -34,30 +39,138 @@ interface Message {
   toolCalls?: any[];
 }
 
-const AVAILABLE_MODELS = [
-  { id: "google/gemini-2.0-flash-exp:free", name: "Gemini 2.0 Flash Exp" },
-  { id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", name: "Llama Nemotron Rerank" },
-  { id: "nex-agi/nex-n2-pro:free", name: "Nex N2 Pro" },
-  { id: "nvidia/nemotron-3.5-content-safety:free", name: "Nemotron 3.5 Safety" },
-  { id: "nvidia/nemotron-3-ultra-550b-a55b:free", name: "Nemotron 3 Ultra" },
-  { id: "openrouter/owl-alpha", name: "Owl Alpha" },
-  { id: "poolside/laguna-xs.2:free", name: "Laguna XS.2" },
-  { id: "poolside/laguna-m.1:free", name: "Laguna M.1" },
-  { id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B" },
-  { id: "nvidia/nemotron-3-super-120b-a12b:free", name: "Nemotron 3 Super" },
-  { id: "openai/gpt-oss-120b:free", name: "GPT OSS 120B" },
+const models = [
+  {
+    chef: "Google",
+    chefSlug: "google",
+    id: "google/gemini-2.0-flash-exp:free",
+    name: "Gemini 2.0 Flash Exp",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "Google",
+    chefSlug: "google",
+    id: "google/gemma-4-31b-it:free",
+    name: "Gemma 4 31B",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "NVIDIA",
+    chefSlug: "nvidia",
+    id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free",
+    name: "Llama Nemotron Rerank",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "NVIDIA",
+    chefSlug: "nvidia",
+    id: "nvidia/nemotron-3.5-content-safety:free",
+    name: "Nemotron 3.5 Safety",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "NVIDIA",
+    chefSlug: "nvidia",
+    id: "nvidia/nemotron-3-ultra-550b-a55b:free",
+    name: "Nemotron 3 Ultra",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "NVIDIA",
+    chefSlug: "nvidia",
+    id: "nvidia/nemotron-3-super-120b-a12b:free",
+    name: "Nemotron 3 Super",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "Nex AGI",
+    chefSlug: "nex-agi",
+    id: "nex-agi/nex-n2-pro:free",
+    name: "Nex N2 Pro",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "OpenRouter",
+    chefSlug: "openrouter",
+    id: "openrouter/owl-alpha",
+    name: "Owl Alpha",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "Poolside",
+    chefSlug: "poolside",
+    id: "poolside/laguna-xs.2:free",
+    name: "Laguna XS.2",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "Poolside",
+    chefSlug: "poolside",
+    id: "poolside/laguna-m.1:free",
+    name: "Laguna M.1",
+    providers: ["openrouter"],
+  },
+  {
+    chef: "OpenAI",
+    chefSlug: "openai",
+    id: "openai/gpt-oss-120b:free",
+    name: "GPT OSS 120B",
+    providers: ["openrouter"],
+  },
 ];
+
+interface ModelItemProps {
+  model: (typeof models)[0];
+  selectedModel: string;
+  onSelect: (id: string) => void;
+}
+
+const ModelItem = memo(({ model, selectedModel, onSelect }: ModelItemProps) => {
+  const handleSelect = useCallback(
+    () => onSelect(model.id),
+    [onSelect, model.id]
+  );
+  return (
+    <ModelSelectorItem key={model.id} onSelect={handleSelect} value={model.id} className="group">
+      <ModelSelectorLogo provider={model.chefSlug} />
+      <ModelSelectorName>{model.name}</ModelSelectorName>
+      <ModelSelectorLogoGroup>
+        {model.providers.map((provider) => (
+          <div key={provider} className="size-4 rounded-full bg-indigo-500/10 flex items-center justify-center border border-background">
+             <span className="text-[6px] font-bold uppercase">{provider[0]}</span>
+          </div>
+        ))}
+      </ModelSelectorLogoGroup>
+      {selectedModel === model.id ? (
+        <CheckIcon className="ml-auto size-3" />
+      ) : (
+        <div className="ml-auto size-3" />
+      )}
+    </ModelSelectorItem>
+  );
+});
+
+ModelItem.displayName = "ModelItem";
 
 export function NexAgent() {
   const [messages, setMessages] = useState<Message[]>([
     { 
       role: 'assistant', 
-      content: "Hello! I am NexAgent, your AI utility orchestrator. How can I help you today? I can generate temp mails, create music, or find movies for you." 
+      content: "Hello! I am NexAgent, your AI utility orchestrator. I can generate temporary mailboxes, compose music, or explore movie databases for you. Which neural engine should we use for today's tasks?" 
     }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState(models[0].id);
+  const [selectorOpen, setSelectorOpen] = useState(false);
+
+  const selectedModelData = models.find((m) => m.id === selectedModel);
+  const chefs = [...new Set(models.map((m) => m.chef))];
+
+  const handleModelSelect = useCallback((id: string) => {
+    setSelectedModel(id);
+    setSelectorOpen(false);
+  }, []);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,21 +216,41 @@ export function NexAgent() {
                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Neural Engine</span>
             </div>
             
-            <Select value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger className="w-[200px] h-9 rounded-full bg-background/50 border-primary/5 text-[10px] font-bold uppercase tracking-widest">
-                <SelectValue placeholder="Select Model" />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl bg-card border-primary/10">
-                <SelectGroup>
-                  <SelectLabel className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/40 px-2 py-1.5">Free Intelligence Models</SelectLabel>
-                  {AVAILABLE_MODELS.map((model) => (
-                    <SelectItem key={model.id} value={model.id} className="rounded-xl text-[10px] font-bold uppercase tracking-wider focus:bg-indigo-500/10 focus:text-indigo-600 cursor-pointer">
-                      {model.name}
-                    </SelectItem>
+            <ModelSelector open={selectorOpen} onOpenChange={setSelectorOpen}>
+              <ModelSelectorTrigger asChild>
+                <Button variant="outline" className="h-10 rounded-full border-primary/5 bg-background/50 hover:bg-indigo-500/5 hover:border-indigo-600/20 px-4 min-w-[220px] justify-between group shadow-sm transition-all">
+                  <div className="flex items-center gap-2">
+                    {selectedModelData?.chefSlug && (
+                      <div className="size-5 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+                        {selectedModelData.chefSlug === 'google' ? <BrainCircuit className="size-3" /> : <Cpu className="size-3" />}
+                      </div>
+                    )}
+                    <span className="text-[10px] font-bold uppercase tracking-wider">{selectedModelData?.name || "Select Model"}</span>
+                  </div>
+                  <ChevronDown className="size-3 text-muted-foreground opacity-40 group-hover:opacity-100 transition-opacity" />
+                </Button>
+              </ModelSelectorTrigger>
+              <ModelSelectorContent>
+                <ModelSelectorInput placeholder="Filter neural engines..." />
+                <ModelSelectorList>
+                  <ModelSelectorEmpty>No engines matching the criteria.</ModelSelectorEmpty>
+                  {chefs.map((chef) => (
+                    <ModelSelectorGroup heading={chef} key={chef}>
+                      {models
+                        .filter((m) => m.chef === chef)
+                        .map((m) => (
+                          <ModelItem
+                            key={m.id}
+                            model={m}
+                            onSelect={handleModelSelect}
+                            selectedModel={selectedModel}
+                          />
+                        ))}
+                    </ModelSelectorGroup>
                   ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                </ModelSelectorList>
+              </ModelSelectorContent>
+            </ModelSelector>
           </div>
         </div>
       </CardHeader>
@@ -204,7 +337,7 @@ export function NexAgent() {
               </Button>
            </form>
            <p className="mt-4 text-center text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-40">
-             NexAgent Skill Integration v1.1 • Powered by OpenRouter
+             NexAgent Skill Integration v1.2 • Powered by AI-Elements
            </p>
         </div>
       </CardContent>
