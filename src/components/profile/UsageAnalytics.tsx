@@ -1,9 +1,7 @@
 "use client"
 
 import React, { useMemo } from "react"
-import { EvilRadialChart } from "@/components/evilcharts/ui/evil-radial-chart"
-import { type ChartConfig } from "@/components/evilcharts/ui/chart"
-import { BarChart3, Mail, Eraser, Music, Info, Zap } from "lucide-react"
+import { BarChart3, Mail, Eraser, Music, Info } from "lucide-react"
 import { getWIBDate } from "@/lib/utils"
 
 const ROLE_LIMITS = {
@@ -23,12 +21,9 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
     return {
-      data: [
-        { name: "Consumed", value: count },
-        { name: "Bandwidth", value: remaining }
-      ],
       current: count,
-      limit: limit
+      limit: limit,
+      remaining
     }
   }, [profile, role])
 
@@ -40,12 +35,9 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
     return {
-      data: [
-        { name: "Consumed", value: count },
-        { name: "Bandwidth", value: remaining }
-      ],
       current: count,
-      limit: limit
+      limit: limit,
+      remaining
     }
   }, [profile, role])
 
@@ -60,19 +52,11 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const limit = ROLE_LIMITS.music[role]
     const remaining = Math.max(0, limit - count)
     return {
-      data: [
-        { name: "Consumed", value: count },
-        { name: "Bandwidth", value: remaining }
-      ],
       current: count,
-      limit: limit
+      limit: limit,
+      remaining
     }
   }, [profile, role])
-
-  const chartConfig: ChartConfig = {
-    Consumed: { label: "Used", color: "hsl(var(--primary))" },
-    Bandwidth: { label: "Available", color: "hsl(var(--muted))" }
-  }
 
   const renderQuotaCard = (title: string, icon: any, stats: any, desc: string, color: string) => (
     <div className="flex flex-col p-8 rounded-[2.5rem] bg-secondary/20 border border-primary/5 hover:border-primary/10 transition-all group overflow-hidden">
@@ -87,28 +71,12 @@ export function UsageAnalytics({ profile }: { profile: any }) {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-lg font-bold font-headline">{stats.limit - stats.current}</p>
+          <p className="text-lg font-bold font-headline">{stats.remaining}</p>
           <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Left</p>
         </div>
       </div>
 
-      <div className="flex-1 min-h-[180px] relative">
-        <EvilRadialChart
-          data={stats.data}
-          dataKey="value"
-          nameKey="name"
-          chartConfig={chartConfig}
-          variant="semi"
-          innerRadius="65%"
-          outerRadius="100%"
-          barSize={16}
-          cornerRadius={10}
-          glowingBars={["Consumed"]}
-          hideTooltip
-        />
-      </div>
-
-      <div className="mt-4 pt-6 border-t border-primary/5 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+      <div className="mt-auto pt-6 border-t border-primary/5 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
          <span className="text-muted-foreground opacity-40">Consumed: {stats.current} / {stats.limit}</span>
          <span className={stats.current >= stats.limit ? "text-destructive" : "text-primary"}>
            {((stats.current / stats.limit) * 100).toFixed(0)}% Utilized
