@@ -9,8 +9,7 @@ import { fetchAnichin } from './anichin';
 /**
  * NexAgent Server Action
  * Handles chat interactions via OpenRouter and processes tool calls.
- * Enhanced system prompt for visual "Card" responses using Markdown.
- * Includes usage tracking for token context.
+ * Includes a pre-filter to only enable tools when relevant keywords are detected.
  */
 
 const tools = [
@@ -67,6 +66,22 @@ const tools = [
   }
 ];
 
+/**
+ * Heuristic check to see if user input likely requires tool usage.
+ * This prevents 404 errors on models that don't support tools when the prompt is just conversational.
+ */
+function isToolLikelyNeeded(content: string): boolean {
+  const c = content.toLowerCase();
+  const triggers = [
+    'email', 'mail', 'mailbox', 'temp', 'sementara',
+    'musik', 'music', 'lagu', 'nyanyi', 'compose', 'remusic',
+    'film', 'movie', 'nonton', 'bioskop', 'movieku', 'vidbox', 'tayang',
+    'anime', 'donghua', 'anichin', 'otakudesu', 'kartun jepang',
+    'rekomendasi film', 'rekomendasi anime'
+  ];
+  return triggers.some(t => c.includes(t));
+}
+
 export async function nexAgentChat(messages: any[], modelId: string = "nvidia/llama-nemotron-rerank-vl-1b-v2:free") {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
@@ -116,16 +131,25 @@ VISUAL OUTPUT PROTOCOLS:
 4. **Tone**: Premium, technical, and concise. Respond in Indonesian for media results.
 `;
 
+  const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || "";
+  const enableTools = isToolLikelyNeeded(lastUserMessage);
+
   try {
-    const response = await client.chat.completions.create({
+    const chatParams: any = {
       model: modelId,
       messages: [
         { role: "system", content: systemInstructions },
         ...messages.map(m => ({ role: m.role, content: m.content }))
       ],
-      tools: tools as any,
-      tool_choice: "auto",
-    });
+    };
+
+    // Only inject tools if the keywords match, to avoid 404 crashes on non-tool models
+    if (enableTools) {
+      chatParams.tools = tools;
+      chatParams.tool_choice = "auto";
+    }
+
+    const response = await client.chat.completions.create(chatParams);
 
     const message = response.choices[0].message;
     const usage = response.usage;
@@ -200,6 +224,7 @@ VISUAL OUTPUT PROTOCOLS:
   } catch (error: any) {
     console.error('NexAgent Chat Error:', error);
 
+    // Specific handling for OpenRouter tool-use errors
     if (error.message && error.message.includes("No endpoints found that support tool use")) {
       return {
         role: "assistant",
