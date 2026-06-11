@@ -101,17 +101,16 @@ export function ModelSelectorLogo({ provider, className }: { provider: string; c
   const getIcon = () => {
     switch (provider.toLowerCase()) {
       case 'google': return <BrainCircuit className="size-3.5" />;
-      case 'nvidia': return <Cpu className="size-3.5" />;
+      case 'nvidia': return (
+        <svg viewBox="0 0 24 24" fill="currentColor" className="size-3.5">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1.5-12c-2.48 0-4.5 2.02-4.5 4.5S8.02 17 10.5 17c.56 0 1.1-.11 1.6-.3l-1.1-1.1c-.16.03-.33.05-.5.05-1.65 0-3-1.35-3-3s1.35-3 3-3c.27 0 .53.05.77.13L12.5 8.5c-.6-.32-1.28-.5-2-.5zm3 2c-.56 0-1.1.11-1.6.3l1.1 1.1c.16-.03.33-.05.5-.05 1.65 0 3 1.35 3 3s-1.35 3-3 3c-.27 0-.53-.05-.77-.13l-1.23 1.23c.6.32 1.28.5 2 .5 2.48 0 4.5-2.02 4.5-4.5s-2.02-4.5-4.5-4.5z" />
+        </svg>
+      );
       case 'openai': return <Monitor className="size-3.5" />;
       case 'nex-agi': return <Sparkles className="size-3.5" />;
       case 'poolside': return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-3.5">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 12V21" />
-          <path d="M12 12c0-3.5 1.5-5 5-5" />
-          <path d="M12 12c0-3.5-1.5-5-5-5" />
-          <path d="M12 12c0-3.5 0-5 0-5" />
-          <path d="M7 7c2-1 4.5-1 10 0" />
+        <svg viewBox="0 0 24 24" fill="currentColor" className="size-3.5">
+          <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM11.25 7a.75.75 0 011.5 0v2.25h2.25a.75.75 0 010 1.5H12.75V13c0 .324.083.628.23.893l.07.122 1.2 1.8a.75.75 0 11-1.248.83l-.071-.107-1.115-1.672-1.115 1.672a.75.75 0 01-1.32-.723l.071-.107 1.2-1.8a1.5 1.5 0 00.3-1.015V10.75H8.75a.75.75 0 010-1.5h2.25V7z" />
         </svg>
       );
       case 'openrouter': return (
