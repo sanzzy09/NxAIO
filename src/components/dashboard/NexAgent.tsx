@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useCallback, memo } from 'react';
@@ -422,7 +423,7 @@ export function NexAgent() {
                         {msg.role === 'user' ? (
                           <p className="text-sm leading-relaxed">{msg.content}</p>
                         ) : (
-                          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-headline prose-headings:font-bold prose-headings:tracking-tight prose-a:text-indigo-600 prose-strong:text-foreground prose-table:border prose-table:border-primary/5 prose-th:bg-secondary/30 prose-th:p-3 prose-td:p-3 prose-td:border prose-td:border-primary/5 prose-li:marker:text-indigo-600">
+                          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-headline prose-headings:font-bold prose-headings:tracking-tight prose-a:text-indigo-600 prose-strong:text-foreground prose-table:border prose-table:border-primary/5 prose-th:bg-secondary/30 prose-th:p-3 prose-td:p-3 prose-td:border prose-td:border-primary/5 prose-li:marker:text-indigo-600 prose-img:rounded-3xl prose-img:shadow-2xl prose-img:border prose-img:border-primary/10 prose-img:max-h-[350px] prose-img:mx-auto">
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                               {msg.content}
                             </ReactMarkdown>
