@@ -35,17 +35,17 @@ const features = [
 
 export function Features4() {
   return (
-    <section className="w-full py-24 bg-primary text-primary-foreground overflow-hidden">
+    <section className="w-full py-24 bg-background text-foreground overflow-hidden">
       <div className="container px-4 md:px-6">
         {/* Header */}
         <div className="flex flex-col items-center justify-center space-y-4 text-center mb-20 animate-fade-in-up">
-          <div className="inline-block rounded-full bg-primary-foreground/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-primary-foreground/40 border border-white/10">
+          <div className="inline-block rounded-full bg-primary/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-primary/60 border border-primary/10">
             Developer Ecosystem
           </div>
-          <h2 className="text-4xl font-bold font-headline tracking-tight sm:text-6xl text-primary-foreground bg-gradient-to-b from-primary-foreground to-primary-foreground/60 bg-clip-text text-transparent">
+          <h2 className="text-4xl font-bold font-headline tracking-tight sm:text-6xl text-primary bg-gradient-to-b from-primary to-primary/60 bg-clip-text text-transparent">
             Build tools faster.
           </h2>
-          <p className="max-w-[600px] text-primary-foreground/40 text-lg md:text-xl font-medium">
+          <p className="max-w-[600px] text-muted-foreground text-lg md:text-xl font-medium">
             The complete platform for secure, scalable logic. You define the flow, we handle the orchestration.
           </p>
         </div>
@@ -55,46 +55,46 @@ export function Features4() {
           {/* Extended Border Lines */}
           <div className="absolute inset-0 pointer-events-none">
              {/* Horizontal lines */}
-             <div className="absolute top-0 left-[-10%] right-[-10%] h-[1px] bg-primary-foreground/10" />
-             <div className="absolute bottom-0 left-[-10%] right-[-10%] h-[1px] bg-primary-foreground/10" />
+             <div className="absolute top-0 left-[-10%] right-[-10%] h-[1px] bg-primary/10" />
+             <div className="absolute bottom-0 left-[-10%] right-[-10%] h-[1px] bg-primary/10" />
              
              {/* Vertical lines */}
-             <div className="absolute left-0 top-[-10%] bottom-[-10%] w-[1px] bg-primary-foreground/10" />
-             <div className="absolute right-0 top-[-10%] bottom-[-10%] w-[1px] bg-primary-foreground/10" />
-             <div className="absolute left-1/4 top-[-10%] bottom-[-10%] w-[1px] bg-primary-foreground/10 hidden lg:block" />
-             <div className="absolute left-2/4 top-[-10%] bottom-[-10%] w-[1px] bg-primary-foreground/10 hidden md:block" />
-             <div className="absolute left-3/4 top-[-10%] bottom-[-10%] w-[1px] bg-primary-foreground/10 hidden lg:block" />
+             <div className="absolute left-0 top-[-10%] bottom-[-10%] w-[1px] bg-primary/10" />
+             <div className="absolute right-0 top-[-10%] bottom-[-10%] w-[1px] bg-primary/10" />
+             <div className="absolute left-1/4 top-[-10%] bottom-[-10%] w-[1px] bg-primary/10 hidden lg:block" />
+             <div className="absolute left-2/4 top-[-10%] bottom-[-10%] w-[1px] bg-primary/10 hidden md:block" />
+             <div className="absolute left-3/4 top-[-10%] bottom-[-10%] w-[1px] bg-primary/10 hidden lg:block" />
           </div>
 
           {features.map((feature, index) => (
             <div 
               key={index}
               className={cn(
-                "relative p-10 lg:p-12 transition-all duration-500 hover:bg-primary-foreground/[0.03] border-primary-foreground/10 overflow-hidden",
+                "relative p-10 lg:p-12 transition-all duration-500 hover:bg-primary/[0.03] border-primary/10 overflow-hidden",
                 // Internal borders for the grid feel
                 index !== features.length - 1 && "md:border-r border-b lg:border-b-0",
                 index === 1 && "lg:border-r"
               )}
             >
               {/* Corner Pulsing Markers (+) */}
-              <Plus className="absolute -top-2.5 -left-2.5 size-5 text-primary-foreground/20" />
-              {index === features.length - 1 && <Plus className="absolute -top-2.5 -right-2.5 size-5 text-primary-foreground/20" />}
-              <Plus className="absolute -bottom-2.5 -left-2.5 size-5 text-primary-foreground/20" />
-              {index === features.length - 1 && <Plus className="absolute -bottom-2.5 -right-2.5 size-5 text-primary-foreground/20" />}
+              <Plus className="absolute -top-2.5 -left-2.5 size-5 text-primary/20" />
+              {index === features.length - 1 && <Plus className="absolute -top-2.5 -right-2.5 size-5 text-primary/20" />}
+              <Plus className="absolute -bottom-2.5 -left-2.5 size-5 text-primary/20" />
+              {index === features.length - 1 && <Plus className="absolute -bottom-2.5 -right-2.5 size-5 text-primary/20" />}
 
               {/* Top-Left Hover Glow */}
-              <div className="absolute top-0 left-0 size-48 bg-primary-foreground/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+              <div className="absolute top-0 left-0 size-48 bg-primary/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
               <div className="relative z-10 space-y-6">
-                <div className="inline-flex p-3 rounded-xl bg-primary-foreground/5 border border-primary-foreground/10 text-primary-foreground shadow-2xl">
+                <div className="inline-flex p-3 rounded-xl bg-primary/5 border border-primary/10 text-primary shadow-sm">
                   {feature.icon}
                 </div>
                 
                 <div className="space-y-3">
-                  <h3 className="text-xl font-bold font-headline tracking-tight text-primary-foreground">
+                  <h3 className="text-xl font-bold font-headline tracking-tight text-primary">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-primary-foreground/40 leading-relaxed font-medium">
+                  <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                     {feature.description}
                   </p>
                 </div>
