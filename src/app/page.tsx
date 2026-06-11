@@ -188,10 +188,6 @@ export default function Home() {
               </div>
               <ToolHub onSelect={setActiveTool} />
             </div>
-
-            <div className="pt-8 animate-fade-in-up [animation-delay:800ms]">
-               <AIAssistant />
-            </div>
           </div>
         ) : (
           <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up">
