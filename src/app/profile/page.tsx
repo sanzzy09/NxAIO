@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -15,7 +14,6 @@ import {
   Settings, 
   Activity, 
   ArrowUpRight, 
-  Sparkles, 
   LogIn, 
   UserPlus, 
   Heart, 
@@ -28,6 +26,7 @@ import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
 import Link from 'next/link';
 import { logActivity } from '@/lib/activity';
 import { cn } from "@/lib/utils";
+import { UsageAnalytics } from '@/components/profile/UsageAnalytics';
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
@@ -49,7 +48,7 @@ export default function ProfilePage() {
     return query(
       collection(db, "users", user.uid, "activities"),
       orderBy("timestamp", "desc"),
-      limit(10)
+      limit(5)
     );
   }, [db, user]);
 
@@ -102,7 +101,7 @@ export default function ProfilePage() {
       <Navbar />
 
       <main className="pb-16 lg:pb-24">
-        {/* Immersive Full-Width Banner - Only for Pro */}
+        {/* Immersive Full-Width Banner */}
         <div className="w-full h-64 md:h-80 lg:h-[400px] bg-secondary/30 relative overflow-hidden group shadow-inner">
           {isPro && profileData?.bannerURL ? (
             <Image 
@@ -126,7 +125,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="container mx-auto px-4 max-w-5xl -mt-20 relative z-10">
+        <div className="container mx-auto px-4 max-w-6xl -mt-20 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             {/* Left Sidebar Info */}
             <div className="lg:col-span-4 space-y-6">
@@ -161,80 +160,93 @@ export default function ProfilePage() {
                   {isPro ? `${role} Identity` : 'Free Identity'}
                 </Badge>
 
-                {!isPro && (
-                  <p className="text-[9px] text-muted-foreground font-medium italic opacity-60 px-4">GIFs and Banners are locked for your identity.</p>
-                )}
-
                 <div className="w-full pt-4 space-y-3">
                   <Button asChild className="w-full h-12 rounded-2xl font-bold gap-2 shadow-lg shadow-primary/10">
                     <Link href="/settings">
                       <Settings className="w-4 h-4" /> Account Settings
                     </Link>
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 rounded-2xl border-primary/5 hover:bg-destructive/5 hover:text-destructive hover:border-destructive/20 transition-all font-bold gap-3 shadow-sm bg-card"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="w-4 h-4" /> Sign Out
+                  </Button>
                 </div>
               </div>
 
-              <Button 
-                variant="outline" 
-                className="w-full h-14 rounded-2xl border-primary/5 hover:bg-destructive/5 hover:text-destructive hover:border-destructive/20 transition-all font-bold gap-3 shadow-sm bg-card"
-                onClick={handleSignOut}
-              >
-                <LogOut className="w-4 h-4" /> Sign Out
-              </Button>
+              {/* Activity Sidebar Summary */}
+              <div className="bg-card border border-primary/5 rounded-[2.5rem] p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between">
+                   <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/40 flex items-center gap-2">
+                     <Activity className="size-3.5" /> Recent History
+                   </h4>
+                   <Link href="/settings" className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline">Full Log</Link>
+                </div>
+                <div className="space-y-4">
+                   {activitiesLoading ? (
+                     <div className="flex justify-center py-4"><Loader2 className="size-4 animate-spin text-muted-foreground/20" /></div>
+                   ) : activities?.map((activity: any) => (
+                     <div key={activity.id} className="flex items-center gap-3">
+                        <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", getActivityColor(activity.type))}>
+                           {React.cloneElement(getActivityIcon(activity.type) as React.ReactElement, { className: 'size-4' })}
+                        </div>
+                        <p className="text-[11px] font-medium text-muted-foreground line-clamp-1">{activity.description}</p>
+                     </div>
+                   ))}
+                </div>
+              </div>
             </div>
 
-            {/* Right Activity Column */}
-            <div className="lg:col-span-8 space-y-8">
-              <div className="bg-card border border-primary/5 rounded-[2.5rem] p-8 sm:p-12 shadow-2xl bg-card/80 backdrop-blur-md min-h-[400px]">
-                <div className="flex items-center justify-between mb-8">
+            {/* Main Content Column */}
+            <div className="lg:col-span-8 space-y-12">
+              {/* Analytics Section */}
+              <UsageAnalytics profile={profileData} />
+
+              {/* Profile Details Card */}
+              <div className="bg-card border border-primary/5 rounded-[2.5rem] p-8 sm:p-12 shadow-2xl bg-card/80 backdrop-blur-md min-h-[300px]">
+                <div className="flex items-center justify-between mb-10">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Activity className="w-5 h-5 text-primary/40" />
-                      <h3 className="text-2xl font-bold font-headline">Recent Activity</h3>
-                    </div>
-                    <p className="text-muted-foreground text-sm">Real-time logs of your actions on the platform.</p>
+                    <h3 className="text-2xl font-bold font-headline">Identity Metadata</h3>
+                    <p className="text-muted-foreground text-sm">Static attributes associated with your account logic.</p>
+                  </div>
+                  <Button variant="outline" asChild className="rounded-full h-10 px-6 border-primary/5 font-bold uppercase text-[10px] tracking-widest">
+                    <Link href="/pricing">Manage Tier</Link>
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-6 rounded-[2rem] bg-secondary/20 border border-primary/5 space-y-1">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Unique Identity ID</p>
+                    <p className="text-xs font-mono font-bold truncate opacity-60">{user.uid}</p>
+                  </div>
+                  <div className="p-6 rounded-[2rem] bg-secondary/20 border border-primary/5 space-y-1">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Encryption Class</p>
+                    <p className="text-xs font-bold font-headline text-emerald-600">AES-256 Standard</p>
+                  </div>
+                  <div className="p-6 rounded-[2rem] bg-secondary/20 border border-primary/5 space-y-1">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Member Since</p>
+                    <p className="text-xs font-bold font-headline">
+                      {profileData?.createdAt ? new Date(profileData.createdAt.toDate()).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="p-6 rounded-[2rem] bg-secondary/20 border border-primary/5 space-y-1">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Subscription Status</p>
+                    <p className={cn(
+                      "text-xs font-bold font-headline",
+                      isSubActive ? "text-indigo-600" : "text-destructive"
+                    )}>
+                      {isSubActive ? 'Active Lifetime' : 'Expired/Inactive'}
+                    </p>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  {activitiesLoading ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground/30">
-                      <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                      <p className="text-xs font-bold uppercase tracking-widest">Synchronizing Logs...</p>
-                    </div>
-                  ) : (activities?.length || 0) > 0 ? (
-                    activities?.map((activity: any) => (
-                      <div key={activity.id} className="group flex items-center justify-between p-6 rounded-3xl border border-primary/5 hover:border-primary/10 hover:bg-secondary/30 transition-all animate-fade-in-up">
-                        <div className="flex items-center gap-4">
-                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", getActivityColor(activity.type))}>
-                            {getActivityIcon(activity.type)}
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold font-headline">{activity.description}</p>
-                            <p className="text-xs text-muted-foreground opacity-60">
-                              {activity.type.replace('_', ' ')} event
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
-                          {activity.timestamp ? new Date(activity.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'just now'}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground/20 italic">
-                      <p>No activity logs found.</p>
-                    </div>
-                  )}
+                <div className="mt-12 flex justify-center">
+                   <Button variant="ghost" className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] gap-2">
+                     <ArrowUpRight className="size-3" /> Sync identity with external logic
+                   </Button>
                 </div>
-
-                {(activities?.length || 0) > 0 && (
-                  <div className="mt-12 flex justify-center">
-                    <Button variant="ghost" className="text-muted-foreground text-xs font-bold uppercase tracking-widest gap-2">
-                      View full history <ArrowUpRight className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
