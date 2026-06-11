@@ -8,6 +8,7 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Shield, FileText, ChevronDown } from "lucide-react";
+import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 import { cn } from "@/lib/utils";
 
 interface PolicySection {
@@ -34,15 +35,17 @@ export function LegalAccordion({ title, lastUpdated, sections, className }: Lega
           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
             <Shield className="w-5 h-5" />
           </div>
-          <h1 className="text-2xl font-headline font-bold">{title}</h1>
+          <h1 className="text-2xl font-headline font-bold">
+            <GradualSpacingText text={title} className="justify-start" />
+          </h1>
         </div>
-        <p className="text-sm text-primary-foreground/40 font-medium">
+        <p className="text-sm text-primary-foreground/40 font-medium animate-fade-in-up [animation-delay:400ms]">
           Last updated: {lastUpdated}
         </p>
       </div>
 
       {/* Accordion */}
-      <Accordion type="single" collapsible className="w-full">
+      <Accordion type="single" collapsible className="w-full animate-fade-in-up [animation-delay:600ms]">
         {sections.map((section, index) => (
           <AccordionItem 
             key={index} 
@@ -67,7 +70,7 @@ export function LegalAccordion({ title, lastUpdated, sections, className }: Lega
       </Accordion>
 
       {/* Footer */}
-      <div className="p-8 text-center border-t border-white/5">
+      <div className="p-8 text-center border-t border-white/5 animate-fade-in-up [animation-delay:800ms]">
         <p className="text-xs text-primary-foreground/30">
           If you have questions about this policy, please <a href="#" className="text-primary-foreground underline hover:text-primary-foreground/80 transition-colors font-semibold">contact us</a>.
         </p>

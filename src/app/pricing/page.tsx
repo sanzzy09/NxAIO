@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -13,6 +12,7 @@ import {
 import { Check, Mail, Zap, Shield, Loader2, Star, Crown } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 import { cn } from "@/lib/utils";
 import { useUser, useFirestore } from "@/firebase";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
@@ -175,23 +175,25 @@ export default function PricingPage() {
 
       <main className="container mx-auto px-4 pt-32 pb-24 max-w-7xl">
         {/* Header Section */}
-        <div className="text-center space-y-6 mb-20 animate-fade-in-up">
+        <div className="text-center space-y-6 mb-20">
           <div className="flex justify-center">
             <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
               Identity Tiers
             </Badge>
           </div>
-          <h1 className="text-4xl lg:text-7xl font-bold font-headline tracking-tight leading-tight">
-            Elevate your <br />
-            <span className="text-muted-foreground/60">creative power.</span>
+          <h1 className="text-4xl lg:text-7xl font-bold font-headline tracking-tight leading-tight flex flex-col items-center">
+            <GradualSpacingText text="Elevate your" />
+            <span className="text-muted-foreground/60">
+              <GradualSpacingText text="creative power." />
+            </span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto animate-fade-in-up [animation-delay:400ms]">
             Choose the plan that fits your workflow. Scale your daily tool identities and AI processing capacity.
           </p>
         </div>
 
         {/* Pricing Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in-up [animation-delay:200ms]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in-up [animation-delay:600ms]">
           {plans.map((plan) => (
             <div 
               key={plan.name}
@@ -269,7 +271,7 @@ export default function PricingPage() {
         </div>
 
         {/* Global Benefits Info */}
-        <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-12 animate-fade-in-up [animation-delay:800ms]">
            <div className="space-y-4">
               <div className="size-12 bg-indigo-500/10 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner">
                 <Mail className="size-6" />

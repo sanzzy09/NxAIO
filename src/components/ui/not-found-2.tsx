@@ -3,6 +3,7 @@
 import React from "react"
 import { Home, Compass, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { GradualSpacingText } from "@/components/ui/gradual-spacing-text"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
@@ -12,15 +13,15 @@ export function NotFound2() {
       <div className="relative flex flex-col items-center space-y-8 animate-fade-in-up">
         {/* Large Masked Typography */}
         <h1 className="text-[12rem] md:text-[16rem] font-bold font-headline leading-none tracking-tighter bg-gradient-to-b from-primary-foreground via-primary-foreground/40 to-transparent bg-clip-text text-transparent opacity-90 select-none">
-          404
+          <GradualSpacingText text="404" />
         </h1>
 
         <div className="text-center space-y-6 -mt-8 md:-mt-12 relative z-10">
-          <p className="max-w-[280px] md:max-w-sm mx-auto text-sm md:text-base text-primary-foreground/60 font-medium leading-relaxed">
+          <p className="max-w-[280px] md:max-w-sm mx-auto text-sm md:text-base text-primary-foreground/60 font-medium leading-relaxed animate-fade-in-up [animation-delay:400ms]">
             The page you're looking for might have been moved or doesn't exist.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up [animation-delay:600ms]">
             <Button 
               asChild
               className="h-12 px-8 rounded-xl bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-black/20 gap-2"
@@ -43,9 +44,9 @@ export function NotFound2() {
         </div>
 
         {/* Technical Detail Decorator */}
-        <div className="pt-12">
+        <div className="pt-12 animate-fade-in-up [animation-delay:800ms]">
            <Link 
-            href="javascript:history.back()" 
+            href="/" 
             className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-primary-foreground/20 hover:text-primary-foreground/60 transition-colors"
            >
              <ArrowLeft className="size-3" /> Return to Previous Logic

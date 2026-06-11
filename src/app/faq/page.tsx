@@ -12,6 +12,7 @@ import {
 import { HelpCircle, Mail, Music, Zap, Shield, Cloud } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
+import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 import { cn } from '@/lib/utils';
 
 const faqs = [
@@ -56,22 +57,22 @@ export default function FAQPage() {
 
       <main className="container mx-auto px-4 pt-32 pb-16 lg:pb-24 max-w-4xl">
         {/* Header Section */}
-        <div className="text-center space-y-6 mb-16 animate-fade-in-up">
+        <div className="text-center space-y-6 mb-16">
           <div className="flex justify-center">
             <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
               Utility Guide
             </Badge>
           </div>
           <h1 className="text-4xl lg:text-6xl font-bold font-headline tracking-tight leading-tight">
-            Master the Hub.
+            <GradualSpacingText text="Master the Hub." />
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-lg animate-fade-in-up [animation-delay:400ms]">
             Answers to your questions about tools, limits, and identity tiers.
           </p>
         </div>
 
         {/* FAQ Accordion */}
-        <div className="animate-fade-in-up [animation-delay:200ms]">
+        <div className="animate-fade-in-up [animation-delay:600ms]">
           <Accordion 
             type="single" 
             collapsible 
@@ -122,7 +123,7 @@ export default function FAQPage() {
         </div>
 
         {/* Support CTA */}
-        <div className="mt-24 text-center p-12 border-2 border-dashed border-primary/10 rounded-[3rem] space-y-6 animate-fade-in-up [animation-delay:400ms]">
+        <div className="mt-24 text-center p-12 border-2 border-dashed border-primary/10 rounded-[3rem] space-y-6 animate-fade-in-up [animation-delay:800ms]">
           <div className="w-12 h-12 bg-primary/5 text-primary rounded-2xl flex items-center justify-center mx-auto">
             <HelpCircle className="w-6 h-6" />
           </div>

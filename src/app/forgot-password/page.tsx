@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 
 /**
  * ForgotPasswordPage
@@ -38,17 +39,17 @@ export default function ForgotPasswordPage() {
           </div>
 
           <div className="space-y-3 px-4">
-            <h1 className="text-3xl sm:text-4xl font-bold font-headline tracking-tight text-primary">
-              Restore access.
+            <h1 className="text-3xl sm:text-4xl font-bold font-headline tracking-tight text-primary flex justify-center">
+              <GradualSpacingText text="Restore access." />
             </h1>
-            <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-[320px] mx-auto">
+            <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-[320px] mx-auto animate-fade-in-up [animation-delay:400ms]">
               Enter your email and we'll send a secure link to reset your account.
             </p>
           </div>
         </div>
 
         {/* Interactive Form Card */}
-        <div className="bg-card border border-primary/5 rounded-[2.5rem] p-8 sm:p-10 shadow-2xl relative overflow-hidden group">
+        <div className="bg-card border border-primary/5 rounded-[2.5rem] p-8 sm:p-10 shadow-2xl relative overflow-hidden group animate-fade-in-up [animation-delay:600ms]">
           {/* Subtle Accent Glow */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
           
@@ -99,7 +100,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Back Navigation */}
-        <div className="text-center pt-4">
+        <div className="text-center pt-4 animate-fade-in-up [animation-delay:800ms]">
           <Link 
             href="/login" 
             className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors group px-6 py-2 rounded-full hover:bg-secondary/50"

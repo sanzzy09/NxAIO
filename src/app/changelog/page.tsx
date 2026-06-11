@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
+import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -98,21 +99,23 @@ export default function ChangelogPage() {
 
       <main className="container mx-auto px-4 pt-32 pb-24 max-w-6xl">
         {/* Header Section */}
-        <div className="space-y-6 mb-20 animate-fade-in-up">
+        <div className="space-y-6 mb-20">
           <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest">
             Engineering Logs
           </Badge>
-          <h1 className="text-5xl lg:text-7xl font-bold font-headline tracking-tight leading-[0.9]">
-            The Utility <br /> 
-            <span className="text-muted-foreground/60">Revolution.</span>
+          <h1 className="text-5xl lg:text-7xl font-bold font-headline tracking-tight leading-[0.9] flex flex-col items-start">
+            <GradualSpacingText text="The Utility" className="justify-start" /> 
+            <span className="text-muted-foreground/60">
+              <GradualSpacingText text="Revolution." className="justify-start" />
+            </span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
+          <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed animate-fade-in-up [animation-delay:400ms]">
             From zero to intelligence. We're evolving NxAIO into the definitive AI Utility Suite for modern developers.
           </p>
         </div>
 
         {/* Current Version Showcase */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 animate-fade-in-up [animation-delay:200ms] mb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 animate-fade-in-up [animation-delay:600ms] mb-32">
           {/* Left Column: Top Version Info */}
           <div className="lg:col-span-5 space-y-8">
             <div className="flex items-center gap-3 text-muted-foreground font-mono text-sm bg-secondary/50 w-fit px-4 py-1.5 rounded-full border border-primary/5">
@@ -182,7 +185,7 @@ export default function ChangelogPage() {
         </div>
 
         {/* Historical Timeline */}
-        <div className="space-y-16 animate-fade-in-up [animation-delay:400ms]">
+        <div className="space-y-16 animate-fade-in-up [animation-delay:800ms]">
            <div className="flex items-center gap-4">
               <div className="p-3 bg-secondary rounded-2xl">
                  <History className="size-6 text-muted-foreground/40" />

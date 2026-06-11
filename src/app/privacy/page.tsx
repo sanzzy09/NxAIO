@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { LegalAccordion } from "@/components/legal/LegalAccordion";
 import { Badge } from "@/components/ui/badge";
+import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 
 const privacySections = [
   {
@@ -35,17 +36,21 @@ export default function PrivacyPage() {
       <Navbar />
 
       <main className="container mx-auto px-4 pt-32 pb-16 lg:py-24 max-w-5xl">
-        <div className="text-center space-y-6 mb-16 animate-fade-in-up">
-          <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
-            Identity Protection
-          </Badge>
-          <h1 className="text-4xl lg:text-6xl font-bold font-headline tracking-tight leading-tight">
-            Safe Creative <br />
-            <span className="text-muted-foreground/60">Engineering.</span>
+        <div className="text-center space-y-6 mb-16">
+          <div className="flex justify-center">
+            <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
+              Identity Protection
+            </Badge>
+          </div>
+          <h1 className="text-4xl lg:text-6xl font-bold font-headline tracking-tight leading-tight flex flex-col items-center">
+            <GradualSpacingText text="Safe Creative" />
+            <span className="text-muted-foreground/60">
+              <GradualSpacingText text="Engineering." />
+            </span>
           </h1>
         </div>
 
-        <div className="animate-fade-in-up [animation-delay:200ms]">
+        <div className="animate-fade-in-up [animation-delay:600ms]">
           <LegalAccordion 
             title="Privacy Protocol"
             lastUpdated="March 01, 2025"

@@ -14,6 +14,7 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 import { cn } from "@/lib/utils";
 
 export interface SocialProvider {
@@ -103,11 +104,15 @@ export function AuthLayout({
         >
           <div className="w-full max-w-sm space-y-6">
             <div className="space-y-2">
-              {heading && <h1 className="text-3xl font-bold font-headline tracking-tight leading-tight">{heading}</h1>}
-              {description && <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>}
+              {heading && (
+                <h1 className="text-3xl font-bold font-headline tracking-tight leading-tight">
+                  <GradualSpacingText text={heading} className="justify-start" />
+                </h1>
+              )}
+              {description && <p className="text-muted-foreground text-sm leading-relaxed animate-fade-in-up [animation-delay:400ms]">{description}</p>}
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in-up [animation-delay:600ms]">
               {socialProviders.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
                   {socialProviders.map((provider, index) => (
@@ -220,7 +225,7 @@ export function AuthLayout({
             </div>
 
             {alternatePrompt && (
-              <div className="text-center pt-1">
+              <div className="text-center pt-1 animate-fade-in-up [animation-delay:800ms]">
                 <p className="text-sm text-muted-foreground">
                   {alternatePrompt.text}{" "}
                   <Link href={alternatePrompt.href} className="font-bold text-primary hover:underline underline-offset-4 transition-all">

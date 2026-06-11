@@ -29,6 +29,7 @@ import { SkeletonStats } from '@/components/ui/skeleton-stats';
 import { LogoCloud3 } from '@/components/ui/logo-cloud-3';
 import { Features6 } from '@/components/ui/features-6';
 import { Features4 } from '@/components/ui/features-4';
+import { GradualSpacingText } from '@/components/ui/gradual-spacing-text';
 import Link from 'next/link';
 import { useFirestore, useDoc } from '@/firebase';
 import { doc, increment, setDoc, updateDoc } from 'firebase/firestore';
@@ -98,16 +99,18 @@ export default function Home() {
         {!activeTool ? (
           <div className="space-y-16">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <StaggeredFadeUp className="space-y-8" delayStep={100}>
+              <div className="space-y-8">
                 <h1 className="text-5xl lg:text-8xl font-bold font-headline leading-[0.9] tracking-tighter">
-                  Intelligent <br />
-                  <span className="text-muted-foreground/40">Logic Hub.</span>
+                  <GradualSpacingText text="Intelligent" className="justify-start" /> <br />
+                  <span className="text-muted-foreground/40">
+                    <GradualSpacingText text="Logic Hub." className="justify-start" />
+                  </span>
                 </h1>
-                <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
+                <p className="text-xl text-muted-foreground leading-relaxed max-w-lg animate-fade-in-up [animation-delay:400ms]">
                   The minimalist control center for creative developers. Chain AI logic, optimize assets, and preview content in one snappy interface.
                 </p>
                 
-                <div className="flex flex-wrap gap-4 pt-2">
+                <div className="flex flex-wrap gap-4 pt-2 animate-fade-in-up [animation-delay:600ms]">
                   <Button size="lg" className="rounded-full px-10 h-14 text-base font-bold shadow-2xl shadow-primary/20" asChild>
                     <Link href="/signup">Get Started Now</Link>
                   </Button>
@@ -115,7 +118,7 @@ export default function Home() {
                     <Link href="/faq">How it works</Link>
                   </Button>
                 </div>
-              </StaggeredFadeUp>
+              </div>
 
               {/* Real-time Stats Section */}
               {statsLoading ? (

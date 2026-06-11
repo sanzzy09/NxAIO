@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo } from 'react';
@@ -10,6 +9,7 @@ import { doc } from "firebase/firestore";
 import { Badge } from "@/components/ui/badge";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { Loader2, Calendar, Lock, ShieldAlert } from "lucide-react";
+import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 import Image from 'next/image';
 import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
 
@@ -45,12 +45,14 @@ export default function PublicProfilePage() {
               </div>
             </div>
             <div className="space-y-3">
-              <h1 className="text-3xl font-bold font-headline tracking-tight">This account is private</h1>
-              <p className="text-muted-foreground leading-relaxed">
+              <h1 className="text-3xl font-bold font-headline tracking-tight flex justify-center">
+                <GradualSpacingText text="This account is private" />
+              </h1>
+              <p className="text-muted-foreground leading-relaxed animate-fade-in-up [animation-delay:400ms]">
                 The owner of this profile has chosen to keep their identity and activity restricted to their own view.
               </p>
             </div>
-            <div className="pt-4">
+            <div className="pt-4 animate-fade-in-up [animation-delay:600ms]">
               <Badge variant="outline" className="rounded-full px-6 py-1.5 border-primary/10 text-primary/40 font-bold uppercase tracking-widest text-[10px]">
                 Restricted Access
               </Badge>
@@ -97,14 +99,16 @@ export default function PublicProfilePage() {
               <div className="pt-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <h1 className="text-4xl font-bold font-headline tracking-tight leading-none">{profile.displayName || "Anonymous User"}</h1>
+                    <h1 className="text-4xl font-bold font-headline tracking-tight leading-none">
+                      <GradualSpacingText text={profile.displayName || "Anonymous User"} className="justify-start" />
+                    </h1>
                     {profile.isPrivate && (
                       <Badge variant="outline" className="border-primary/20 text-primary/40">
                         <Lock className="w-3 h-3 mr-1" /> Private
                       </Badge>
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground animate-fade-in-up [animation-delay:400ms]">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4 opacity-40" />
                       Joined {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'recently'}
@@ -115,12 +119,12 @@ export default function PublicProfilePage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 animate-fade-in-up [animation-delay:600ms]">
                   <FollowButton targetUserId={userId} className="h-12 px-10 rounded-full shadow-xl shadow-primary/10 font-bold" />
                 </div>
               </div>
 
-              <div className="mt-10 flex gap-10 border-t border-primary/5 pt-10">
+              <div className="mt-10 flex gap-10 border-t border-primary/5 pt-10 animate-fade-in-up [animation-delay:800ms]">
                 <div className="text-left group cursor-pointer">
                   <p className="text-3xl font-bold font-headline group-hover:text-primary transition-colors">{profile.followersCount || 0}</p>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 group-hover:text-muted-foreground transition-colors">Followers</p>
