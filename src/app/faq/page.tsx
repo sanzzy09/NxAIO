@@ -9,7 +9,7 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Mail, Music, Zap, Shield, Cloud } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { cn } from '@/lib/utils';
@@ -17,28 +17,33 @@ import { cn } from '@/lib/utils';
 const faqs = [
   {
     number: "1",
-    question: "What tools are included in the NxAIO Hub?",
-    answer: "NxAIO currently features four core modules: the Ultra-Fast Image Optimizer, the Live Creative Previewer, the Interactive Snippet Manager, and the Logic Command Center. Each is designed to streamline a specific part of the creative engineering workflow."
+    question: "What core utilities are included in NxAIO?",
+    answer: "NxAIO is a comprehensive AI Utility Suite featuring: a Disposable Temp-Mail system with OTP extraction, an AI Music Generator for high-fidelity tracks, a high-precision Background Remover, Decentralized File Hosting, and various media explorers (Anime, Movieku, Vidbox). Each tool is integrated into a unified Bone White workspace.",
+    icon: <Zap className="size-4" />
   },
   {
     number: "2",
-    question: "How does the Logic Command Center work?",
-    answer: "Our Command Center uses Genkit-powered AI to interpret natural language instructions. It can chain multiple tools together—for example, it can optimize an image and then immediately generate a React component snippet that uses that image's dimensions."
+    question: "How do the Tiered Identity limits work?",
+    answer: "We offer three tiers: Starter (Free), Pro, and Sultan. Limits are calculated on a daily or weekly basis. For example, Starter users get 3 Temp-Mail identities and 3 Background Removals per day, plus 5 Music generations per week. Higher tiers significantly increase these quotas and unlock premium identity assets like Banners and GIF profiles.",
+    icon: <Shield className="size-4" />
   },
   {
     number: "3",
-    question: "Is my data secure during image optimization?",
-    answer: "Absolutely. All image processing happens in volatile memory and is never permanently stored on our servers unless you specifically choose to save an asset to your Snippet Manager. We prioritize your privacy and data sovereignty."
+    question: "Is my temporary email data secure?",
+    answer: "Yes. Our Temp-Mail identities are session-based. Messages are stored in volatile memory and are cleared once you rotate to a 'New Identity' or after a period of inactivity. We prioritize anonymity, making it perfect for testing and privacy-conscious signups.",
+    icon: <Mail className="size-4" />
   },
   {
     number: "4",
-    question: "How fast is the processing engine?",
-    answer: "Our infrastructure is built on high-performance GPU nodes. Image optimization typically completes in under 400ms, and AI logic inference takes only a few seconds, even for complex multi-step chains."
+    question: "How long does AI Music generation take?",
+    answer: "Music generation is a complex process. Once you submit a prompt or custom lyrics, our AI engine orchestrates the track in the background. Most tracks complete within 1-2 minutes. You can track progress in real-time via the 'Live Composer Sessions' area on the Music dashboard.",
+    icon: <Music className="size-4" />
   },
   {
     number: "5",
-    question: "Can teams collaborate on snippets?",
-    answer: "Yes, our Enterprise tier includes real-time collaborative snippet libraries and shared command history, allowing your entire team to build on each other's logic chains effortlessly."
+    question: "How does the File Hosting expiry work?",
+    answer: "When you upload files to our Hosting service, you create a 'Bucket'. You can set these buckets to expire in 1, 7, 30, or 90 days. We also offer an 'Extend on View' feature for Pro and Sultan users, which resets the expiration timer every time someone accesses the link.",
+    icon: <Cloud className="size-4" />
   }
 ];
 
@@ -54,14 +59,14 @@ export default function FAQPage() {
         <div className="text-center space-y-6 mb-16 animate-fade-in-up">
           <div className="flex justify-center">
             <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
-              FAQ
+              Utility Guide
             </Badge>
           </div>
           <h1 className="text-4xl lg:text-6xl font-bold font-headline tracking-tight leading-tight">
-            Explore the answers
+            Master the Hub.
           </h1>
           <p className="text-muted-foreground text-lg">
-            Click on a question to reveal its answer.
+            Answers to your questions about tools, limits, and identity tiers.
           </p>
         </div>
 
@@ -77,7 +82,6 @@ export default function FAQPage() {
             {faqs.map((faq) => {
               const itemValue = `item-${faq.number}`;
               const isOpen = openItem === itemValue;
-              // Only blur if an item is actively open and it's not THIS item
               const isBlurred = !!openItem && openItem !== "" && !isOpen;
 
               return (
@@ -85,7 +89,7 @@ export default function FAQPage() {
                   key={faq.number} 
                   value={itemValue}
                   className={cn(
-                    "border border-primary/5 bg-card/50 rounded-2xl px-2 shadow-sm transition-all duration-500 ease-in-out",
+                    "border border-primary/5 bg-card/50 rounded-3xl px-2 shadow-sm transition-all duration-500 ease-in-out",
                     isBlurred ? "blur-[2px] opacity-40 scale-[0.98] grayscale-[0.5]" : "blur-0 opacity-100 scale-100 grayscale-0",
                     isOpen ? "shadow-2xl shadow-primary/10 border-primary/20 bg-card translate-y-[-4px]" : "hover:shadow-md hover:border-primary/10"
                   )}
@@ -93,10 +97,10 @@ export default function FAQPage() {
                   <AccordionTrigger className="hover:no-underline py-6 px-4 group/trigger">
                     <div className="flex items-center gap-6 text-left w-full">
                       <div className={cn(
-                        "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-all duration-300",
+                        "flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300",
                         isOpen ? "bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/20" : "bg-secondary text-muted-foreground"
                       )}>
-                        {faq.number}
+                        {faq.icon}
                       </div>
                       <span className={cn(
                         "font-headline font-semibold text-lg md:text-xl transition-colors duration-300",
@@ -106,8 +110,8 @@ export default function FAQPage() {
                       </span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-14 pb-6 text-muted-foreground text-base leading-relaxed">
-                    <div className="animate-fade-in-up duration-500">
+                  <AccordionContent className="px-20 pb-8 text-muted-foreground text-base leading-relaxed">
+                    <div className="animate-fade-in-up duration-500 max-w-2xl">
                       {faq.answer}
                     </div>
                   </AccordionContent>
@@ -117,16 +121,16 @@ export default function FAQPage() {
           </Accordion>
         </div>
 
-        {/* Still have questions? */}
+        {/* Support CTA */}
         <div className="mt-24 text-center p-12 border-2 border-dashed border-primary/10 rounded-[3rem] space-y-6 animate-fade-in-up [animation-delay:400ms]">
           <div className="w-12 h-12 bg-primary/5 text-primary rounded-2xl flex items-center justify-center mx-auto">
             <HelpCircle className="w-6 h-6" />
           </div>
           <div className="space-y-2">
             <h3 className="font-headline text-2xl font-bold">Still have questions?</h3>
-            <p className="text-muted-foreground">We're here to help you get the most out of your engineering workflow.</p>
+            <p className="text-muted-foreground">Our community and support engineering team are ready to assist with your custom logic chains.</p>
           </div>
-          <Button size="lg" className="rounded-full px-8 h-12 text-sm font-bold shadow-lg shadow-primary/10">
+          <Button size="lg" className="rounded-full px-10 h-14 text-sm font-bold shadow-xl shadow-primary/10">
             Contact Support
           </Button>
         </div>

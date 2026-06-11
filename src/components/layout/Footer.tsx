@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Boxes, Github, Twitter, Linkedin, MessageSquare } from 'lucide-react';
+import { Boxes, Github, Twitter, Linkedin, MessageSquare, ShieldCheck, Cpu } from 'lucide-react';
 import Link from 'next/link';
 
 export function Footer() {
@@ -22,7 +22,7 @@ export function Footer() {
               <span className="font-headline font-bold text-2xl tracking-tight">NxAIO</span>
             </Link>
             <p className="text-primary-foreground/60 text-sm leading-relaxed max-w-xs">
-              Building the future of creative engineering. We help developers and designers chain logic and optimize assets with unparalleled speed.
+              The high-performance utility suite for modern developers. We orchestrate AI logic, anonymous identities, and creative assets with unparalleled speed.
             </p>
             <div className="flex gap-4">
               <Link href="#" className="text-primary-foreground/40 hover:text-primary-foreground transition-colors">
@@ -34,51 +34,57 @@ export function Footer() {
               <Link href="#" className="text-primary-foreground/40 hover:text-primary-foreground transition-colors">
                 <Linkedin className="w-5 h-5" />
               </Link>
-              <Link href="#" className="text-primary-foreground/40 hover:text-primary-foreground transition-colors">
-                <MessageSquare className="w-5 h-5" />
-              </Link>
+            </div>
+            
+            <div className="pt-4 flex items-center gap-3">
+               <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary-foreground/30 border border-white/10 px-3 py-1.5 rounded-full">
+                  <ShieldCheck className="size-3" /> GDPR Compliant
+               </div>
+               <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary-foreground/30 border border-white/10 px-3 py-1.5 rounded-full">
+                  <Cpu className="size-3" /> GPU Accelerated
+               </div>
             </div>
           </div>
 
           {/* Links Columns */}
           <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8">
             <div className="space-y-4">
-              <h4 className="font-headline font-bold text-xs uppercase tracking-[0.2em] text-primary-foreground/30">Product</h4>
+              <h4 className="font-headline font-bold text-xs uppercase tracking-[0.2em] text-primary-foreground/30">AI Utilities</h4>
               <ul className="space-y-2 text-sm text-primary-foreground/60">
-                <li><Link href="/" className="hover:text-primary-foreground transition-colors">Tool Hub</Link></li>
-                <li><Link href="/faq" className="hover:text-primary-foreground transition-colors">FAQ</Link></li>
-                <li><Link href="/changelog" className="hover:text-primary-foreground transition-colors">Changelog</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Enterprise</Link></li>
+                <li><Link href="/" className="hover:text-primary-foreground transition-colors">Music Generator</Link></li>
+                <li><Link href="/" className="hover:text-primary-foreground transition-colors">BG Remover</Link></li>
+                <li><Link href="/" className="hover:text-primary-foreground transition-colors">Temp-Mail Tool</Link></li>
+                <li><Link href="/" className="hover:text-primary-foreground transition-colors">File Hosting</Link></li>
               </ul>
             </div>
             
             <div className="space-y-4">
-              <h4 className="font-headline font-bold text-xs uppercase tracking-[0.2em] text-primary-foreground/30">Company</h4>
+              <h4 className="font-headline font-bold text-xs uppercase tracking-[0.2em] text-primary-foreground/30">Identity</h4>
               <ul className="space-y-2 text-sm text-primary-foreground/60">
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">About Us</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Blog</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Careers</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Contact</Link></li>
+                <li><Link href="/pricing" className="hover:text-primary-foreground transition-colors">Starter Tier</Link></li>
+                <li><Link href="/pricing" className="hover:text-primary-foreground transition-colors">Pro Identity</Link></li>
+                <li><Link href="/pricing" className="hover:text-primary-foreground transition-colors">Sultan Tier</Link></li>
+                <li><Link href="/profile" className="hover:text-primary-foreground transition-colors">Account Sync</Link></li>
               </ul>
             </div>
 
             <div className="space-y-4">
               <h4 className="font-headline font-bold text-xs uppercase tracking-[0.2em] text-primary-foreground/30">Resources</h4>
               <ul className="space-y-2 text-sm text-primary-foreground/60">
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Documentation</Link></li>
+                <li><Link href="/faq" className="hover:text-primary-foreground transition-colors">Utility Guide</Link></li>
+                <li><Link href="/changelog" className="hover:text-primary-foreground transition-colors">Engineering Logs</Link></li>
+                <li><Link href="#" className="hover:text-primary-foreground transition-colors">API Keys</Link></li>
                 <li><Link href="#" className="hover:text-primary-foreground transition-colors">Community</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Guides</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">API Reference</Link></li>
               </ul>
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-headline font-bold text-xs uppercase tracking-[0.2em] text-primary-foreground/30">Support</h4>
+              <h4 className="font-headline font-bold text-xs uppercase tracking-[0.2em] text-primary-foreground/30">Safety</h4>
               <ul className="space-y-2 text-sm text-primary-foreground/60">
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Help Center</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Status</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Security</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Legal</Link></li>
+                <li><Link href="/privacy" className="hover:text-primary-foreground transition-colors">Privacy Policy</Link></li>
+                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Security Audit</Link></li>
+                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Trust Center</Link></li>
+                <li><Link href="#" className="hover:text-primary-foreground transition-colors">Terms of Use</Link></li>
               </ul>
             </div>
           </div>
@@ -86,11 +92,11 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-medium uppercase tracking-widest text-primary-foreground/40">
-          <p>© {currentYear} NxAIO Studio. All rights reserved.</p>
+          <p>© {currentYear} NxAIO Labs. Engineered for performance.</p>
           <div className="flex gap-8">
-            <Link href="/privacy" className="hover:text-primary-foreground transition-colors">Privacy Policy</Link>
-            <Link href="#" className="hover:text-primary-foreground transition-colors">Terms of Service</Link>
-            <Link href="#" className="hover:text-primary-foreground transition-colors">Cookie Policy</Link>
+            <Link href="/privacy" className="hover:text-primary-foreground transition-colors">Privacy</Link>
+            <Link href="#" className="hover:text-primary-foreground transition-colors">Terms</Link>
+            <Link href="#" className="hover:text-primary-foreground transition-colors">Cookie Data</Link>
           </div>
         </div>
       </div>

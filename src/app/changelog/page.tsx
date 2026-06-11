@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { 
   Zap, 
   Sparkles,
-  Code2,
-  Cpu
+  Music,
+  Eraser,
+  ShieldCheck,
+  Mail,
+  CloudUpload
 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
@@ -22,14 +25,14 @@ export default function ChangelogPage() {
         {/* Header Section */}
         <div className="space-y-6 mb-20 animate-fade-in-up">
           <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest">
-            Platform Updates
+            Engineering Logs
           </Badge>
           <h1 className="text-5xl lg:text-7xl font-bold font-headline tracking-tight leading-[0.9]">
-            The Next <br /> 
-            <span className="text-muted-foreground/60">Generation.</span>
+            The Utility <br /> 
+            <span className="text-muted-foreground/60">Revolution.</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
-            We're building the fastest tool hub for creative engineers. Here's what's been shipping lately.
+            We've evolved from a simple hub into a powerful AI Utility Suite. Here is the latest from the NxAIO lab.
           </p>
         </div>
 
@@ -37,67 +40,67 @@ export default function ChangelogPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 animate-fade-in-up [animation-delay:200ms]">
           {/* Left Column: Version & Intro */}
           <div className="lg:col-span-5 space-y-8">
-            <div className="flex items-center gap-3 text-muted-foreground font-mono text-sm bg-secondary/50 w-fit px-3 py-1 rounded-full border border-primary/5">
-              <span className="text-primary font-bold">v3.1.0</span>
+            <div className="flex items-center gap-3 text-muted-foreground font-mono text-sm bg-secondary/50 w-fit px-4 py-1.5 rounded-full border border-primary/5">
+              <span className="text-primary font-bold">v3.5.0</span>
               <span>·</span>
               <span>March 2025</span>
             </div>
             
             <div className="space-y-6">
-              <Badge className="bg-primary text-primary-foreground rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
-                Stable Release
+              <Badge className="bg-indigo-600 text-white rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider">
+                Major Update
               </Badge>
               <h2 className="text-3xl lg:text-4xl font-bold font-headline">
-                Intelligent Logic <br />Chaining
+                The AI Utility <br />Suite Launch
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                The Logic Command Center now supports multi-step tool execution. You can now tell NxAIO to "Optimize this image, then generate a snippet for a blog post header using it."
+                This version introduces our core AI engines: Background Isolation, Music Orchestration, and Temporary Identity Rotation. We've also finalized our tiered identity limits.
               </p>
             </div>
           </div>
 
           {/* Right Column: Features & CTA */}
           <div className="lg:col-span-7">
-            <div className="bg-card border border-primary/5 rounded-3xl p-8 lg:p-12 shadow-sm space-y-10">
+            <div className="bg-card border border-primary/5 rounded-[3rem] p-8 lg:p-12 shadow-sm space-y-10">
               <div className="space-y-6">
-                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/40">New Capabilities</h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">New Capabilities</h3>
                 <ul className="space-y-6">
                   <li className="flex items-start gap-4 group">
-                    <div className="mt-1 p-2 rounded-xl bg-blue-50 text-blue-600 group-hover:scale-110 transition-transform">
-                      <Sparkles className="w-4 h-4" />
+                    <div className="mt-1 p-3 rounded-xl bg-indigo-50 text-indigo-600 group-hover:scale-110 transition-transform">
+                      <Music className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-foreground font-semibold block">Enhanced AI Tool Inference</span>
-                      <p className="text-sm text-muted-foreground">Improved natural language understanding for more complex task routing.</p>
+                      <span className="text-foreground font-bold block">AI Music Orchestrator</span>
+                      <p className="text-sm text-muted-foreground">Generate high-fidelity tracks from lyrics or descriptions with real-time session tracking.</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-4 group">
-                    <div className="mt-1 p-2 rounded-xl bg-purple-50 text-purple-600 group-hover:scale-110 transition-transform">
-                      <Cpu className="w-4 h-4" />
+                    <div className="mt-1 p-3 rounded-xl bg-pink-50 text-pink-600 group-hover:scale-110 transition-transform">
+                      <Eraser className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-foreground font-semibold block">GPU Accelerated Optimization</span>
-                      <p className="text-sm text-muted-foreground">Image compression is now 40% faster using our new server-side processing layer.</p>
+                      <span className="text-foreground font-bold block">High-Precision BG Remover</span>
+                      <p className="text-sm text-muted-foreground">GPU-accelerated background isolation with tiered daily quotas for all users.</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-4 group">
-                    <div className="mt-1 p-2 rounded-xl bg-emerald-50 text-emerald-600 group-hover:scale-110 transition-transform">
-                      <Code2 className="w-4 h-4" />
+                    <div className="mt-1 p-3 rounded-xl bg-blue-50 text-blue-600 group-hover:scale-110 transition-transform">
+                      <ShieldCheck className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-foreground font-semibold block">Interactive Snippet Previews</span>
-                      <p className="text-sm text-muted-foreground">Instantly see the rendered output of generated HTML/CSS snippets.</p>
+                      <span className="text-foreground font-bold block">Tiered Identity System</span>
+                      <p className="text-sm text-muted-foreground">Introduction of Starter, Pro, and Sultan tiers with specific daily/weekly utility limits.</p>
                     </div>
                   </li>
                 </ul>
               </div>
 
               <div className="flex flex-wrap gap-4 pt-4 border-t border-primary/5">
-                <Button size="lg" className="rounded-full px-8 h-12 text-sm font-bold">
-                  View Docs
+                <Button size="lg" className="rounded-2xl px-8 h-14 text-sm font-bold shadow-xl shadow-primary/10">
+                  Explore Hub
                 </Button>
-                <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-sm font-bold">
-                  Migration Guide
+                <Button size="lg" variant="outline" className="rounded-2xl px-8 h-14 text-sm font-bold border-primary/5">
+                  View Roadmap
                 </Button>
               </div>
             </div>
@@ -108,30 +111,30 @@ export default function ChangelogPage() {
         <div className="mt-32 space-y-12">
            <h3 className="font-headline text-2xl font-bold">Previous Shipments</h3>
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-80">
-              <div className="p-8 rounded-2xl border border-primary/5 bg-secondary/20 hover:bg-secondary/40 transition-colors">
+              <div className="p-8 rounded-[2rem] border border-primary/5 bg-secondary/20 hover:bg-secondary/40 transition-colors">
                 <div className="flex justify-between items-start mb-4">
-                  <span className="font-mono text-xs text-muted-foreground font-bold">v3.0.0</span>
-                  <span className="text-xs text-muted-foreground">Feb 2025</span>
+                  <span className="font-mono text-[10px] text-muted-foreground font-bold uppercase">v3.2.0</span>
+                  <span className="text-[10px] text-muted-foreground font-bold">Feb 2025</span>
                 </div>
-                <h4 className="font-headline font-bold mb-2">The Hub Relaunch</h4>
-                <p className="text-sm text-muted-foreground">Introduction of the unified Tool Hub interface and Bone White design system.</p>
+                <h4 className="font-headline font-bold text-lg mb-2">Temp-Mail Revolution</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">Launched real-time temporary mailbox system with automatic OTP code extraction and session persistence.</p>
               </div>
-              <div className="p-8 rounded-2xl border border-primary/5 bg-secondary/20 hover:bg-secondary/40 transition-colors">
+              <div className="p-8 rounded-[2rem] border border-primary/5 bg-secondary/20 hover:bg-secondary/40 transition-colors">
                 <div className="flex justify-between items-start mb-4">
-                  <span className="font-mono text-xs text-muted-foreground font-bold">v2.8.0</span>
-                  <span className="text-xs text-muted-foreground">Jan 2025</span>
+                  <span className="font-mono text-[10px] text-muted-foreground font-bold uppercase">v3.0.0</span>
+                  <span className="text-[10px] text-muted-foreground font-bold">Jan 2025</span>
                 </div>
-                <h4 className="font-headline font-bold mb-2">Genkit Integration</h4>
-                <p className="text-sm text-muted-foreground">Switched to Genkit for more reliable AI logic flows and better error handling.</p>
+                <h4 className="font-headline font-bold text-lg mb-2">The Bone White System</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">Full redesign of the UI system to our signature Bone White aesthetic with glassmorphic dashboards.</p>
               </div>
            </div>
         </div>
 
         {/* Footer Archive CTA */}
-        <div className="mt-32 p-12 text-center border-2 border-dashed border-primary/10 rounded-[3rem] space-y-4">
-           <h3 className="font-headline text-xl font-bold">Looking for something older?</h3>
-           <p className="text-muted-foreground text-sm">Full version history is available in our engineering archives.</p>
-           <Button variant="link" className="text-primary font-bold">Explore Archive</Button>
+        <div className="mt-32 p-12 text-center border-2 border-dashed border-primary/10 rounded-[3.5rem] space-y-4">
+           <h3 className="font-headline text-2xl font-bold">Looking for historical data?</h3>
+           <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">Detailed technical breakdowns for every minor patch are available in our engineering archives.</p>
+           <Button variant="link" className="text-primary font-bold uppercase tracking-widest text-xs">Explore Archive</Button>
         </div>
       </main>
 

@@ -9,23 +9,23 @@ import { Badge } from "@/components/ui/badge";
 const privacySections = [
   {
     title: "Information We Collect",
-    content: "We collect information you provide directly to us, such as when you create an account, use our AI tools, or communicate with our support team. This may include your name, email address, and the creative prompts you input into our system."
+    content: "We collect information required to facilitate our utility suite. This includes account credentials, profile settings (Banners, GIFs, Frames), and transient metadata for our AI services such as music prompts and image source URLs."
   },
   {
-    title: "How We Use Your Information",
-    content: "We use the information we collect to provide, maintain, and improve our services. This includes processing your images, generating code snippets, and personalizing your dashboard experience. We do not sell your data to third parties."
+    title: "Disposable Identity Privacy",
+    content: "Our Temp-Mail tool is designed for maximum privacy. Email contents are stored in volatile memory and are purged once you request a 'New Identity' or clear your session. We do not maintain logs of messages received by temporary mailboxes."
   },
   {
-    title: "Information Sharing",
-    content: "We may share information with service providers who perform services for us, such as cloud hosting and AI model inference. We ensure all partners adhere to strict data protection standards."
+    title: "File Hosting Protocols",
+    content: "Files uploaded to our decentralized hosting service are stored in 'Buckets' for a user-specified duration (1-90 days). After the expiration period, files are permanently deleted from our primary storage layer. Pro users may choose to extend this via the 'Extend on View' protocol."
   },
   {
-    title: "Data Security",
-    content: "We implement industry-standard security measures to protect your information from unauthorized access, alteration, or destruction. Your assets are processed in secure, isolated environments."
+    title: "AI Processing Data",
+    content: "When using the Music Generator or Background Remover, your inputs are processed in isolated, GPU-accelerated environments. Source images for background removal are not stored beyond the duration of the removal task unless saved to your history."
   },
   {
-    title: "Your Rights",
-    content: "You have the right to access, update, or delete your personal information at any time through your dashboard. If you need assistance, our support team is ready to help."
+    title: "Data Security & Tiered Access",
+    content: "We use industry-standard encryption to secure your account data and transaction history. Usage counts for daily and weekly utility limits are stored in our secure Firestore infrastructure and are only accessible by you."
   }
 ];
 
@@ -36,19 +36,19 @@ export default function PrivacyPage() {
 
       <main className="container mx-auto px-4 pt-32 pb-16 lg:py-24 max-w-5xl">
         <div className="text-center space-y-6 mb-16 animate-fade-in-up">
-          <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest">
-            Security & Trust
+          <Badge variant="outline" className="bg-primary/5 border-primary/10 text-primary/60 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
+            Identity Protection
           </Badge>
           <h1 className="text-4xl lg:text-6xl font-bold font-headline tracking-tight leading-tight">
-            Our Commitment to <br />
-            <span className="text-muted-foreground/60">Your Privacy.</span>
+            Safe Creative <br />
+            <span className="text-muted-foreground/60">Engineering.</span>
           </h1>
         </div>
 
         <div className="animate-fade-in-up [animation-delay:200ms]">
           <LegalAccordion 
-            title="Privacy Policy"
-            lastUpdated="December 15, 2024"
+            title="Privacy Protocol"
+            lastUpdated="March 01, 2025"
             sections={privacySections}
           />
         </div>
