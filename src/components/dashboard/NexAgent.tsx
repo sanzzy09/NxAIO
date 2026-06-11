@@ -66,9 +66,16 @@ interface Message {
 }
 
 const models = [
-  { chef: "Google", chefSlug: "google", id: "google/gemini-2.0-flash-exp:free", name: "Gemini 2.0 Flash Exp", providers: ["openrouter"] },
+  { chef: "NVIDIA", chefSlug: "nvidia", id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", name: "Llama Nemotron Rerank", providers: ["openrouter"] },
+  { chef: "Nex AGI", chefSlug: "nex-agi", id: "nex-agi/nex-n2-pro:free", name: "Nex N2 Pro", providers: ["openrouter"] },
+  { chef: "NVIDIA", chefSlug: "nvidia", id: "nvidia/nemotron-3.5-content-safety:free", name: "Nemotron 3.5 Safety", providers: ["openrouter"] },
+  { chef: "NVIDIA", chefSlug: "nvidia", id: "nvidia/nemotron-3-ultra-550b-a55b:free", name: "Nemotron 3 Ultra", providers: ["openrouter"] },
+  { chef: "OpenRouter", chefSlug: "openrouter", id: "openrouter/owl-alpha", name: "Owl Alpha", providers: ["openrouter"] },
+  { chef: "Poolside", chefSlug: "poolside", id: "poolside/laguna-xs.2:free", name: "Laguna XS.2", providers: ["openrouter"] },
+  { chef: "Poolside", chefSlug: "poolside", id: "poolside/laguna-m.1:free", name: "Laguna M.1", providers: ["openrouter"] },
   { chef: "Google", chefSlug: "google", id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B", providers: ["openrouter"] },
-  { chef: "Nex AGI", chefSlug: "nex-agi", id: "nex-agi/nex-n2-pro:free", name: "Nex N2 Pro", providers: ["openrouter"] }
+  { chef: "NVIDIA", chefSlug: "nvidia", id: "nvidia/nemotron-3-super-120b-a12b:free", name: "Nemotron 3 Super", providers: ["openrouter"] },
+  { chef: "OpenAI", chefSlug: "openai", id: "openai/gpt-oss-120b:free", name: "GPT OSS 120B", providers: ["openrouter"] }
 ];
 
 const agentToolsConfig = {
@@ -100,6 +107,7 @@ export function NexAgent() {
   const [view, setView] = useState<'chat' | 'config'>('chat');
 
   const selectedModelData = models.find((m) => m.id === selectedModel);
+  const chefs = Array.from(new Set(models.map((m) => m.chef)));
 
   const syncToolResults = useCallback(async (toolCalls: any[], content: string) => {
     if (!user || !db || !toolCalls.length) return;
@@ -173,14 +181,24 @@ export function NexAgent() {
                 <ModelSelectorInput placeholder="Filter engines..." />
                 <ModelSelectorList>
                   <ModelSelectorEmpty>No engines found.</ModelSelectorEmpty>
-                  <ModelSelectorGroup heading="Available Models">
-                    {models.map((m) => (
-                      <ModelSelectorItem key={m.id} onSelect={() => { setSelectedModel(m.id); setSelectorOpen(false); }} value={m.id}>
-                        <ModelSelectorLogo provider={m.chefSlug} />
-                        <ModelSelectorName>{m.name}</ModelSelectorName>
-                      </ModelSelectorItem>
-                    ))}
-                  </ModelSelectorGroup>
+                  {chefs.map((chef) => (
+                    <ModelSelectorGroup heading={chef} key={chef}>
+                      {models
+                        .filter((m) => m.chef === chef)
+                        .map((m) => (
+                          <ModelSelectorItem 
+                            key={m.id} 
+                            onSelect={() => { setSelectedModel(m.id); setSelectorOpen(false); }} 
+                            value={m.id}
+                            className="group"
+                          >
+                            <ModelSelectorLogo provider={m.chefSlug} />
+                            <ModelSelectorName>{m.name}</ModelSelectorName>
+                            {selectedModel === m.id && <CheckIcon className="ml-auto size-4" />}
+                          </ModelSelectorItem>
+                        ))}
+                    </ModelSelectorGroup>
+                  ))}
                 </ModelSelectorList>
               </ModelSelectorContent>
             </ModelSelector>
@@ -204,7 +222,7 @@ export function NexAgent() {
                           <ChainOfThoughtHeader />
                           <ChainOfThoughtContent>
                             <ChainOfThoughtStep label="Analyzing Natural Language Input" status="complete" />
-                            {msg.toolCalls.map((tool, idx) => (
+                            {msg.toolCalls.map((tool: any, idx: number) => (
                               <ChainOfThoughtStep 
                                 key={idx} 
                                 label={`Executing: ${tool.function.name.replace(/_/g, ' ')}`} 
