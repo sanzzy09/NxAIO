@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -28,7 +27,7 @@ import {
 } from "lucide-react";
 import { initMailbox, checkMessages } from "@/app/actions/temp-mail";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, getWIBDate } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -67,16 +66,15 @@ export function TempMailTool() {
 
   const role = (profile?.role as keyof typeof ROLE_LIMITS) || 'free';
   const limit = ROLE_LIMITS[role];
-  const usage = profile?.tempMailUsage || { count: 0, lastReset: new Date().toISOString().split('T')[0] };
+  const usage = profile?.tempMailUsage || { count: 0, lastReset: getWIBDate() };
 
-  // Check if reset is needed (daily)
+  // Check if reset is needed (WIB daily reset)
   const isResetNeeded = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return usage.lastReset !== today;
+    const todayWIB = getWIBDate();
+    return !usage.lastReset || usage.lastReset !== todayWIB;
   }, [usage.lastReset]);
 
   const startNewSession = async (force = false) => {
-    // 1. Check if we have a persisted session and aren't forcing a new one
     if (!force) {
       const savedAddress = sessionStorage.getItem('nx_temp_address');
       const savedToken = sessionStorage.getItem('nx_temp_token');
@@ -91,10 +89,9 @@ export function TempMailTool() {
       }
     }
 
-    // 2. Limit Check for "New Identity"
     if (force && userRef) {
-      const today = new Date().toISOString().split('T')[0];
-      const currentCount = isResetNeeded ? 0 : usage.count;
+      const todayWIB = getWIBDate();
+      const currentCount = isResetNeeded ? 0 : (usage.count || 0);
 
       if (currentCount >= limit) {
         toast({
@@ -105,10 +102,9 @@ export function TempMailTool() {
         return;
       }
 
-      // Update Usage in Firestore (Reliable)
       const newUsage = {
         count: currentCount + 1,
-        lastReset: today
+        lastReset: todayWIB
       };
 
       setDoc(userRef, { tempMailUsage: newUsage }, { merge: true }).catch(e => {
@@ -120,7 +116,6 @@ export function TempMailTool() {
       });
     }
 
-    // 3. Provision Mailbox
     setLoading(true);
     setMessages([]);
     setLastCheck(null);
@@ -133,7 +128,6 @@ export function TempMailTool() {
       setCookies(res.data.cookies);
       setLastCheck(new Date());
       
-      // Persist to session storage
       sessionStorage.setItem('nx_temp_address', res.data.mailbox);
       sessionStorage.setItem('nx_temp_token', res.data.token);
       sessionStorage.setItem('nx_temp_cookies', JSON.stringify(res.data.cookies));
@@ -211,7 +205,7 @@ export function TempMailTool() {
     });
   };
 
-  const remainingIdentities = limit - (isResetNeeded ? 0 : usage.count);
+  const remainingIdentities = limit - (isResetNeeded ? 0 : (usage.count || 0));
 
   return (
     <Card className="border-none shadow-sm bg-card/50 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
@@ -223,7 +217,7 @@ export function TempMailTool() {
             </div>
             <div>
               <CardTitle className="font-headline text-2xl">Disposable Temp-Mail</CardTitle>
-              <CardDescription>Anonymous mailbox with real-time monitoring and tiered identity limits.</CardDescription>
+              <CardDescription>Anonymous mailbox with real-time monitoring and WIB-synchronized daily limits.</CardDescription>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -246,7 +240,6 @@ export function TempMailTool() {
           </div>
         </div>
 
-        {/* Limit Tracker */}
         <div className="mt-6 flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-primary/5">
            <div className="flex items-center gap-3">
               <div className={cn(
@@ -379,9 +372,9 @@ export function TempMailTool() {
         <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-4">
            <ShieldCheck className="size-5 text-indigo-500 mt-0.5 opacity-60" />
            <div className="space-y-1">
-             <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600/60">Privacy Protocol</p>
+             <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600/60">WIB Reset Policy</p>
              <p className="text-[11px] text-muted-foreground leading-relaxed">
-               Mailboxes are preserved for your session. Use <span className="font-bold text-indigo-600">New Identity</span> only when you need a fresh address. Identity rotations are limited by your daily quota.
+               Daily identity rotations are reset automatically at <span className="font-bold text-indigo-600">00:00 WIB</span>. Use <span className="font-bold text-indigo-600">New Identity</span> only when you need a fresh address.
              </p>
            </div>
         </div>

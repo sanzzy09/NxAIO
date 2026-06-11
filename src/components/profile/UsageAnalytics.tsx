@@ -1,10 +1,10 @@
-
 "use client"
 
 import React, { useMemo } from "react"
 import { EvilRadialChart } from "@/components/evilcharts/ui/evil-radial-chart"
 import { type ChartConfig } from "@/components/evilcharts/ui/chart"
 import { BarChart3, Mail, Eraser, Music, Info, Zap } from "lucide-react"
+import { getWIBDate } from "@/lib/utils"
 
 const ROLE_LIMITS = {
   tempmail: { free: 3, pro: 25, sultan: 50 },
@@ -15,12 +15,12 @@ const ROLE_LIMITS = {
 export function UsageAnalytics({ profile }: { profile: any }) {
   const role = (profile?.role as "free" | "pro" | "sultan") || "free"
 
-  // 1. Temp-Mail Stats
+  // 1. Temp-Mail Stats (Daily WIB reset)
   const mailStats = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0]
-    const usage = profile?.tempMailUsage || { count: 0, lastReset: today }
+    const todayWIB = getWIBDate();
+    const usage = profile?.tempMailUsage || { count: 0, lastReset: todayWIB }
     const limit = ROLE_LIMITS.tempmail[role]
-    const count = usage.lastReset === today ? usage.count : 0
+    const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
     return {
       data: [
@@ -32,12 +32,12 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     }
   }, [profile, role])
 
-  // 2. BG Remover Stats
+  // 2. BG Remover Stats (Daily WIB reset)
   const removerStats = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0]
-    const usage = profile?.removerUsage || { count: 0, lastReset: today }
+    const todayWIB = getWIBDate();
+    const usage = profile?.removerUsage || { count: 0, lastReset: todayWIB }
     const limit = ROLE_LIMITS.remover[role]
-    const count = usage.lastReset === today ? usage.count : 0
+    const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
     return {
       data: [
@@ -49,14 +49,14 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     }
   }, [profile, role])
 
-  // 3. AI Music Stats
+  // 3. AI Music Stats (Weekly rolling reset)
   const musicStats = useMemo(() => {
     const usage = profile?.musicUsage || { count: 0, weekStart: new Date().toISOString() }
     const weekStart = new Date(usage.weekStart)
     const now = new Date()
     const diff = now.getTime() - weekStart.getTime()
     const isReset = diff > 7 * 24 * 60 * 60 * 1000
-    const count = isReset ? 0 : usage.count
+    const count = isReset ? 0 : (usage.count || 0)
     const limit = ROLE_LIMITS.music[role]
     const remaining = Math.max(0, limit - count)
     return {
@@ -125,7 +125,7 @@ export function UsageAnalytics({ profile }: { profile: any }) {
          </div>
          <div>
             <h3 className="text-2xl font-bold font-headline tracking-tight">Utility Quotas & Analytics</h3>
-            <p className="text-sm text-muted-foreground">Detailed usage monitoring for your {role} identity.</p>
+            <p className="text-sm text-muted-foreground">Daily limits reset at 00:00 WIB (Asia/Jakarta).</p>
          </div>
       </div>
 

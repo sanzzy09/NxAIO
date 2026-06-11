@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useRef, useMemo } from 'react';
@@ -23,7 +22,7 @@ import {
 import Image from 'next/image';
 import { removeImageBackground } from "@/app/actions/remove-bg";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, getWIBDate } from "@/lib/utils";
 import { useUser, useFirestore, useDoc } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -52,12 +51,12 @@ export function BackgroundRemover() {
 
   const role = (profile?.role as keyof typeof ROLE_LIMITS) || 'free';
   const limit = ROLE_LIMITS[role];
-  const usage = profile?.removerUsage || { count: 0, lastReset: new Date().toISOString().split('T')[0] };
+  const usage = profile?.removerUsage || { count: 0, lastReset: getWIBDate() };
 
-  // Daily Reset Check
+  // Daily Reset Check (WIB 00:00 synchronized)
   const isResetNeeded = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return usage.lastReset !== today;
+    const todayWIB = getWIBDate();
+    return !usage.lastReset || usage.lastReset !== todayWIB;
   }, [usage.lastReset]);
 
   const remainingCredits = useMemo(() => {
@@ -98,7 +97,7 @@ export function BackgroundRemover() {
       toast({
         variant: "warning",
         title: "Daily Limit Reached",
-        description: `You have used all ${limit} removals for today. Upgrade for higher limits.`,
+        description: `You have used all ${limit} removals for today. Resets at 00:00 WIB.`,
       });
       return;
     }
@@ -116,20 +115,19 @@ export function BackgroundRemover() {
 
       if (!res.status) throw new Error(res.error);
 
-      // Increment usage in Firestore (Reliable)
       if (userRef) {
-        const today = new Date().toISOString().split('T')[0];
+        const todayWIB = getWIBDate();
         const newCount = isResetNeeded ? 1 : (usage.count || 0) + 1;
         setDoc(userRef, {
           removerUsage: {
             count: newCount,
-            lastReset: today
+            lastReset: todayWIB
           }
         }, { merge: true }).catch(e => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: userRef.path,
             operation: 'write',
-            requestResourceData: { removerUsage: { count: newCount, lastReset: today } }
+            requestResourceData: { removerUsage: { count: newCount, lastReset: todayWIB } }
           }));
         });
       }
@@ -165,7 +163,7 @@ export function BackgroundRemover() {
             </div>
             <div>
               <CardTitle className="font-headline text-2xl">AI Background Remover</CardTitle>
-              <CardDescription>Instantly isolate subjects from any image with professional precision.</CardDescription>
+              <CardDescription>Isolate subjects from any image. Resets at 00:00 WIB daily.</CardDescription>
             </div>
           </div>
 
@@ -180,11 +178,6 @@ export function BackgroundRemover() {
                 <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Daily Credits ({role})</p>
                 <p className="text-sm font-bold font-headline">{remainingCredits} removals left</p>
              </div>
-             {role === 'free' && (
-               <Button variant="link" asChild className="h-auto p-0 ml-4 text-[10px] font-bold uppercase text-pink-600">
-                  <a href="/pricing">Upgrade</a>
-               </Button>
-             )}
           </div>
         </div>
       </CardHeader>
@@ -324,14 +317,12 @@ export function BackgroundRemover() {
           </div>
         )}
 
-        {(error || (remainingCredits <= 0 && !result)) && (
+        {error && (
           <div className="p-5 rounded-[1.5rem] bg-destructive/5 border border-destructive/10 flex items-start gap-3 animate-fade-in-up">
             <X className="size-5 text-destructive mt-0.5" />
             <div className="space-y-1">
-               <p className="text-sm text-destructive font-bold">{error ? "Removal Failed" : "Limit Reached"}</p>
-               <p className="text-xs text-destructive/80 font-medium leading-relaxed">
-                 {error || `You have exhausted your daily removals. Please upgrade your identity for higher quotas.`}
-               </p>
+               <p className="text-sm text-destructive font-bold">Removal Failed</p>
+               <p className="text-xs text-destructive/80 font-medium leading-relaxed">{error}</p>
             </div>
           </div>
         )}
