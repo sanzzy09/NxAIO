@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState, useCallback, memo, useEffect } from 'react';
+import React, { useState, useCallback, memo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -58,6 +57,7 @@ import {
   AgentTool,
   AgentTools,
 } from "@/components/ai-elements/agent";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -76,6 +76,15 @@ const models = [
   { chef: "Google", chefSlug: "google", id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B", providers: ["openrouter"] },
   { chef: "NVIDIA", chefSlug: "nvidia", id: "nvidia/nemotron-3-super-120b-a12b:free", name: "Nemotron 3 Super", providers: ["openrouter"] },
   { chef: "OpenAI", chefSlug: "openai", id: "openai/gpt-oss-120b:free", name: "GPT OSS 120B", providers: ["openrouter"] }
+];
+
+const SUGGESTIONS = [
+  "Cari film action terbaru",
+  "Buat email sementara baru",
+  "Rekomendasi anime isekai",
+  "Generate lagu lo-fi santai",
+  "Hapus background foto saya",
+  "Cari series horor terbaik"
 ];
 
 const agentToolsConfig = {
@@ -105,27 +114,17 @@ export function NexAgent() {
   const [selectedModel, setSelectedModel] = useState(models[0].id);
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [view, setView] = useState<'chat' | 'config'>('chat');
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const selectedModelData = models.find((m) => m.id === selectedModel);
   const chefs = Array.from(new Set(models.map((m) => m.chef)));
 
-  const syncToolResults = useCallback(async (toolCalls: any[], content: string) => {
-    if (!user || !db || !toolCalls.length) return;
+  const handleSend = async (e?: React.FormEvent, customInput?: string) => {
+    e?.preventDefault();
+    const finalInput = customInput || input;
+    if (!finalInput.trim() || loading) return;
 
-    for (const call of toolCalls) {
-      try {
-        // Activity logging handled by server actions
-      } catch (e) {
-        console.error("Sync error:", e);
-      }
-    }
-  }, [user, db]);
-
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
-
-    const userMsg: Message = { role: 'user', content: input };
+    const userMsg: Message = { role: 'user', content: finalInput };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
@@ -134,14 +133,15 @@ export function NexAgent() {
     try {
       const response = await nexAgentChat(newMessages, selectedModel);
       setMessages(prev => [...prev, response as Message]);
-      if (response.toolCalls) {
-        syncToolResults(response.toolCalls, response.content);
-      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSend(undefined, suggestion);
   };
 
   return (
@@ -270,7 +270,6 @@ export function NexAgent() {
                                   {children}
                                 </tr>
                               ),
-                              // Enhance Card Pattern
                               h3: ({ children }) => (
                                 <h3 className="mt-4 border-l-4 border-indigo-500 pl-4 py-1 bg-indigo-500/5 rounded-r-xl">
                                   {children}
@@ -298,10 +297,25 @@ export function NexAgent() {
                 )}
               </div>
             </ScrollArea>
-            <div className="p-8 border-t border-primary/5 bg-secondary/10 backdrop-blur-md">
+            <div className="p-8 border-t border-primary/5 bg-secondary/10 backdrop-blur-md space-y-4">
+               <div className="max-w-3xl mx-auto">
+                 <Suggestions>
+                   {SUGGESTIONS.map((s) => (
+                     <Suggestion key={s} suggestion={s} onClick={handleSuggestionClick} disabled={loading} />
+                   ))}
+                 </Suggestions>
+               </div>
                <form onSubmit={handleSend} className="max-w-3xl mx-auto flex gap-3">
-                  <input value={input} onChange={(e) => setInput(e.target.value)} disabled={loading} placeholder="Command NexAgent..." className="w-full h-14 pl-6 pr-12 rounded-2xl bg-background border border-primary/5 focus:outline-none shadow-inner" />
-                  <Button type="submit" disabled={loading || !input.trim()} className="size-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl"><Send className="size-5" /></Button>
+                  <input 
+                    value={input} 
+                    onChange={(e) => setInput(e.target.value)} 
+                    disabled={loading} 
+                    placeholder="Command NexAgent..." 
+                    className="w-full h-14 pl-6 pr-12 rounded-2xl bg-background border border-primary/5 focus:outline-none shadow-inner" 
+                  />
+                  <Button type="submit" disabled={loading || !input.trim()} className="size-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl transition-transform active:scale-95">
+                    <Send className="size-5" />
+                  </Button>
                </form>
             </div>
           </>
