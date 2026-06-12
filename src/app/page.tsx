@@ -55,18 +55,18 @@ export default function Home() {
       <main className="flex-1 container mx-auto px-4 pt-32 pb-8 lg:pb-12">
         <div className="space-y-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+            <div className="space-y-8 flex flex-col items-center text-center lg:items-start lg:text-left">
               <h1 className="text-5xl lg:text-8xl font-bold font-headline leading-[0.9] tracking-tighter">
-                <GradualSpacingText text="Intelligent" className="justify-start" /> <br />
+                <GradualSpacingText text="Intelligent" className="justify-center lg:justify-start" /> <br />
                 <span className="text-muted-foreground/40">
-                  <GradualSpacingText text="Logic Hub." className="justify-start" />
+                  <GradualSpacingText text="Logic Hub." className="justify-center lg:justify-start" />
                 </span>
               </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed max-w-lg animate-fade-in-up [animation-delay:400ms]">
+              <p className="text-xl text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0 animate-fade-in-up [animation-delay:400ms]">
                 {siteConfig.description}
               </p>
               
-              <div className="flex flex-wrap gap-4 pt-2 animate-fade-in-up [animation-delay:600ms]">
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2 animate-fade-in-up [animation-delay:600ms]">
                 <Button size="lg" className="rounded-full px-10 h-14 text-base font-bold shadow-2xl shadow-primary/20" asChild>
                   <Link href="/tools">
                     <Sparkles className="mr-2 h-5 w-5" /> Launch Tool Hub
