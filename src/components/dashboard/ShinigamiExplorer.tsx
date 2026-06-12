@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -5,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BookOpen, 
   Search, 
@@ -52,25 +52,24 @@ export function ShinigamiExplorer() {
   const [fullScreen, setFullScreen] = useState(false);
   const { toast } = useToast();
 
-  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://picsum.photos/seed/media/400/600";
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 
   /**
    * Robust cover resolution helper.
-   * Prioritizes the original cover from Shinigami API.
+   * Prioritizes original CDN assets and reconstructs relative paths.
    */
   const getCoverUrl = (item: any) => {
     if (!item) return fallbackImage;
     
-    // Check all possible field names for covers in the Shinigami API schema
+    // Comprehensive field check for multiple API versions
     const rawPath = item.manga_cover || 
                     item.manga_cover_path || 
                     item.cover || 
                     item.cover_path || 
-                    item.manga_cover_url;
+                    item.image;
 
-    if (!rawPath || rawPath === "") return fallbackImage;
+    if (!rawPath) return fallbackImage;
     
-    // If it's already an absolute URL, return it
     if (rawPath.startsWith('http')) return rawPath;
     
     // Normalize relative path and prefix with authorized assets base
@@ -163,7 +162,6 @@ export function ShinigamiExplorer() {
       setView('reader');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // Progressive proxy loading for panels
       data.images.forEach(async (imgUrl: string) => {
         const proxyRes = await proxyShinigamiImage(imgUrl);
         if (proxyRes.status) {
@@ -189,7 +187,7 @@ export function ShinigamiExplorer() {
           <div className="relative aspect-[3/4] w-full bg-black/5">
             <Image 
               src={getCoverUrl(item)} 
-              alt={item.title || "Manga Cover"} 
+              alt={item.title || "Series Cover"} 
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-700"
               unoptimized
@@ -213,7 +211,7 @@ export function ShinigamiExplorer() {
               {item.title}
             </h4>
             <div className="flex items-center gap-2 text-[9px] text-muted-foreground font-bold opacity-60 uppercase">
-               <Clock className="size-2.5" /> {item.updated_at ? new Date(item.updated_at).toLocaleDateString() : 'Just Now'}
+               <Clock className="size-2.5" /> {item.updated_at ? new Date(item.updated_at).toLocaleDateString() : 'Update Recently'}
             </div>
           </div>
         </div>
@@ -228,7 +226,7 @@ export function ShinigamiExplorer() {
           <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
             <Image 
               src={getCoverUrl(selectedManga)} 
-              alt={selectedManga.title || "Manga Cover"} 
+              alt={selectedManga.title || "Cover"} 
               fill 
               className="object-cover" 
               unoptimized 
@@ -245,10 +243,6 @@ export function ShinigamiExplorer() {
              <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Series Intel</h5>
              <div className="space-y-4">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider">Format</span>
-                  <span className="text-sm font-bold truncate">{selectedManga.format || 'Standard'}</span>
-                </div>
-                <div className="flex flex-col gap-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider">Type</span>
                   <span className="text-sm font-bold truncate">{selectedManga.type}</span>
                 </div>
@@ -258,7 +252,7 @@ export function ShinigamiExplorer() {
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider">Views</span>
-                  <span className="text-sm font-bold">{selectedManga.views_count?.toLocaleString()}</span>
+                  <span className="text-sm font-bold">{selectedManga.views_count?.toLocaleString() || '-'}</span>
                 </div>
              </div>
           </div>
@@ -278,10 +272,10 @@ export function ShinigamiExplorer() {
 
           <div className="space-y-4">
              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-               <Info className="size-3" /> Synopsis
+               <span className="p-1 bg-primary/5 rounded"><Info className="size-3" /></span> Synopsis
              </h4>
              <p className="text-muted-foreground leading-relaxed text-base">
-               {selectedManga.description || "No description provided."}
+               {selectedManga.description || "No transmission metadata available."}
              </p>
           </div>
 
@@ -290,7 +284,7 @@ export function ShinigamiExplorer() {
                <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
                  <Library className="size-3" /> Chapter Archive
                </h4>
-               <span className="text-[10px] font-bold uppercase text-muted-foreground/40">{selectedManga.chapters?.length} Items Indexed</span>
+               <span className="text-[10px] font-bold uppercase text-muted-foreground/40">{selectedManga.chapters?.length || 0} Items</span>
             </div>
             <div className="grid grid-cols-1 gap-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
               {selectedManga.chapters?.map((ch: any, i: number) => (
@@ -324,7 +318,6 @@ export function ShinigamiExplorer() {
       "space-y-8 animate-fade-in-up transition-all duration-500",
       fullScreen ? "fixed inset-0 z-50 bg-background overflow-y-auto p-4 md:p-8" : "relative"
     )}>
-      {/* Reader Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-card border border-primary/5 p-6 rounded-[2rem] shadow-xl backdrop-blur-md sticky top-0 z-20">
          <div className="space-y-1">
             <h2 className="text-xl font-bold font-headline leading-tight">Chapter {chapterData.chapter_number}</h2>
@@ -332,7 +325,7 @@ export function ShinigamiExplorer() {
               onClick={() => handleDetail(chapterData.manga_id)}
               className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:underline flex items-center gap-1"
             >
-              <Library className="size-2.5" /> Return to Series
+              <Library className="size-2.5" /> Series Collection
             </button>
          </div>
          <div className="flex items-center gap-3">
@@ -367,7 +360,6 @@ export function ShinigamiExplorer() {
          </div>
       </div>
 
-      {/* Comic Panels */}
       <div className="flex flex-col items-center gap-1 bg-black/5 rounded-[3rem] overflow-hidden max-w-3xl mx-auto border border-primary/5 shadow-2xl min-h-screen">
          {chapterData.images?.map((imgUrl: string, idx: number) => (
            <div key={idx} className="relative w-full min-h-[400px] flex items-center justify-center bg-secondary/10 group">
@@ -384,11 +376,6 @@ export function ShinigamiExplorer() {
                    <p className="text-[10px] font-bold uppercase tracking-widest">Handshaking with Panel {idx + 1}...</p>
                 </div>
               )}
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <Badge variant="secondary" className="bg-black/50 text-white border-none rounded-lg text-[10px] font-mono">
-                    {idx + 1} / {chapterData.images.length}
-                 </Badge>
-              </div>
            </div>
          ))}
       </div>
@@ -415,7 +402,7 @@ export function ShinigamiExplorer() {
             </div>
             <div>
               <CardTitle className="font-headline text-3xl tracking-tight">Shinigami Explorer</CardTitle>
-              <CardDescription className="text-sm font-medium">Premium orchestrator for Shinigami.asia library.</CardDescription>
+              <CardDescription className="text-sm font-medium">Premium library orchestrator for Shinigami archives.</CardDescription>
             </div>
           </div>
 
@@ -426,7 +413,7 @@ export function ShinigamiExplorer() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search titles..." 
-                className="h-12 pl-14 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-indigo-500/20"
+                className="h-12 pl-14 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-orange-500/20"
               />
             </div>
             <Button 
@@ -444,7 +431,7 @@ export function ShinigamiExplorer() {
         {(view !== 'discover' && view !== 'search') && (
           <Button 
             variant="ghost" 
-            onClick={() => { setFullScreen(false); setView(query ? 'search' : 'discover'); }} 
+            onClick={() => setView(query ? 'search' : 'discover')} 
             className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-indigo-600 -ml-4"
           >
             <ChevronLeft className="size-3" /> Dashboard
@@ -471,9 +458,8 @@ export function ShinigamiExplorer() {
                     <div className="flex items-center justify-between px-2">
                        <div className="flex items-center gap-2">
                         <TrendingUp className="size-4 text-orange-600/40" />
-                        <h3 className="text-lg font-bold font-headline uppercase tracking-widest">Latest Updates</h3>
+                        <h3 className="text-lg font-bold font-headline uppercase tracking-widest">Latest Sync</h3>
                        </div>
-                       <Button variant="ghost" size="sm" onClick={loadDiscover} className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-indigo-600">Refresh Feed</Button>
                     </div>
                     {renderGrid(latestItems)}
                   </div>
@@ -517,7 +503,7 @@ export function ShinigamiExplorer() {
                                </div>
                                <div className="text-right">
                                   <span className="text-[10px] font-bold text-indigo-600/60 flex items-center gap-1">
-                                    <Eye className="size-3" /> {item.views_count_short || (item.views_count > 1000 ? `${(item.views_count/1000).toFixed(1)}k` : item.views_count)}
+                                    <Eye className="size-3" /> {item.views_count_short || 'High'}
                                   </span>
                                 </div>
                             </div>
@@ -531,7 +517,7 @@ export function ShinigamiExplorer() {
               <div className="space-y-8">
                 <div className="flex items-center gap-2 px-2">
                   <Search className="size-4 text-orange-600/40" />
-                  <h3 className="text-lg font-bold font-headline">Search Archive: "{query}"</h3>
+                  <h3 className="text-lg font-bold font-headline">Archive Results: "{query}"</h3>
                 </div>
                 {results.length > 0 ? renderGrid(results) : (
                   <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">

@@ -21,9 +21,9 @@
     },
     {
       "id": "media-fallback",
-      "description": "Generic fallback for missing manga or anime covers",
-      "imageUrl": "https://picsum.photos/seed/media-placeholder/400/600",
-      "imageHint": "manga cover"
+      "description": "Professional fallback for missing media assets",
+      "imageUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+      "imageHint": "transparent pixel"
     }
   ]
 }
