@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deployment Sync Trigger: v17 - Refreshing logic for subcollection list operations.
+    // Deployment Sync Trigger: v18 - Re-syncing for explicit editor_history and app_builds authorization.
     
     // Global stats are publicly readable and writable for real-time tracking
     match /system/stats {
@@ -30,38 +30,15 @@ service cloud.firestore {
         allow write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Subcollection access: strictly restricted to the owner for all operations
-      match /activities/{activityId} {
-        allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      match /uploads/{uploadId} {
-        allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      match /music/{musicId} {
-        allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      match /removals/{removalId} {
-        allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      match /editor_history/{historyId} {
-        allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      match /mailboxes/{mailboxId} {
-        allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      match /agent_messages/{messageId} {
-        allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      match /app_builds/{buildId} {
-        allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
-      }
+      // Explicit subcollection access for authenticated owners
+      match /activities/{id} { allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId; }
+      match /uploads/{id} { allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId; }
+      match /music/{id} { allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId; }
+      match /removals/{id} { allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId; }
+      match /editor_history/{id} { allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId; }
+      match /mailboxes/{id} { allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId; }
+      match /agent_messages/{id} { allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId; }
+      match /app_builds/{id} { allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId; }
     }
     
     // Default deny for everything else
