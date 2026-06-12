@@ -98,36 +98,19 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   toolCalls?: any[];
+  toolResults?: any[];
   usage?: any;
 }
 
 const models = [
   { 
-    chef: "NVIDIA", 
-    chefSlug: "nvidia", 
-    id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", 
-    name: "Llama Nemotron Rerank", 
+    chef: "Google", 
+    chefSlug: "google", 
+    id: "google/gemini-2.0-flash-exp:free", 
+    name: "Gemini 2.0 Flash", 
     providers: ["openrouter"],
     supportsImage: true,
-    description: "Supports image + text + tools."
-  },
-  { 
-    chef: "Nex AGI", 
-    chefSlug: "nex-agi", 
-    id: "nex-agi/nex-n2-pro:free", 
-    name: "Nex N2 Pro", 
-    providers: ["openrouter"],
-    supportsImage: true,
-    description: "Supports image + text + tools."
-  },
-  { 
-    chef: "Sourceful", 
-    chefSlug: "sourceful", 
-    id: "sourceful/riverflow-v2.5-pro", 
-    name: "Riverflow v2.5 Pro", 
-    providers: ["openrouter"],
-    supportsImage: true,
-    description: "Image generator: support img2img or txt2img."
+    description: "Ultra-fast multimodal model with strong reasoning."
   },
   { 
     chef: "NVIDIA", 
@@ -139,35 +122,36 @@ const models = [
     description: "Support text, voice, img and video to text + tools."
   },
   { 
-    chef: "OpenRouter", 
-    chefSlug: "openrouter", 
-    id: "openrouter/owl-alpha", 
-    name: "Owl Alpha", 
+    chef: "Meta", 
+    chefSlug: "meta", 
+    id: "meta-llama/llama-3.3-70b-instruct:free", 
+    name: "Llama 3.3 70B", 
     providers: ["openrouter"],
     supportsImage: false,
-    description: "Support text + tools."
+    description: "Highly capable instruction-following model."
   },
   { 
-    chef: "Poolside", 
-    chefSlug: "poolside", 
-    id: "poolside/laguna-m.1:free", 
-    name: "Laguna M.1", 
+    chef: "Sourceful", 
+    chefSlug: "sourceful", 
+    id: "sourceful/riverflow-v2.5-pro", 
+    name: "Riverflow v2.5 Pro", 
     providers: ["openrouter"],
-    supportsImage: false,
-    description: "Support text + tools."
+    supportsImage: true,
+    description: "Image generator: support img2img or txt2img."
   }
 ];
 
 const SUGGESTIONS = [
+  "Cek status musik saya",
+  "Cek inbox email sementara",
   "Cari film action terbaru",
-  "Buat email sementara baru",
-  "Rekomendasi anime isekai",
   "Generate lagu lo-fi santai",
-  "Hapus background foto saya"
+  "Rekomendasi anime isekai"
 ];
 
 const agentToolsConfig = {
   generate_temp_mail: { description: 'Provision a disposable identity session with real-time mailbox monitoring.', parameters: { type: 'object', properties: {} } },
+  check_mailbox: { description: 'Check for new incoming messages in an existing temporary mailbox session.', parameters: { type: 'object', properties: { token: { type: 'string' }, cookies: { type: 'object' } } } },
   generate_music: {
     description: 'Trigger a high-fidelity AI music composition job with custom styles.',
     parameters: {
@@ -179,6 +163,8 @@ const agentToolsConfig = {
       required: ['prompt']
     }
   },
+  check_music_status: { description: 'Check the real-time progress and final result of a music generation job.', parameters: { type: 'object', properties: { song_id: { type: 'string' } } } },
+  remove_background: { description: 'Remove the background from an image URL using AI edge detection.', parameters: { type: 'object', properties: { image_url: { type: 'string' } } } },
   search_media: { description: 'Scrape Vidbox/TMDB archives for cinematic metadata and mirrors.', parameters: { type: 'object', properties: { query: { type: 'string', description: 'Movie title' } } } },
   search_anime: { description: 'Searches for anime in the Anichin database.', parameters: { type: 'object', properties: { query: { type: 'string', description: 'Anime title' } } } }
 };
@@ -318,7 +304,12 @@ export function NexAgent() {
     setLoading(true);
 
     try {
-      const historyForContext = syncedMessages.map(m => ({ role: m.role, content: m.content }));
+      const historyForContext = syncedMessages.map(m => ({ 
+        role: m.role, 
+        content: m.content,
+        toolCalls: m.toolCalls,
+        toolResults: m.toolResults
+      }));
       const fullContext = [...historyForContext, userMsg];
 
       const response = await nexAgentChat(fullContext, selectedModel);
@@ -355,7 +346,7 @@ export function NexAgent() {
   };
 
   const displayMessages = syncedMessages.length > 0 ? syncedMessages : [
-    { role: 'assistant', content: "Hello! I am NexAgent. My neural memory is active. I can generate mailboxes, compose music, or explore movie databases. How can I help you today?" }
+    { role: 'assistant', content: "Hello! I am NexAgent. My neural memory is active. I can generate mailboxes, compose music, and monitor your utility sessions. How can I help you today?" }
   ] as Message[];
 
   return (
@@ -634,9 +625,12 @@ export function NexAgent() {
                   <AgentHeader name="NexAgent Neural Orchestrator" model={selectedModelData?.name} />
                   <AgentContent>
                     <AgentInstructions>You are NexAgent, the premium orchestrator of NxAIO. Your goal is to deliver high-fidelity, visual, Indonesian-optimized utility responses using Markdown. prioritized Card Layouts for media search results. If you trigger a tool, provide clear reasoning in the thinking chain. Now with multi-turn persistent memory enabled.</AgentInstructions>
-                    <AgentTools defaultValue={["generate_music", "search_anime"]}>
+                    <AgentTools defaultValue={["generate_music", "check_music_status", "search_anime"]}>
                       <AgentTool value="generate_temp_mail" tool={agentToolsConfig.generate_temp_mail} />
+                      <AgentTool value="check_mailbox" tool={agentToolsConfig.check_mailbox} />
                       <AgentTool value="generate_music" tool={agentToolsConfig.generate_music} />
+                      <AgentTool value="check_music_status" tool={agentToolsConfig.check_music_status} />
+                      <AgentTool value="remove_background" tool={agentToolsConfig.remove_background} />
                       <AgentTool value="search_media" tool={agentToolsConfig.search_media} />
                       <AgentTool value="search_anime" tool={agentToolsConfig.search_anime} />
                     </AgentTools>
@@ -646,6 +640,11 @@ export function NexAgent() {
   toolCalls: Array<{
     id: string,
     function: { name: string, arguments: string }
+  }>,
+  toolResults: Array<{
+    id: string,
+    name: string,
+    result: any
   }>
 }`} />
                   </AgentContent>

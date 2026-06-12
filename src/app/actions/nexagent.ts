@@ -1,16 +1,17 @@
 'use server';
 
 import OpenAI from 'openai';
-import { initMailbox } from './temp-mail';
-import { createMusicJob } from './remusic';
+import { initMailbox, checkMessages } from './temp-mail';
+import { createMusicJob, pollMusicStatus } from './remusic';
 import { vidboxSearch } from './vidbox';
 import { fetchAnichin } from './anichin';
+import { removeImageBackground } from './remove-bg';
 import { siteConfig } from '@/config/site';
 
 /**
  * NexAgent Server Action
  * Handles chat interactions via OpenRouter and processes tool calls.
- * Includes a pre-filter to only enable tools when relevant keywords are detected.
+ * Includes multi-turn history mapping for conversation memory.
  */
 
 const tools = [
@@ -25,6 +26,21 @@ const tools = [
   {
     type: 'function',
     function: {
+      name: 'check_mailbox',
+      description: 'Check for new incoming messages in an existing temporary mailbox session.',
+      parameters: {
+        type: 'object',
+        properties: {
+          token: { type: 'string', description: 'The CSRF token from the mailbox session' },
+          cookies: { type: 'object', description: 'The serialized cookie jar from the session' }
+        },
+        required: ['token', 'cookies']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
       name: 'generate_music',
       description: 'Trigger a high-fidelity AI music composition job with custom styles.',
       parameters: {
@@ -34,6 +50,34 @@ const tools = [
           title: { type: 'string', description: 'Title for the track' }
         },
         required: ['prompt']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'check_music_status',
+      description: 'Check the real-time generation percentage and final audio result for a music job.',
+      parameters: {
+        type: 'object',
+        properties: {
+          song_id: { type: 'string', description: 'The unique ID of the song being generated' }
+        },
+        required: ['song_id']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'remove_background',
+      description: 'Remove the background from an image using AI edge detection.',
+      parameters: {
+        type: 'object',
+        properties: {
+          image_url: { type: 'string', description: 'Direct URL to the source image' }
+        },
+        required: ['image_url']
       }
     }
   },
@@ -69,27 +113,27 @@ const tools = [
 
 /**
  * Heuristic check to see if user input likely requires tool usage.
- * This prevents 404 errors on models that don't support tools when the prompt is just conversational.
  */
 function isToolLikelyNeeded(content: string): boolean {
   const c = content.toLowerCase();
   const triggers = [
-    'email', 'mail', 'mailbox', 'temp', 'sementara',
-    'musik', 'music', 'lagu', 'nyanyi', 'compose', 'remusic',
+    'email', 'mail', 'mailbox', 'temp', 'sementara', 'cek inbox', 'ada pesan',
+    'musik', 'music', 'lagu', 'nyanyi', 'compose', 'remusic', 'status musik', 'sudah jadi',
     'film', 'movie', 'nonton', 'bioskop', 'movieku', 'vidbox', 'tayang',
     'anime', 'donghua', 'anichin', 'otakudesu', 'kartun jepang',
-    'rekomendasi film', 'rekomendasi anime'
+    'rekomendasi film', 'rekomendasi anime',
+    'hapus background', 'hilangkan latar', 'bg remover'
   ];
   return triggers.some(t => c.includes(t));
 }
 
-export async function nexAgentChat(messages: any[], modelId: string = "nvidia/llama-nemotron-rerank-vl-1b-v2:free") {
+export async function nexAgentChat(messages: any[], modelId: string = "google/gemini-2.0-flash-exp:free") {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
     return {
       role: "assistant",
-      content: "System configuration missing: OpenRouter API key is not set. Please ensure OPENROUTER_API_KEY is present in your environment variables."
+      content: "System configuration missing: OpenRouter API key is not set."
     };
   }
 
@@ -105,32 +149,51 @@ export async function nexAgentChat(messages: any[], modelId: string = "nvidia/ll
   const systemInstructions = `
 You are NexAgent, the premium AI orchestrator for ${siteConfig.name}. Your goal is to deliver high-fidelity, visual responses using Markdown. 
 
+MEMORY PROTOCOL: You have multi-turn conversation memory. You can remember previous actions, tokens, and data results. If you generated music or a mailbox in a previous turn, use the retrieved IDs/tokens from your history to check their status if the user asks.
+
 MANDATORY PROTOCOL: DO NOT USE CODE BLOCKS (triple backticks) to display cards or data. Generate the Markdown directly so it renders as UI elements.
 
 VISUAL OUTPUT PROTOCOLS:
 1. **Media Responses (Movies/Anime)**:
-   - FORMAT AS A VISUAL CARD (Direct Markdown, NO CODE BLOCKS):
+   - FORMAT AS A VISUAL CARD:
    - Always start with the title in an H3 header: ### [Judul]
-   - If a poster URL is provided, display it prominently: ![Poster](url)
-   - Below the poster, list details in this exact clean format:
+   - Display poster URL prominently: ![Poster](url)
+   - List details in this format:
      - **Tahun**: [Year]
-     - **Tipe**: [Type]
      - **Rating**: ⭐ [Rating]
-     - **Sinopsis**: [Brief Summary]
      - [▶️ Nonton Sekarang](URL)
    - Use a horizontal divider (---) to separate multiple results.
 
-2. **Music Generation**:
-   - Format the response like a "Composition Ticket".
-   - Bold the **Title** and **Prompt**.
-   - Use a bulleted list for **Styles**.
+2. **Music / Status**:
+   - If checking status, provide a progress report: **Status**: [Status] ([Percentage]%)
+   - Bold any **Ticket IDs** or **Song IDs**.
 
-3. **General Data**:
-   - Use **Bold** for technical identifiers, emails, or codes.
-   - Use horizontal dividers (---) to separate distinct logic steps.
-
-4. **Tone**: Premium, technical, and concise. Respond in Indonesian for media results.
+3. **Tone**: Premium, technical, and concise. Respond in Indonesian for media results and status reports.
 `;
+
+  // Reconstruct chat history for the model including tool calls and results
+  const chatHistory: any[] = [];
+  for (const m of messages) {
+    if (m.role === 'user') {
+      chatHistory.push({ role: "user", content: m.content });
+    } else if (m.role === 'assistant') {
+      const assistantMsg: any = { role: "assistant", content: m.content };
+      if (m.toolCalls) assistantMsg.tool_calls = m.toolCalls;
+      chatHistory.push(assistantMsg);
+      
+      // If we have tool results stored, we MUST inject them after the assistant message
+      if (m.toolResults) {
+        for (const res of m.toolResults) {
+          chatHistory.push({
+            role: "tool",
+            tool_call_id: res.id,
+            name: res.name,
+            content: JSON.stringify(res.result)
+          });
+        }
+      }
+    }
+  }
 
   const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || "";
   const enableTools = isToolLikelyNeeded(lastUserMessage);
@@ -140,23 +203,22 @@ VISUAL OUTPUT PROTOCOLS:
       model: modelId,
       messages: [
         { role: "system", content: systemInstructions },
-        ...messages.map(m => ({ role: m.role, content: m.content }))
+        ...chatHistory
       ],
     };
 
-    // Only inject tools if the keywords match, to avoid 404 crashes on non-tool models
     if (enableTools) {
       chatParams.tools = tools;
       chatParams.tool_choice = "auto";
     }
 
     const response = await client.chat.completions.create(chatParams);
-
     const message = response.choices[0].message;
     const usage = response.usage;
 
     if (message.tool_calls && message.tool_calls.length > 0) {
-      const toolResults: any[] = [];
+      const toolMessages: any[] = [];
+      const toolResultsForPersistence: any[] = [];
       
       for (const toolCall of message.tool_calls) {
         const functionName = toolCall.function.name;
@@ -168,8 +230,17 @@ VISUAL OUTPUT PROTOCOLS:
             case 'generate_temp_mail':
               result = await initMailbox();
               break;
+            case 'check_mailbox':
+              result = await checkMessages(args.token, args.cookies);
+              break;
             case 'generate_music':
               result = await createMusicJob({ prompt: args.prompt, title: args.title, mode: 'simple' });
+              break;
+            case 'check_music_status':
+              result = await pollMusicStatus(args.song_id);
+              break;
+            case 'remove_background':
+              result = await removeImageBackground({ url: args.image_url });
               break;
             case 'search_media':
               result = await vidboxSearch(args.query);
@@ -184,20 +255,24 @@ VISUAL OUTPUT PROTOCOLS:
           result = { status: false, error: e.message };
         }
 
-        toolResults.push({
+        const toolMsg = {
           tool_call_id: toolCall.id,
           role: "tool",
           name: functionName,
           content: JSON.stringify(result),
-        });
+        };
+        
+        toolMessages.push(toolMsg);
+        toolResultsForPersistence.push({ id: toolCall.id, name: functionName, result });
       }
 
       const finalResponse = await client.chat.completions.create({
         model: modelId,
         messages: [
-          ...messages.map(m => ({ role: m.role, content: m.content })),
+          { role: "system", content: systemInstructions },
+          ...chatHistory,
           message,
-          ...toolResults
+          ...toolMessages
         ]
       });
 
@@ -212,7 +287,8 @@ VISUAL OUTPUT PROTOCOLS:
             name: tc.function.name,
             arguments: tc.function.arguments
           }
-        }))
+        })),
+        toolResults: toolResultsForPersistence
       };
     }
 
@@ -224,18 +300,9 @@ VISUAL OUTPUT PROTOCOLS:
 
   } catch (error: any) {
     console.error('NexAgent Chat Error:', error);
-
-    // Specific handling for OpenRouter tool-use errors
-    if (error.message && error.message.includes("No endpoints found that support tool use")) {
-      return {
-        role: "assistant",
-        content: "Tools Cant Use On This Model : Try Another Model"
-      };
-    }
-
     return {
       role: "assistant",
-      content: `I'm having trouble reaching the neural network. (Reason: ${error.message || 'Connection failure'})`
+      content: `Nexus connection failure: ${error.message || 'Unknown error'}`
     };
   }
 }
