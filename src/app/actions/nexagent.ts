@@ -1,3 +1,4 @@
+
 'use server';
 
 import OpenAI from 'openai';
@@ -9,6 +10,7 @@ import { removeImageBackground } from './remove-bg';
 import { fetchKomiku } from './komiku';
 import { fetchDailymotion } from './dailymotion';
 import { initiateAppBuild } from './appmaker';
+import { fetchShinigami } from './shinigami';
 import { siteConfig } from '@/config/site';
 
 /**
@@ -144,8 +146,8 @@ const tools = [
   {
     type: 'function',
     function: {
-      name: 'search_manga',
-      description: 'Searches for premium manga, manhwa, or manhua in the Komiku high-fidelity database.',
+      name: 'search_shinigami',
+      description: 'Searches for premium manga, manhwa, or manhua in the Shinigami archive.',
       parameters: {
         type: 'object',
         properties: {
@@ -164,7 +166,7 @@ function isToolLikelyNeeded(content: string): boolean {
     'musik', 'music', 'lagu', 'nyanyi', 'compose', 'remusic', 'status musik', 'sudah jadi',
     'film', 'movie', 'nonton', 'bioskop', 'movieku', 'vidbox', 'tayang',
     'anime', 'donghua', 'anichin', 'otakudesu', 'kartun jepang',
-    'manga', 'manhwa', 'manhua', 'komik', 'komiku', 'baca',
+    'manga', 'manhwa', 'manhua', 'komik', 'komiku', 'baca', 'shinigami',
     'hapus background', 'hilangkan latar', 'bg remover',
     'dailymotion', 'unduh dailymotion', 'video dailymotion',
     'buat apk', 'create apk', 'app maker', 'bikin aplikasi'
@@ -284,8 +286,8 @@ VISUAL OUTPUT PROTOCOLS:
             case 'search_anime':
               result = await fetchAnichin({ mode: 'search', query: args.query });
               break;
-            case 'search_manga':
-              result = await fetchKomiku({ mode: 'search', query: args.query });
+            case 'search_shinigami':
+              result = await fetchShinigami({ mode: 'search', query: args.query });
               break;
             case 'search_dailymotion':
               result = await fetchDailymotion(args.url);

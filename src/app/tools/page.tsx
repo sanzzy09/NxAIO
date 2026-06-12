@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -21,6 +22,9 @@ import { NexAgent } from '@/components/dashboard/NexAgent';
 import { KomikuExplorer } from '@/components/dashboard/KomikuExplorer';
 import { DailymotionExplorer } from '@/components/dashboard/DailymotionExplorer';
 import { AppMakerTool } from '@/components/dashboard/AppMakerTool';
+import { MeloloExplorer } from '@/components/dashboard/MeloloExplorer';
+import { DramaboxExplorer } from '@/components/dashboard/DramaboxExplorer';
+import { ShinigamiExplorer } from '@/components/dashboard/ShinigamiExplorer';
 import { LayoutGrid, ChevronLeft, Loader2 } from 'lucide-react';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
@@ -47,6 +51,9 @@ export default function ToolsPage() {
 
   const renderTool = () => {
     switch (activeTool) {
+      case "shinigami": return <ShinigamiExplorer />;
+      case "dramabox": return <DramaboxExplorer />;
+      case "melolo": return <MeloloExplorer />;
       case "appmaker": return <AppMakerTool />;
       case "nexagent": return <NexAgent />;
       case "komiku": return <KomikuExplorer />;
