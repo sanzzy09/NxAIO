@@ -1,225 +1,162 @@
-
 'use server';
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
-const DOMAINS = {
-  lk21: 'https://tv10.lk21official.cc',
-  nontondrama: 'https://tv4.nontondrama.my',
-};
+/**
+ * LayarKaca21 wrapper based on Shanvyr logic
+ * Base: https://bridgestoabrighterfuture.org
+ */
 
-const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-  'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8',
-  'Cache-Control': 'no-cache',
-};
+const BASE = "https://bridgestoabrighterfuture.org";
 
-async function fetchPage(url: string, referer?: string) {
-  const res = await axios.get(url, {
-    headers: { ...HEADERS, Referer: referer || url },
-    timeout: 15000,
+const ADULT_GENRES = new Set([
+  "jav", "film-semi", "film-semi-barat", "film-semi-jepang",
+  "semi-jepang", "film-semi-korea", "semi-korea", "film-semi-philippines",
+  "xtube", "none",
+]);
+
+const ADULT_PATTERN = /\b(jav|bokep|xxx|18\+|dewasa|porno|indoviral|film semi)\b/i;
+
+function isAdult(title = "", genres: string[] = []) {
+  if (ADULT_PATTERN.test(title)) return true;
+  return genres.some(g => ADULT_GENRES.has(g.toLowerCase().replace(/\s+/g, "-")));
+}
+
+function parseMovieCard($, el) {
+  const $el = $(el);
+  const title = $el.find(".entry-title a").text().trim();
+  const url = $el.find(".entry-title a").attr("href") || "";
+  const slug = url.replace(BASE, "").replace(/\//g, "");
+  const thumb = $el.find(".content-thumbnail img").attr("src") || "";
+  const rating = $el.find(".gmr-rating-item").text().replace(/[^\d.]/g, "").trim();
+  const duration = $el.find(".gmr-duration-item").text().replace(/[^\d\s]/g, "").trim();
+  const trailer = $el.find(".gmr-trailer-popup").attr("href") || "";
+  
+  const genres: string[] = [];
+  const countries: string[] = [];
+  
+  $el.find(".gmr-movie-on a").each((_, a) => {
+    const href = $(a).attr("href") || "";
+    if (href.includes("/country/")) countries.push($(a).text().trim());
+    else genres.push($(a).text().trim());
   });
-  return cheerio.load(res.data);
+
+  return { title, slug, url, thumb, rating, duration, genres, countries, trailer };
 }
 
-function parseList($: cheerio.CheerioAPI) {
-  const results: any[] = [];
-  $('article').each((_, el) => {
-    const $el = $(el);
-    const $a = $el.find('figure a').first();
-    const href = $a.attr('href') || '';
-    if (!href) return;
-    
-    // Extract slug from href
-    const slug = href.split('/').filter(Boolean).pop() || '';
-    
-    const title = $el.find('h3.poster-title, h2.poster-title').first().text().trim() || $a.attr('title') || '';
-    const poster = $el.find('source[type="image/jpeg"]').attr('srcset') || $el.find('img').attr('data-src') || $el.find('img').attr('src') || '';
-    const year = $el.find('span.year').text().trim() || '';
-    const quality = $el.find('span.label').text().trim() || '';
-    const rating = $el.find('span[itemprop="ratingValue"]').text().trim() || '';
-    const episode = $el.find('span.episode strong').text().trim() || '';
-    const duration = $el.find('span.duration').text().trim() || '';
-    
-    results.push({ title, slug, href, poster, year, quality, rating, episode, duration });
-  });
-  return results;
-}
-
-function normalizeUrl(url: string | undefined, base: string) {
-  if (!url) return '';
-  if (url.startsWith('http')) return url;
-  if (url.startsWith('//')) return `https:${url}`;
-  if (url.startsWith('/')) return `${base}${url}`;
-  return `${base}/${url}`;
-}
-
-export async function fetchLk21(input: { mode: string; query?: string; slug?: string; page?: number }) {
+export async function fetchLk21(input: { 
+  mode: string; 
+  query?: string; 
+  slug?: string; 
+  page?: number; 
+  country?: string; 
+  adult?: boolean 
+}) {
   try {
-    const { mode, query, slug, page = 1 } = input;
+    const { mode, query, slug, page = 1, country = "indonesia", adult = false } = input;
+    const filterAdult = !adult;
+
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+      "Accept-Language": "id-ID,id;q=0.9",
+      Referer: BASE,
+    };
 
     if (mode === 'home') {
-      const $ = await fetchPage(`${DOMAINS.lk21}/`);
-      return { status: true, data: parseList($) };
-    }
+      const path = country ? `/country/${country}` : "";
+      const targetUrl = page > 1 ? `${BASE}${path}/page/${page}/` : `${BASE}${path || "/"}/`;
+      
+      const res = await axios.get(targetUrl, { headers, timeout: 15000 });
+      const $ = cheerio.load(res.data);
+      const movies: any[] = [];
 
-    if (mode === 'series-home') {
-      const $ = await fetchPage(`${DOMAINS.nontondrama}/`);
-      return { status: true, data: parseList($) };
+      $("#gmr-main-load article, .gmr-grid article").each((_, el) => {
+        const movie = parseMovieCard($, el);
+        if (filterAdult && isAdult(movie.title, movie.genres)) return;
+        movies.push(movie);
+      });
+
+      return { status: true, data: movies };
     }
 
     if (mode === 'search') {
-      const b = `${DOMAINS.lk21}/search/`;
-      const url = page > 1 ? `${b}page/${page}/?s=${encodeURIComponent(query!)}` : `${b}?s=${encodeURIComponent(query!)}`;
-      const $ = await fetchPage(url);
-      return { status: true, data: parseList($) };
-    }
+      const params: any = { s: query, search: "advanced", post_type: "movie" };
+      if (page > 1) params.paged = page;
+      
+      const res = await axios.get(BASE, { params, headers, timeout: 15000 });
+      const $ = cheerio.load(res.data);
+      const movies: any[] = [];
 
-    if (mode === 'series-search') {
-      const b = `${DOMAINS.nontondrama}/search/`;
-      const url = page > 1 ? `${b}page/${page}/?s=${encodeURIComponent(query!)}` : `${b}?s=${encodeURIComponent(query!)}`;
-      const $ = await fetchPage(url);
-      return { status: true, data: parseList($) };
+      $("#gmr-main-load article, .gmr-grid article, #primary article").each((_, el) => {
+        const movie = parseMovieCard($, el);
+        if (filterAdult && isAdult(movie.title, movie.genres)) return;
+        movies.push(movie);
+      });
+
+      return { status: true, data: movies };
     }
 
     if (mode === 'detail') {
-      const url = `${DOMAINS.lk21}/${slug}/`;
-      const $ = await fetchPage(url, DOMAINS.lk21);
+      const path = slug!.startsWith("http") ? slug!.replace(BASE, "") : `/${slug}/`;
+      const res = await axios.get(`${BASE}${path}`, { headers, timeout: 15000 });
+      const $ = cheerio.load(res.data);
       
-      const h1 = $('h1').first().text().toLowerCase();
-      if (h1.includes('dialihkan') || h1.includes('nontondrama')) {
-        const sUrl = `${DOMAINS.nontondrama}/${slug}/`;
-        const $s = await fetchPage(sUrl, DOMAINS.nontondrama);
-        return { status: true, type: 'series', data: parseSeriesDetail($s, DOMAINS.nontondrama) };
+      const title = $(".entry-title[itemprop='name'], h1.entry-title").first().text().trim();
+      const thumb = $(".gmr-movie-data img").first().attr("src") || "";
+      const synopsis = $(".entry-content-single p").first().text().trim();
+      const rating = $("[itemprop='ratingValue']").text().trim();
+      const votes = $("[itemprop='ratingCount']").text().trim();
+      const trailer = $(".gmr-trailer-popup").attr("href") || "";
+      const embed = $(".gmr-embed-responsive iframe, .gmr-pagi-player iframe").first().attr("src") || "";
+
+      const meta: any = {};
+      $(".gmr-moviedata").each((_, el) => {
+        const rawKey = $(el).find("strong").text().replace(":", "").trim();
+        const key = rawKey.toLowerCase().replace(/\s+/g, "_");
+        const val = $(el).text().replace(rawKey, "").replace(":", "").trim();
+        if (key && val) meta[key] = val;
+      });
+
+      const genres: string[] = [];
+      $(".gmr-moviedata a[rel='category tag']").each((_, a) => {
+        const href = $(a).attr("href") || "";
+        if (!href.includes("/country/")) genres.push($(a).text().trim());
+      });
+
+      const cast: string[] = [];
+      $("[itemprop='actors'] [itemprop='name']").each((_, el) => cast.push($(el).text().trim()));
+
+      const servers: any[] = [];
+      $(".muvipro-player-tabs a").each((_, a) => {
+        servers.push({ label: $(a).text().trim(), url: $(a).attr("href") || "" });
+      });
+
+      if (filterAdult && isAdult(title, genres)) {
+        return { status: false, error: "This content is restricted." };
       }
-      return { status: true, type: 'movie', data: parseMovieDetail($, DOMAINS.lk21) };
-    }
 
-    if (mode === 'series-detail') {
-      const url = `${DOMAINS.nontondrama}/${slug}/`;
-      const $ = await fetchPage(url, DOMAINS.nontondrama);
-      return { status: true, type: 'series', data: parseSeriesDetail($, DOMAINS.nontondrama) };
-    }
-
-    if (mode === 'watch-episode') {
-      const url = `${DOMAINS.nontondrama}/${slug}/`;
-      const $ = await fetchPage(url, DOMAINS.nontondrama);
-      return { status: true, data: parseEpisodeWatch($, DOMAINS.nontondrama) };
+      return { 
+        status: true, 
+        data: { 
+          title, 
+          thumb, 
+          synopsis, 
+          rating, 
+          votes, 
+          trailer, 
+          embed, 
+          servers, 
+          cast, 
+          meta, 
+          genres 
+        } 
+      };
     }
 
     return { status: false, error: 'Invalid mode' };
   } catch (error: any) {
-    console.error('LK21 Server Action Error:', error.message);
+    console.error('LK21 Action Error:', error.message);
     return { status: false, error: error.message };
   }
-}
-
-function parseMovieDetail($: cheerio.CheerioAPI, baseDomain: string) {
-  const title = $('h1').first().text().trim();
-  const rating = ($('.info-tag span strong').first().text().trim()).replace(/[^\d.]/g, '');
-  const infoSpans: string[] = [];
-  $('.info-tag span').each((_, el) => { const t = $(el).text().trim(); if (t) infoSpans.push(t); });
-  
-  const tags: any[] = [];
-  $('.tag-list .tag a').each((_, el) => tags.push({ label: $(el).text().trim(), href: $(el).attr('href') || '' }));
-  
-  const genre = tags.filter(t => t.href.includes('/genre/')).map(t => t.label);
-  const country = tags.filter(t => t.href.includes('/country/')).map(t => t.label);
-  
-  const synopsis = $('[data-full]').first().attr('data-full') || '';
-  const poster = $('meta[property="og:image"]').attr('content') || '';
-  const servers: any[] = [];
-  const seen = new Set();
-  $('[data-server]').each((_, el) => {
-    const server = $(el).attr('data-server');
-    const rawUrl = $(el).attr('data-url');
-    if (server && rawUrl && !seen.has(server)) { 
-      seen.add(server); 
-      servers.push({ server, url: normalizeUrl(rawUrl, baseDomain) }); 
-    }
-  });
-  
-  return { title, rating, quality: infoSpans[1] || '', resolution: infoSpans[2] || '', duration: infoSpans[3] || '', genre, country, synopsis, poster, servers };
-}
-
-function parseSeriesDetail($: cheerio.CheerioAPI, baseDomain: string) {
-  const title = $('h1').first().text().trim();
-  const rating = ($('.info-tag span strong').first().text().trim()).replace(/[^\d.]/g, '');
-  const infoSpans: string[] = [];
-  $('.info-tag span').each((_, el) => { const t = $(el).text().trim(); if (t) infoSpans.push(t); });
-
-  const tags: any[] = [];
-  $('.tag-list .tag a').each((_, el) => tags.push({ label: $(el).text().trim(), href: $(el).attr('href') || '' }));
-  const genre = tags.filter(t => t.href.includes('/genre/')).map(t => t.label);
-  const country = tags.filter(t => t.href.includes('/country/')).map(t => t.label);
-
-  const synopsis = $('[data-full]').first().attr('data-full') || '';
-  const poster = $('meta[property="og:image"]').attr('content') || '';
-  
-  let episodes: any[] = [];
-  $('script').each((_, el) => {
-    const txt = $(el).html() || '';
-    const m = txt.match(/^\s*(\{"1":\[.*\].*\})\s*$/);
-    if (m) {
-      try {
-        const data = JSON.parse(m[1]);
-        Object.values(data).forEach((season: any) => season.forEach((ep: any) => {
-          episodes.push({ episode: ep.episode_no, season: ep.s, title: ep.title, slug: ep.slug, href: `/${ep.slug}` });
-        }));
-      } catch (_) {}
-    }
-  });
-  
-  if (episodes.length === 0) {
-    $('.episode-list a').each((_, el) => {
-      const href = $(el).attr('href') || '', label = $(el).text().trim();
-      const epSlug = href.split('/').filter(Boolean).pop() || '';
-      if (href && href.includes('episode')) episodes.push({ title: label, slug: epSlug, href });
-    });
-  }
-  
-  return { title, rating, airDate: infoSpans[1] || '', type: infoSpans[2] || '', status: infoSpans[3] || '', genre, country, synopsis, poster, episodes };
-}
-
-function parseEpisodeWatch($: cheerio.CheerioAPI, baseDomain: string) {
-  const title = $('h1').first().text().trim();
-  let meta: any = {};
-  $('script').each((_, el) => {
-    const txt = $(el).html() || '';
-    const m = txt.match(/\{[^<]*"current_eps"[^<]*\}/);
-    if (m) { try { meta = JSON.parse(m[0]); } catch (_) {} }
-  });
-  
-  const servers: any[] = [];
-  const seen = new Set();
-  $('[data-server]').each((_, el) => {
-    const server = $(el).attr('data-server');
-    const rawUrl = $(el).attr('data-url');
-    if (server && rawUrl && !seen.has(server)) { 
-      seen.add(server); 
-      servers.push({ server, url: normalizeUrl(rawUrl, baseDomain) }); 
-    }
-  });
-  
-  const nextEpSlug = meta.next ? meta.next.split('/').filter(Boolean).pop() : null;
-  const seriesSlug = meta.slug;
-  let prevEpSlug = null;
-  if (meta.current_eps > 1 && seriesSlug) {
-    prevEpSlug = `${seriesSlug}-episode-${meta.current_eps - 1}`;
-  }
-  
-  return { 
-    title, 
-    season: meta.current_season || null, 
-    episode: meta.current_eps || null, 
-    totalEps: meta.total_eps || null, 
-    rating: meta.rating || null, 
-    poster: meta.poster || null, 
-    seriesSlug, 
-    servers, 
-    prevEpSlug, 
-    nextEpSlug 
-  };
 }

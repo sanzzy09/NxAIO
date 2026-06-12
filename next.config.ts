@@ -99,6 +99,12 @@ const nextConfig: NextConfig = {
         hostname: 'www.dramaboxdb.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'bridgestoabrighterfuture.org',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
