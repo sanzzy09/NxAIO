@@ -43,7 +43,7 @@ export function AnichinExplorer() {
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://picsum.photos/seed/media/400/600";
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png";
 
   const handleFetch = async (params: { mode: string; query?: string; slug?: string; page?: number }) => {
     setLoading(true);

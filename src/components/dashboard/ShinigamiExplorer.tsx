@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -52,27 +51,21 @@ export function ShinigamiExplorer() {
   const [fullScreen, setFullScreen] = useState(false);
   const { toast } = useToast();
 
-  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png";
 
-  /**
-   * Robust cover resolution helper.
-   * Prioritizes original CDN assets and reconstructs relative paths.
-   */
   const getCoverUrl = (item: any) => {
     if (!item) return fallbackImage;
     
-    // Comprehensive field check for multiple API versions
     const rawPath = item.manga_cover || 
                     item.manga_cover_path || 
                     item.cover || 
                     item.cover_path || 
                     item.image;
 
-    if (!rawPath) return fallbackImage;
+    if (!rawPath || rawPath === "") return fallbackImage;
     
     if (rawPath.startsWith('http')) return rawPath;
     
-    // Normalize relative path and prefix with authorized assets base
     const cleanPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
     return `https://assets.shngm.id${cleanPath}`;
   };

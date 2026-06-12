@@ -30,6 +30,7 @@ import {
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { fetchOtakudesu } from "@/app/actions/otakudesu";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type Mode = 'home' | 'search' | 'ongoing' | 'completed' | 'schedule' | 'genres' | 'detail' | 'episode' | 'genre_browse';
 
@@ -40,6 +41,8 @@ export function OtakudesuExplorer() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png";
 
   const fetchData = async (input: any, mode?: Mode) => {
     setLoading(true);
@@ -87,7 +90,7 @@ export function OtakudesuExplorer() {
         >
           <div className="relative aspect-[3/4] w-full bg-black/5">
             <Image 
-              src={anime.thumb || anime.thumbnail} 
+              src={anime.thumb || anime.thumbnail || fallbackImage} 
               alt={anime.title} 
               fill 
               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -118,7 +121,6 @@ export function OtakudesuExplorer() {
       <h3 className="text-lg font-bold font-headline px-2">{data?.message}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {data?.results?.map((anime: any, i: number) => {
-          // Enhanced genre handling
           const genreList = Array.isArray(anime.genres) 
             ? anime.genres 
             : typeof anime.genres === 'string' 
@@ -133,7 +135,7 @@ export function OtakudesuExplorer() {
             >
               <div className="relative aspect-[3/4] w-full bg-black/5">
                 <Image 
-                  src={anime.thumbnail || anime.thumb} 
+                  src={anime.thumbnail || anime.thumb || fallbackImage} 
                   alt={anime.title} 
                   fill 
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -193,7 +195,7 @@ export function OtakudesuExplorer() {
         <div className="lg:col-span-4 space-y-6">
           <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
             <Image 
-              src={data.thumb || data.thumbnail} 
+              src={data.thumb || data.thumbnail || fallbackImage} 
               alt={data.title} 
               fill 
               className="object-cover"
@@ -398,7 +400,7 @@ export function OtakudesuExplorer() {
                           className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-blue-500/30 transition-all hover:shadow-xl"
                         >
                           <div className="relative aspect-[3/4] w-full">
-                            <Image src={anime.thumb || anime.thumbnail} alt={anime.title} fill className="object-cover" unoptimized />
+                            <Image src={anime.thumb || anime.thumbnail || fallbackImage} alt={anime.title} fill className="object-cover" unoptimized />
                           </div>
                           <div className="p-4 space-y-1">
                             <h4 className="font-headline font-bold text-sm line-clamp-2">{anime.title}</h4>
@@ -420,7 +422,7 @@ export function OtakudesuExplorer() {
                         onClick={() => handlePageChange(page + 1)}
                         variant="ghost" className="rounded-full"
                       >
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="size-4" />
                       </Button>
                    </div>
                 </div>

@@ -33,6 +33,7 @@ import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { fetchNimegami } from "@/app/actions/nimegami";
 import { useToast } from "@/hooks/use-toast";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type ViewMode = 'home' | 'latest' | 'archive' | 'detail' | 'search';
 
@@ -45,6 +46,8 @@ export function NimegamiExplorer() {
   const [page, setPage] = useState(1);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png";
 
   const handleFetch = async (params: { mode: string; url?: string; page?: number; query?: string }) => {
     setLoading(true);
@@ -85,7 +88,7 @@ export function NimegamiExplorer() {
         >
           <div className="relative aspect-[3/4] w-full bg-black/5">
             <Image 
-              src={item.thumbnail || "https://placehold.co/400x600/png?text=No+Cover"} 
+              src={item.thumbnail || fallbackImage} 
               alt={item.title} 
               fill 
               className="object-cover group-hover:scale-105 transition-transform duration-500" 
@@ -135,7 +138,7 @@ export function NimegamiExplorer() {
                   className="flex-shrink-0 w-40 space-y-2 group text-left"
                 >
                   <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-primary/5">
-                    <Image src={item.thumbnail} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform" unoptimized />
+                    <Image src={item.thumbnail || fallbackImage} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform" unoptimized />
                   </div>
                   <h4 className="text-[10px] font-bold line-clamp-1 group-hover:text-purple-600">{item.title}</h4>
                 </button>
@@ -181,7 +184,7 @@ export function NimegamiExplorer() {
                   className="group text-left bg-secondary/20 border border-primary/5 rounded-3xl overflow-hidden hover:border-purple-500/30 transition-all"
                 >
                   <div className="relative aspect-[3/4] w-full">
-                    <Image src={item.thumbnail} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform" unoptimized />
+                    <Image src={item.thumbnail || fallbackImage} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform" unoptimized />
                     <div className="absolute bottom-2 left-2">
                        <Badge className="bg-purple-600 border-none text-[10px] font-bold">{item.episode}</Badge>
                     </div>
@@ -221,8 +224,6 @@ export function NimegamiExplorer() {
       }
 
       // Case 2: Halahgan / BerkasDrive
-      // Transforms: https://dlgan.halahgan.com/?id=...
-      // Into: https://dlgan.halahgan.com/streaming.php?id=...
       if (h.includes('halahgan') || link.includes('halahgan.com')) {
         if (link.includes('?id=') && !link.includes('streaming.php')) {
           return link.replace('dlgan.halahgan.com/?id=', 'dlgan.halahgan.com/streaming.php?id=');
@@ -237,7 +238,7 @@ export function NimegamiExplorer() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-4 space-y-6">
             <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
-              <Image src={data.thumbnail} alt={data.title} fill className="object-cover" unoptimized />
+              <Image src={data.thumbnail || fallbackImage} alt={data.title} fill className="object-cover" unoptimized />
             </div>
             <div className="bg-secondary/20 p-8 rounded-[2rem] border border-primary/5 space-y-6">
                <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Series Info</h5>
