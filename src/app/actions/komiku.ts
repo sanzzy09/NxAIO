@@ -2,10 +2,12 @@
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import PDFDocument from 'pdfkit';
+import sharp from 'sharp';
 
 /**
  * Server action to fetch data from Komiku.org
- * Enhanced with High-Fidelity image proxying and robust scraping logic.
+ * Enhanced with High-Fidelity image proxying and PDF generation.
  */
 
 const BASE_URL = "https://komiku.org";
@@ -16,20 +18,26 @@ const HEADERS = {
   'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
   'Referer': BASE_URL + '/',
   'Origin': BASE_URL,
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'same-origin',
+  'Sec-Fetch-User': '?1',
+  'Upgrade-Insecure-Requests': '1',
   'Connection': 'keep-alive',
 };
 
 /**
  * Proxies a manga image URL to a data URI to bypass hotlink protection.
- * This is CRITICAL for Komiku as their servers check Referer headers.
  */
 export async function proxyImage(url: string) {
   try {
     const res = await axios.get(url, {
       headers: {
         ...HEADERS,
-        'Referer': BASE_URL + '/',
         'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        'Sec-Fetch-Dest': 'image',
+        'Sec-Fetch-Mode': 'no-cors',
+        'Sec-Fetch-Site': 'cross-site',
       },
       responseType: 'arraybuffer',
       timeout: 20000
@@ -39,7 +47,7 @@ export async function proxyImage(url: string) {
     return `data:${contentType};base64,${base64}`;
   } catch (error) {
     console.error('Image Proxy Error:', url);
-    return null; // Return null on failure so UI can show error state
+    return null;
   }
 }
 
@@ -76,7 +84,6 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
 
     // --- SEARCH ---
     if (mode === 'search') {
-      // Use API subdomain for more reliable search results if possible, otherwise fallback
       const searchUrl = `${API_URL}/?post_type=manga&s=${encodeURIComponent(query!)}&page=${page}`;
       const res = await axios.get(searchUrl, { headers: HEADERS, timeout: 30000 });
       const $ = cheerio.load(res.data);
@@ -110,7 +117,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       
       const title = $('h1 span').text().trim();
       const altTitle = $('.j2').text().trim();
-      const thumbnail = $('.ims img').attr('data-src') || $('.ims img').attr('src');
+      const thumbnail = $('.ims img').attr('src');
       const synopsis = $('.desc').text().trim();
       
       const info: any = {};
@@ -163,22 +170,17 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       const scriptMatch = response.data.match(/var chapterData = ({[\s\S]*?});/);
       if (scriptMatch) {
           try {
-              // Extract the JS object literal safely
               const jsonLike = scriptMatch[1];
-              // Convert to JSON (heuristic: quote keys, fix quotes)
               const jsonStr = jsonLike
                 .replace(/(\w+):/g, '"$1":')
                 .replace(/'/g, '"')
                 .replace(/,(\s*})/g, '$1');
               chapterData = JSON.parse(jsonStr);
-          } catch (e) {
-              // Simple fallback for evaluation in context
-          }
+          } catch (e) {}
       }
 
       const images: any[] = [];
       $('#Baca_Komik img').each((i, el) => {
-          // Komiku uses data-src for lazy loading. src is often lazy.jpg
           const src = $(el).attr('data-src') || $(el).attr('src');
           if (src && !src.includes('lazy.jpg')) {
               images.push({
@@ -225,6 +227,58 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
     return { status: false, error: 'Invalid mode provided.' };
   } catch (error: any) {
     console.error('Komiku Action Error:', error.message);
+    return { status: false, error: error.message };
+  }
+}
+
+/**
+ * Downloads chapter images and generates a PDF.
+ * Returns the PDF as a base64 string.
+ */
+export async function downloadChapterPDF(url: string) {
+  try {
+    const chapterRes = await fetchKomiku({ mode: 'chapter', url });
+    if (!chapterRes.status || !chapterRes.data.images.length) throw new Error("Could not find chapter images.");
+
+    const { images, series, chapter } = chapterRes.data;
+    const doc = new PDFDocument({ autoFirstPage: false, margin: 0 });
+    
+    const buffers: Buffer[] = [];
+    doc.on('data', (chunk) => buffers.push(chunk));
+
+    for (const img of images) {
+      try {
+        const imgRes = await axios.get(img.url, {
+          headers: HEADERS,
+          responseType: 'arraybuffer',
+          timeout: 15000
+        });
+        const imgBuffer = Buffer.from(imgRes.data);
+        const meta = await sharp(imgBuffer).metadata();
+        
+        if (meta.width && meta.height) {
+          doc.addPage({ size: [meta.width, meta.height] });
+          doc.image(imgBuffer, 0, 0, { width: meta.width, height: meta.height });
+        }
+      } catch (e) {
+        console.error(`Failed to include page ${img.page} in PDF:`, e);
+      }
+    }
+
+    doc.end();
+
+    return new Promise<{ status: boolean; data?: string; error?: string }>((resolve) => {
+      doc.on('end', () => {
+        const finalBuffer = Buffer.concat(buffers);
+        resolve({
+          status: true,
+          data: finalBuffer.toString('base64')
+        });
+      });
+      doc.on('error', (err) => resolve({ status: false, error: err.message }));
+    });
+
+  } catch (error: any) {
     return { status: false, error: error.message };
   }
 }
