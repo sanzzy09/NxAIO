@@ -14,10 +14,8 @@ import {
   Library,
   AlertCircle,
   X,
-  History,
   Theater,
   TrendingUp,
-  Home,
   LayoutGrid
 } from "lucide-react";
 import Image from 'next/image';
@@ -62,6 +60,7 @@ export function KomikuExplorer() {
 
     setLoading(true);
     setError(null);
+    setResults([]);
     try {
       const res = await fetchKomiku({ mode: 'search', query });
       if (!res.status) throw new Error(res.error);
@@ -248,6 +247,7 @@ export function KomikuExplorer() {
                 alt={`Panel ${i+1}`} 
                 className="w-full h-auto select-none"
                 loading="lazy"
+                referrerPolicy="no-referrer"
                 onContextMenu={(e) => e.preventDefault()}
               />
            </div>

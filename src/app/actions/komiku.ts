@@ -5,7 +5,7 @@ import * as cheerio from 'cheerio';
 
 /**
  * Server action to fetch data from Komiku.org
- * Using optimized selectors from provided scraper logic.
+ * Optimized with high-fidelity scraper logic.
  */
 
 const BASE_URL = "https://komiku.org";
@@ -20,7 +20,7 @@ const HEADERS = {
   'Upgrade-Insecure-Requests': '1'
 };
 
-export async function fetchKomiku(input: { mode: string; query?: string; url?: string; page?: number; genre?: string }) {
+export async function fetchKomiku(input: { mode: string; query?: string; url?: string; page?: number }) {
   try {
     const { mode, query, url, page = 1 } = input;
 
@@ -51,7 +51,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
 
     // --- SEARCH ---
     if (mode === 'search') {
-      const searchUrl = `${API_URL}/?post_type=manga&s=${encodeURIComponent(query!)}&page=${page}`;
+      const searchUrl = `${BASE_URL}/?post_type=manga&s=${encodeURIComponent(query!)}&page=${page}`;
       const res = await axios.get(searchUrl, { headers: HEADERS, timeout: 30000 });
       const $ = cheerio.load(res.data);
       const items: any[] = [];
@@ -59,7 +59,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       $('.bge').each((_, el) => {
         const title = $(el).find('.kan h3').text().trim();
         const mangaUrl = $(el).find('.bgei a').first().attr('href');
-        const image = $(el).find('.bgei img').attr('src');
+        const image = $(el).find('.bgei img').attr('src') || $(el).find('.bgei img').data('src');
         const type = $(el).find('.tpe1_inf b').text().trim();
         const latest = $(el).find('.new1:last a span:last-child').text().trim();
         
@@ -84,7 +84,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       
       const title = $('h1 span').text().trim();
       const altTitle = $('.j2').text().trim();
-      const thumbnail = $('.ims img').attr('src');
+      const thumbnail = $('.ims img').attr('src') || $('.ims img').data('src');
       const synopsis = $('.desc').text().trim();
       
       const info: any = {};
@@ -135,13 +135,14 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       
       const images: string[] = [];
       $('#Baca_Komik img').each((_, el) => {
-        const src = $(el).attr('src');
-        if (src && !src.includes('lazy.jpg')) {
-          images.push(src);
+        // Try all common attributes for images
+        const src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-lazy-src');
+        if (src && !src.includes('lazy.jpg') && !src.includes('iklan')) {
+          images.push(src.trim());
         }
       });
 
-      const title = $('h1').first().text().trim();
+      const title = $('h1').first().text().trim() || "Chapter Viewer";
       
       return {
         status: true,
