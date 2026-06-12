@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useMemo, useEffect } from 'react';
-import { Users, MousePointer2, UserPlus, TrendingUp, Sparkles } from 'lucide-react';
+import { Users, MousePointer2, UserPlus, TrendingUp, Sparkles, Activity, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
@@ -121,7 +121,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="bg-card/40 backdrop-blur-xl border border-primary/5 p-8 rounded-[2rem] shadow-sm space-y-3 sm:col-span-2 group hover:border-primary/20 transition-all duration-500">
+                <div className="bg-card/40 backdrop-blur-xl border border-primary/5 p-8 rounded-[2rem] shadow-sm space-y-3 group hover:border-primary/20 transition-all duration-500">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 text-orange-500">
                       <div className="p-2 bg-orange-500/10 rounded-xl">
@@ -135,7 +135,25 @@ export default function Home() {
                     <span className="text-5xl font-headline font-bold tracking-tighter">
                       {stats?.registrationsToday?.toLocaleString() ?? "0"}
                     </span>
-                    <span className="text-sm text-muted-foreground font-medium uppercase tracking-widest opacity-40">New Accounts</span>
+                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest opacity-40 ml-2">New Accounts</span>
+                  </div>
+                </div>
+
+                <div className="bg-card/40 backdrop-blur-xl border border-primary/5 p-8 rounded-[2rem] shadow-sm space-y-3 group hover:border-primary/20 transition-all duration-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-emerald-500">
+                      <div className="p-2 bg-emerald-500/10 rounded-xl">
+                        <Activity className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] font-medium opacity-50">System Runtime</span>
+                    </div>
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  </div>
+                  <div className="text-5xl font-headline font-bold tracking-tighter min-h-[3.75rem] flex items-center">
+                    99.9%
+                  </div>
+                  <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
+                    <Clock className="w-3 h-3 text-primary/40" /> Active for <span className="text-primary/60">124 Days</span>
                   </div>
                 </div>
               </StaggeredFadeUp>
