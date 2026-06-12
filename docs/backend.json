@@ -63,6 +63,13 @@
             "lastReset": { "type": "string", "format": "date" }
           }
         },
+        "editorUsage": {
+          "type": "object",
+          "properties": {
+            "count": { "type": "number", "default": 0 },
+            "lastReset": { "type": "string", "format": "date" }
+          }
+        },
         "followersCount": { "type": "number", "default": 0 },
         "followingCount": { "type": "number", "default": 0 },
         "preferences": {

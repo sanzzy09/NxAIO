@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deployment Sync Trigger: v16 - Explicitly authorizing list operations for subcollections.
+    // Deployment Sync Trigger: v17 - Refreshing logic for subcollection list operations.
     
     // Global stats are publicly readable and writable for real-time tracking
     match /system/stats {
@@ -30,7 +30,7 @@ service cloud.firestore {
         allow write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Subcollection access: restricted to the owner
+      // Subcollection access: strictly restricted to the owner for all operations
       match /activities/{activityId} {
         allow get, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
       }
