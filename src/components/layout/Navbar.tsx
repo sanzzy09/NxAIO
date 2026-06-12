@@ -51,21 +51,20 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
       )}>
         <Link 
           href="/" 
-          className="flex items-center gap-2 group"
+          className="flex items-center group"
           onClick={onDashboardClick}
         >
-          <div className="w-9 h-9 relative group-hover:rotate-12 transition-transform duration-300 flex items-center justify-center">
+          <div className="w-12 h-12 relative group-hover:rotate-12 transition-transform duration-300 flex items-center justify-center">
             <Image 
               src={siteConfig.logo} 
               alt={siteConfig.name} 
-              width={36} 
-              height={36} 
+              width={48} 
+              height={48} 
               className="object-contain"
               priority
               unoptimized
             />
           </div>
-          <span className="font-headline font-bold text-lg md:text-xl tracking-tight">{siteConfig.name}</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

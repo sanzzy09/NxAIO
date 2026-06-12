@@ -28,18 +28,17 @@ export function Footer() {
           
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-6">
-            <Link href="/" className="flex items-center gap-3 group w-fit">
-              <div className="w-10 h-10 relative group-hover:rotate-12 transition-transform flex items-center justify-center">
+            <Link href="/" className="flex items-center group w-fit">
+              <div className="w-20 h-20 relative group-hover:rotate-12 transition-transform flex items-center justify-center">
                 <Image 
                   src={siteConfig.logo} 
                   alt={siteConfig.name} 
-                  width={40} 
-                  height={40} 
+                  width={80} 
+                  height={80} 
                   className="object-contain"
                   unoptimized
                 />
               </div>
-              <span className="font-headline font-bold text-2xl tracking-tight">{siteConfig.name}</span>
             </Link>
             <p className="text-primary-foreground/60 text-sm leading-relaxed max-w-xs">
               {siteConfig.description}
