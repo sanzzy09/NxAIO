@@ -34,7 +34,7 @@ async function apiRequest(path: string, params: any = {}) {
 }
 
 export async function fetchShinigami(input: { mode: string; query?: string; id?: string | number; page?: number; filter?: string; type?: string }) {
-  const { mode, query, id, page = 1, filter = 'daily', type } = input;
+  const { mode, query, id, page = 1, filter = 'daily' } = input;
 
   if (mode === 'home') {
     return apiRequest('/v1/manga/list', {
@@ -81,8 +81,11 @@ export async function fetchShinigami(input: { mode: string; query?: string; id?:
     const res = await apiRequest(`/v1/chapter/detail/${id}`);
     if (res.status && res.data?.data) {
       const ch = res.data.data;
-      const baseUrl = ch.base_url + ch.chapter.path;
-      const images = ch.chapter.data.map((f: string) => baseUrl + f);
+      const baseUrl = ch.base_url || ASSETS_BASE;
+      const images = ch.chapter.data.map((f: string) => {
+        const fullPath = ch.chapter.path + f;
+        return baseUrl.endsWith('/') ? baseUrl + fullPath.replace(/^\//, '') : baseUrl + fullPath;
+      });
       return { 
         status: true, 
         data: { 
@@ -104,7 +107,14 @@ export async function fetchShinigami(input: { mode: string; query?: string; id?:
 
 export async function proxyShinigamiImage(imageUrl: string) {
   try {
-    const res = await axios.get(imageUrl, {
+    if (!imageUrl) throw new Error("Image URL is required");
+    
+    // Handle relative paths
+    const finalUrl = imageUrl.startsWith('http') 
+      ? imageUrl 
+      : `${ASSETS_BASE}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+
+    const res = await axios.get(finalUrl, {
       responseType: 'arraybuffer',
       headers: {
         ...HEADERS,

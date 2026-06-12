@@ -55,6 +55,16 @@ export function ShinigamiExplorer() {
 
   const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://picsum.photos/seed/media/400/600";
 
+  const getCoverUrl = (item: any) => {
+    if (!item) return fallbackImage;
+    // Check various possible cover fields
+    const cover = item.manga_cover || item.manga_cover_path || item.cover || item.manga_cover_url;
+    if (!cover || cover === "") return fallbackImage;
+    if (cover.startsWith('http')) return cover;
+    // Standard ASSETS_BASE prefix
+    return `https://assets.shngm.id${cover.startsWith('/') ? '' : '/'}${cover}`;
+  };
+
   useEffect(() => {
     loadDiscover();
   }, []);
@@ -67,8 +77,8 @@ export function ShinigamiExplorer() {
         fetchShinigami({ mode: 'home' }),
         fetchShinigami({ mode: 'trending', filter: rankFilter })
       ]);
-      if (homeRes.status) setLatestItems(homeRes.data.data);
-      if (rankRes.status) setRankItems(rankRes.data.data);
+      if (homeRes.status) setLatestItems(homeRes.data.data || []);
+      if (rankRes.status) setRankItems(rankRes.data.data || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -80,7 +90,7 @@ export function ShinigamiExplorer() {
     if (view === 'discover') {
       const fetchRanks = async () => {
         const res = await fetchShinigami({ mode: 'trending', filter: rankFilter });
-        if (res.status) setRankItems(res.data.data);
+        if (res.status) setRankItems(res.data.data || []);
       };
       fetchRanks();
     }
@@ -95,7 +105,7 @@ export function ShinigamiExplorer() {
     try {
       const res = await fetchShinigami({ mode: 'search', query });
       if (!res.status) throw new Error(res.error);
-      setResults(res.data.data);
+      setResults(res.data.data || []);
       setView('search');
     } catch (err: any) {
       setError(err.message);
@@ -165,7 +175,7 @@ export function ShinigamiExplorer() {
         >
           <div className="relative aspect-[3/4] w-full bg-black/5">
             <Image 
-              src={item.manga_cover || fallbackImage} 
+              src={getCoverUrl(item)} 
               alt={item.title || "Manga Cover"} 
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-700"
@@ -190,7 +200,7 @@ export function ShinigamiExplorer() {
               {item.title}
             </h4>
             <div className="flex items-center gap-2 text-[9px] text-muted-foreground font-bold opacity-60 uppercase">
-               <Clock className="size-2.5" /> {item.updated_at || 'Just Now'}
+               <Clock className="size-2.5" /> {item.updated_at ? new Date(item.updated_at).toLocaleDateString() : 'Just Now'}
             </div>
           </div>
         </div>
@@ -204,7 +214,7 @@ export function ShinigamiExplorer() {
         <div className="lg:col-span-4 space-y-6">
           <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
             <Image 
-              src={selectedManga.manga_cover || fallbackImage} 
+              src={getCoverUrl(selectedManga)} 
               alt={selectedManga.title || "Manga Cover"} 
               fill 
               className="object-cover" 
@@ -403,13 +413,13 @@ export function ShinigamiExplorer() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search titles..." 
-                className="h-14 pl-14 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-indigo-500/20"
+                className="h-12 pl-14 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-indigo-500/20"
               />
             </div>
             <Button 
               type="submit" 
               disabled={loading || !query.trim()} 
-              className="h-14 px-6 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xl shadow-indigo-500/10 transition-all active:scale-95"
+              className="h-12 px-6 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xl shadow-indigo-500/10 transition-all active:scale-95"
             >
               {loading ? <Loader2 className="size-4 animate-spin" /> : "Search"}
             </Button>
@@ -430,7 +440,7 @@ export function ShinigamiExplorer() {
 
         {loading && (view === 'discover' || view === 'search') ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
-            <Loader2 className="size-12 animate-spin text-indigo-500/20" />
+            <Loader2 className="size-12 animate-spin text-orange-500/20" />
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Polling neural database...</p>
           </div>
         ) : error ? (
@@ -447,7 +457,7 @@ export function ShinigamiExplorer() {
                   <div className="lg:col-span-8 space-y-8">
                     <div className="flex items-center justify-between px-2">
                        <div className="flex items-center gap-2">
-                        <TrendingUp className="size-4 text-indigo-600/40" />
+                        <TrendingUp className="size-4 text-orange-600/40" />
                         <h3 className="text-lg font-bold font-headline uppercase tracking-widest">Latest Updates</h3>
                        </div>
                        <Button variant="ghost" size="sm" onClick={loadDiscover} className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-indigo-600">Refresh Feed</Button>
@@ -507,7 +517,7 @@ export function ShinigamiExplorer() {
             {view === 'search' && (
               <div className="space-y-8">
                 <div className="flex items-center gap-2 px-2">
-                  <Search className="size-4 text-indigo-600/40" />
+                  <Search className="size-4 text-orange-600/40" />
                   <h3 className="text-lg font-bold font-headline">Search Archive: "{query}"</h3>
                 </div>
                 {results.length > 0 ? renderGrid(results) : (
