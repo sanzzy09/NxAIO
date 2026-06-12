@@ -430,12 +430,11 @@ export function NexAgent() {
                           "p-7 rounded-[2rem] shadow-sm relative group transition-all",
                           msg.role === 'user' ? "bg-indigo-600 text-white rounded-tr-none" : "bg-background border border-primary/5 rounded-tl-none hover:border-primary/10"
                         )}>
-                          <div className="prose prose-sm dark:prose-invert max-w-none 
-                            prose-img:rounded-3xl prose-img:shadow-2xl prose-img:border prose-img:border-primary/5 prose-img:mx-auto prose-img:max-h-[380px] prose-img:object-cover
-                            prose-h3:text-2xl prose-h3:font-bold prose-h3:font-headline prose-h3:mb-4 prose-h3:tracking-tighter
-                            prose-p:leading-relaxed prose-p:font-medium prose-p:opacity-90
-                            prose-li:text-[12px] prose-li:font-medium prose-li:text-muted-foreground/90
-                            prose-table:border-collapse prose-th:border-primary/5 prose-td:border-primary/5 prose-hr:border-primary/10">
+                          <div className={cn(
+                            "prose prose-sm max-w-none",
+                            msg.role === 'user' ? "prose-invert text-white" : "dark:prose-invert text-foreground",
+                            "prose-img:rounded-3xl prose-img:shadow-2xl prose-img:border prose-img:border-primary/5 prose-img:mx-auto prose-img:max-h-[380px] prose-img:object-cover prose-h3:text-2xl prose-h3:font-bold prose-h3:font-headline prose-h3:mb-4 prose-h3:tracking-tighter prose-p:leading-relaxed prose-p:font-medium prose-p:opacity-90 prose-li:text-[12px] prose-li:font-medium prose-li:text-muted-foreground/90 prose-table:border-collapse prose-th:border-primary/5 prose-td:border-primary/5 prose-hr:border-primary/10"
+                          )}>
                             
                             {msg.content.includes('<tool_call>') ? (
                               <div className="space-y-4">
