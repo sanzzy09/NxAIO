@@ -41,20 +41,6 @@ const tools: Tool[] = [
     color: "bg-indigo-600 text-white"
   },
   {
-    id: "dramabox",
-    name: "Dramabox Explorer",
-    description: "Explore and stream latest short dramas and series directly from DramaboxDB mirrors.",
-    icon: <Film className="size-6" />,
-    color: "bg-purple-600 text-white"
-  },
-  {
-    id: "melolo",
-    name: "Melolo Drama Hub",
-    description: "Premium watch short dramas and video reels via Melolo API protocol.",
-    icon: <Smartphone className="size-6" />,
-    color: "bg-indigo-600 text-white"
-  },
-  {
     id: "appmaker",
     name: "NxAIO App Maker",
     description: "Convert any website URL into a native Android APK and App Bundle with custom branding.",

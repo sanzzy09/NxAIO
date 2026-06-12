@@ -91,25 +91,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '**.pstatp.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.byteoversea.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'www.dramaboxdb.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'dramabox.web.id',
         port: '',
         pathname: '/**',
       }
