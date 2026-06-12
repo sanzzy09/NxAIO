@@ -160,7 +160,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       const seriesTitle = breadcrumbs.eq(1).text().trim();
       const seriesUrl = breadcrumbs.eq(1).attr('href');
 
-      // Navigation logic
+      // Navigation logic from chapterData script or breadcrumbs
       const prevA = $('.nextprev a[rel="prev"]').first();
       const nextA = $('.nextprev a[rel="next"]').first();
 

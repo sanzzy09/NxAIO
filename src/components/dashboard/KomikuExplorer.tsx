@@ -29,7 +29,6 @@ import {
 import { cn } from "@/lib/utils";
 import { fetchKomiku, proxyImage } from "@/app/actions/komiku";
 import { useToast } from "@/hooks/use-toast";
-import Image from 'next/image';
 
 type View = 'discover' | 'search' | 'detail' | 'reader';
 
