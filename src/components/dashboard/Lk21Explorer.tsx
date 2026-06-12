@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Clapperboard, 
   Search, 
@@ -16,14 +15,12 @@ import {
   Film,
   Globe,
   PlayCircle,
-  MonitorPlay,
-  X,
+  ExternalLink,
   User,
-  Clock,
-  History,
   TrendingUp,
   AlertCircle,
-  Youtube
+  Youtube,
+  Layers
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -49,7 +46,6 @@ export function Lk21Explorer() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [selectedMovie, setSelectedMovie] = useState<any>(null);
-  const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -64,7 +60,6 @@ export function Lk21Explorer() {
   }) => {
     setLoading(true);
     setError(null);
-    setActiveVideo(null);
     try {
       const res = await fetchLk21(params);
       if (!res.status) throw new Error(res.error);
@@ -72,7 +67,6 @@ export function Lk21Explorer() {
       if (params.mode === 'detail') {
         setSelectedMovie(res.data);
         setView('detail');
-        if (res.data.embed) setActiveVideo(res.data.embed);
       } else {
         setData(res.data);
         setView(params.mode as View);
@@ -144,39 +138,12 @@ export function Lk21Explorer() {
 
   const renderDetail = () => (
     <div className="space-y-10 animate-fade-in-up">
-      {/* Player Section */}
-      {activeVideo && (
-        <div className="space-y-4 animate-fade-in-up">
-          <div className="flex items-center justify-between px-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-              <MonitorPlay className="size-3" /> Theater Mode Active
-            </h4>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setActiveVideo(null)} 
-              className="h-7 px-3 rounded-full text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-destructive/10 hover:text-destructive gap-2 transition-all"
-            >
-               <X className="size-3" /> Close Player
-            </Button>
-          </div>
-          <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/10 group">
-             <iframe 
-              src={activeVideo} 
-              className="w-full h-full border-none" 
-              allowFullScreen
-              allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* Left Column: Poster & Metadata */}
         <div className="lg:col-span-4 space-y-8">
           <div className="relative aspect-[2/3] w-full rounded-[3rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
             <Image src={selectedMovie.thumb || fallbackImage} alt={selectedMovie.title} fill className="object-cover" unoptimized />
-            <div className="absolute top-6 right-6 bg-primary text-primary-foreground p-4 rounded-[1.5rem] flex flex-col items-center gap-1 shadow-2xl">
+            <div className="absolute top-6 right-6 bg-primary text-primary-foreground p-4 rounded-[1.5rem] flex flex-col items-center gap-1 shadow-2xl ring-4 ring-background/10">
               <Star className="size-4 fill-primary-foreground" />
               <span className="text-sm font-bold">{selectedMovie.rating || "-"}</span>
               <span className="text-[8px] uppercase tracking-widest font-bold opacity-60">{selectedMovie.votes} votes</span>
@@ -184,7 +151,7 @@ export function Lk21Explorer() {
           </div>
 
           <div className="bg-secondary/20 p-8 rounded-[2.5rem] border border-primary/5 space-y-6">
-            <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 px-1">Orchestration Meta</h5>
+            <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 px-1">Archive Intel</h5>
             <div className="grid grid-cols-1 gap-5">
                {Object.entries(selectedMovie.meta || {}).map(([key, val]: [string, any]) => (
                  <div key={key} className="flex flex-col gap-1 border-b border-primary/5 pb-3 last:border-0">
@@ -196,6 +163,7 @@ export function Lk21Explorer() {
           </div>
         </div>
 
+        {/* Right Column: Information & External Links */}
         <div className="lg:col-span-8 space-y-10">
           <div className="space-y-6">
             <h2 className="text-4xl lg:text-5xl font-bold font-headline leading-tight tracking-tighter">{selectedMovie.title}</h2>
@@ -208,28 +176,30 @@ export function Lk21Explorer() {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-wrap gap-3 pt-2">
+            {selectedMovie.trailer && (
+              <Button 
+                variant="outline"
+                size="lg" 
+                asChild
+                className="rounded-full h-14 px-10 gap-3 border-red-500/20 bg-red-500/5 text-red-600 font-bold transition-all hover:bg-red-500/10 hover:scale-[1.02]"
+              >
+                <a href={selectedMovie.trailer} target="_blank" rel="noopener noreferrer">
+                   <Youtube className="size-6" /> Official Trailer
+                </a>
+              </Button>
+            )}
+            {selectedMovie.embed && (
               <Button 
                 size="lg" 
-                onClick={() => setView('watch')} 
-                className="rounded-full h-14 px-10 gap-3 bg-primary text-primary-foreground shadow-2xl font-bold transition-all hover:scale-105 active:scale-95 flex-1"
+                asChild
+                className="rounded-full h-14 px-10 gap-3 bg-primary text-primary-foreground shadow-2xl font-bold transition-all hover:scale-[1.02] active:scale-95"
               >
-                 <PlayCircle className="size-6" /> Start Streaming
+                 <a href={selectedMovie.embed} target="_blank" rel="noopener noreferrer">
+                    <PlayCircle className="size-6" /> Launch Main Stream
+                 </a>
               </Button>
-              {selectedMovie.trailer && (
-                <Button 
-                  variant="outline"
-                  size="lg" 
-                  asChild
-                  className="rounded-full h-14 px-8 gap-3 border-primary/10 font-bold transition-all hover:bg-red-500/5 hover:text-red-600 hover:border-red-500/20 flex-1 sm:flex-none"
-                >
-                  <a href={selectedMovie.trailer} target="_blank" rel="noopener noreferrer">
-                     <Youtube className="size-6" /> Watch Trailer
-                  </a>
-                </Button>
-              )}
-            </div>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -243,11 +213,11 @@ export function Lk21Explorer() {
 
           <div className="space-y-6">
             <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2 px-1">
-              <User className="size-3" /> Cast Information
+              <User className="size-3" /> Starring Cast
             </h4>
             <div className="flex flex-wrap gap-2">
                {selectedMovie.cast?.map((name: string, i: number) => (
-                 <Badge key={i} variant="outline" className="px-4 py-1.5 rounded-xl border-primary/10 text-[11px] font-medium text-muted-foreground">
+                 <Badge key={i} variant="outline" className="px-4 py-2 rounded-2xl border-primary/10 bg-secondary/10 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                    {name}
                  </Badge>
                ))}
@@ -256,24 +226,37 @@ export function Lk21Explorer() {
 
           {selectedMovie.servers?.length > 0 && (
             <div className="space-y-6 pt-4">
-               <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2 px-1">
-                 <Globe className="size-3" /> Transmission Mirrors
-               </h4>
+               <div className="flex items-center justify-between border-b border-primary/5 pb-4 px-1">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
+                    <Globe className="size-3" /> External Transmission Mirrors
+                  </h4>
+                  <Badge variant="outline" className="text-[8px] uppercase tracking-widest font-bold opacity-40">Direct Redirects</Badge>
+               </div>
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {selectedMovie.servers.map((srv: any, i: number) => (
                     <Button 
                       key={i} 
+                      asChild
                       variant="outline" 
-                      onClick={() => setActiveVideo(srv.url)}
-                      className={cn(
-                        "h-14 rounded-2xl justify-between px-6 border-primary/5 transition-all font-bold",
-                        activeVideo === srv.url ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/10 hover:bg-secondary/20"
-                      )}
+                      className="h-16 rounded-[1.5rem] justify-between px-6 border-primary/5 bg-secondary/10 hover:bg-primary/5 hover:text-primary transition-all font-bold group shadow-sm"
                     >
-                      <span className="text-xs uppercase tracking-widest">{srv.label}</span>
-                      <PlayCircle className="size-4 opacity-40" />
+                      <a href={srv.url} target="_blank" rel="noopener noreferrer">
+                         <div className="flex items-center gap-4">
+                            <div className="p-2.5 rounded-xl bg-background border border-primary/5 group-hover:border-primary/20">
+                               <Layers className="size-4 opacity-40 group-hover:opacity-100 group-hover:text-primary transition-colors" />
+                            </div>
+                            <span className="text-xs uppercase tracking-widest">{srv.label}</span>
+                         </div>
+                         <ExternalLink className="size-4 opacity-10 group-hover:opacity-100 transition-opacity" />
+                      </a>
                     </Button>
                   ))}
+               </div>
+               <div className="p-6 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/10 flex items-center gap-4">
+                  <Info className="size-5 text-indigo-600/60" />
+                  <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                    Servers above launch external providers. NxAIO does not host this content; we orchestrate high-fidelity links from decentralized archives.
+                  </p>
                </div>
             </div>
           )}
@@ -297,7 +280,7 @@ export function Lk21Explorer() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:max-w-xl">
-             <div className="flex items-center bg-secondary/30 p-1 rounded-full border border-primary/5 shadow-inner overflow-x-auto max-w-full">
+             <div className="flex items-center bg-secondary/30 p-1 rounded-full border border-primary/5 shadow-inner overflow-x-auto max-w-full no-scrollbar">
                 {COUNTRIES.map((c) => (
                   <Button 
                     key={c.id}
@@ -388,3 +371,4 @@ export function Lk21Explorer() {
     </Card>
   );
 }
+
