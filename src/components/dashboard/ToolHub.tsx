@@ -19,7 +19,8 @@ import {
   Video,
   Mail,
   Bot,
-  BookOpen
+  BookOpen,
+  Smartphone
 } from "lucide-react";
 
 interface Tool {
@@ -31,6 +32,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "appmaker",
+    name: "NxAIO App Maker",
+    description: "Convert any website URL into a native Android APK and App Bundle with custom branding.",
+    icon: <Smartphone className="size-6" />,
+    color: "bg-blue-600 text-white"
+  },
   {
     id: "nexagent",
     name: "NexAgent Intelligence",
@@ -189,4 +197,3 @@ export function ToolHub({ onSelect }: { onSelect: (id: string) => void }) {
     </div>
   );
 }
-

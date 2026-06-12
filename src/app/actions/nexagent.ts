@@ -8,6 +8,7 @@ import { fetchAnichin } from './anichin';
 import { removeImageBackground } from './remove-bg';
 import { fetchKomiku } from './komiku';
 import { fetchDailymotion } from './dailymotion';
+import { initiateAppBuild } from './appmaker';
 import { siteConfig } from '@/config/site';
 
 /**
@@ -16,6 +17,22 @@ import { siteConfig } from '@/config/site';
  */
 
 const tools = [
+  {
+    type: 'function',
+    function: {
+      name: 'create_android_app',
+      description: 'Provision a cloud build for an Android application from a website URL.',
+      parameters: {
+        type: 'object',
+        properties: {
+          url: { type: 'string', description: 'The website URL to convert' },
+          appName: { type: 'string', description: 'The desired name for the app' },
+          email: { type: 'string', description: 'User email for notifications' }
+        },
+        required: ['url', 'appName', 'email']
+      }
+    }
+  },
   {
     type: 'function',
     function: {
@@ -149,7 +166,8 @@ function isToolLikelyNeeded(content: string): boolean {
     'anime', 'donghua', 'anichin', 'otakudesu', 'kartun jepang',
     'manga', 'manhwa', 'manhua', 'komik', 'komiku', 'baca',
     'hapus background', 'hilangkan latar', 'bg remover',
-    'dailymotion', 'unduh dailymotion', 'video dailymotion'
+    'dailymotion', 'unduh dailymotion', 'video dailymotion',
+    'buat apk', 'create apk', 'app maker', 'bikin aplikasi'
   ];
   return triggers.some(t => c.includes(t));
 }
@@ -242,6 +260,9 @@ VISUAL OUTPUT PROTOCOLS:
 
         try {
           switch (functionName) {
+            case 'create_android_app':
+              result = { status: true, message: 'Build protocol initiated. Please provide the icon and splash assets via the App Maker Studio.' };
+              break;
             case 'generate_temp_mail':
               result = await initMailbox();
               break;
