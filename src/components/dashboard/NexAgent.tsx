@@ -17,7 +17,8 @@ import {
   MessageSquare,
   GlobeIcon,
   AlertCircle,
-  Trash2
+  Trash2,
+  Keyboard
 } from "lucide-react";
 import { nexAgentChat } from "@/app/actions/nexagent";
 import { cn, getWIBDate } from "@/lib/utils";
@@ -30,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { siteConfig, type TierId } from "@/config/site";
+import { Kbd } from "@/components/ui/kbd";
 import {
   ModelSelector,
   ModelSelectorContent,
@@ -608,6 +610,13 @@ export function NexAgent() {
                           </Context>
                         </PromptInputTools>
 
+                        <div className="hidden sm:flex items-center gap-2 mr-2">
+                           <span className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em]">Send</span>
+                           <Kbd variant="light">
+                              <Kbd.Abbr keyValue="enter" />
+                           </Kbd>
+                        </div>
+
                         <PromptInputSubmit 
                           onClick={() => handleSend()}
                           status={loading ? "streaming" : "ready"} 
@@ -620,12 +629,37 @@ export function NexAgent() {
             </>
           ) : (
             <ScrollArea className="flex-1 p-8">
-              <div className="max-w-3xl mx-auto">
+              <div className="max-w-3xl mx-auto space-y-8">
                 <Agent>
                   <AgentHeader name="NexAgent Neural Orchestrator" model={selectedModelData?.name} />
                   <AgentContent>
                     <AgentInstructions>You are NexAgent, the premium orchestrator of NxAIO. Your goal is to deliver high-fidelity, visual, Indonesian-optimized utility responses using Markdown. prioritized Card Layouts for media search results. If you trigger a tool, provide clear reasoning in the thinking chain. Now with multi-turn persistent memory enabled.</AgentInstructions>
-                    <AgentTools defaultValue={["generate_music", "check_music_status", "search_anime"]}>
+                    <AgentTools defaultValue={["shortcuts", "generate_music", "check_music_status", "search_anime"]}>
+                      <AgentTool value="shortcuts" tool={{ description: "Rapid orchestration logic via keyboard input." }}>
+                         <div className="space-y-3 pt-4 px-2">
+                            <div className="flex items-center justify-between">
+                               <div className="flex items-center gap-3">
+                                  <div className="p-1.5 bg-background rounded-lg border border-primary/5">
+                                     <Keyboard className="size-3 text-muted-foreground/60" />
+                                  </div>
+                                  <span className="text-xs font-bold text-muted-foreground/80">Send Message</span>
+                               </div>
+                               <Kbd variant="light"><Kbd.Abbr keyValue="enter" /></Kbd>
+                            </div>
+                            <div className="flex items-center justify-between">
+                               <div className="flex items-center gap-3">
+                                  <div className="p-1.5 bg-background rounded-lg border border-primary/5">
+                                     <Keyboard className="size-3 text-muted-foreground/60" />
+                                  </div>
+                                  <span className="text-xs font-bold text-muted-foreground/80">New Line</span>
+                               </div>
+                               <div className="flex gap-1.5">
+                                  <Kbd variant="light"><Kbd.Abbr keyValue="shift" /></Kbd>
+                                  <Kbd variant="light"><Kbd.Abbr keyValue="enter" /></Kbd>
+                               </div>
+                            </div>
+                         </div>
+                      </AgentTool>
                       <AgentTool value="generate_temp_mail" tool={agentToolsConfig.generate_temp_mail} />
                       <AgentTool value="check_mailbox" tool={agentToolsConfig.check_mailbox} />
                       <AgentTool value="generate_music" tool={agentToolsConfig.generate_music} />
