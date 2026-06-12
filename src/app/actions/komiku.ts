@@ -5,24 +5,45 @@ import * as cheerio from 'cheerio';
 
 /**
  * Server action to fetch data from Komiku.org
- * Optimized with high-fidelity scraper logic.
+ * Enhanced with High-Fidelity image proxying to bypass hotlink protection.
  */
 
 const BASE_URL = "https://komiku.org";
-const API_URL = "https://api.komiku.org";
 const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
   'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
   'Referer': BASE_URL + '/',
   'Origin': BASE_URL,
   'Connection': 'keep-alive',
-  'Upgrade-Insecure-Requests': '1'
 };
 
-export async function fetchKomiku(input: { mode: string; query?: string; url?: string; page?: number }) {
+/**
+ * Proxies a manga image URL to a data URI to bypass hotlink protection.
+ */
+export async function proxyImage(url: string) {
   try {
-    const { mode, query, url, page = 1 } = input;
+    const res = await axios.get(url, {
+      headers: {
+        ...HEADERS,
+        'Referer': BASE_URL + '/',
+        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+      },
+      responseType: 'arraybuffer',
+      timeout: 15000
+    });
+    const contentType = res.headers['content-type'] || 'image/jpeg';
+    const base64 = Buffer.from(res.data).toString('base64');
+    return `data:${contentType};base64,${base64}`;
+  } catch (error) {
+    console.error('Image Proxy Error:', url);
+    return url; // Fallback to original if proxy fails
+  }
+}
+
+export async function fetchKomiku(input: { mode: string; query?: string; url?: string; page?: number; type?: string; rankType?: string }) {
+  try {
+    const { mode, query, url, page = 1, type = "semua", rankType = "mingguan" } = input;
 
     // --- HOME / LATEST ---
     if (mode === 'home') {
@@ -32,17 +53,17 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
 
       $('#Terbaru .ls2').each((_, el) => {
         const flag = $(el).find('.flag').attr('src');
-        let type = "Manga";
-        if (flag?.includes('jp.png')) type = "Manga";
-        else if (flag?.includes('kr.png')) type = "Manhwa";
-        else if (flag?.includes('cn.png')) type = "Manhua";
+        let mangaType = "Manga";
+        if (flag?.includes('jp.png')) mangaType = "Manga";
+        else if (flag?.includes('kr.png')) mangaType = "Manhwa";
+        else if (flag?.includes('cn.png')) mangaType = "Manhua";
 
         items.push({
           title: $(el).find('h3 a').text().trim(),
           url: BASE_URL + $(el).find('h3 a').attr('href'),
-          type: type,
+          type: mangaType,
           latest: $(el).find('.ls2l').text().trim(),
-          thumbnail: $(el).find('.ls2v img').data('src') || $(el).find('.ls2v img').attr('src')
+          thumbnail: $(el).find('.ls2v img').attr('data-src') || $(el).find('.ls2v img').attr('src')
         });
       });
 
@@ -59,8 +80,8 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       $('.bge').each((_, el) => {
         const title = $(el).find('.kan h3').text().trim();
         const mangaUrl = $(el).find('.bgei a').first().attr('href');
-        const image = $(el).find('.bgei img').attr('src') || $(el).find('.bgei img').data('src');
-        const type = $(el).find('.tpe1_inf b').text().trim();
+        const image = $(el).find('.bgei img').attr('data-src') || $(el).find('.bgei img').attr('src');
+        const mangaType = $(el).find('.tpe1_inf b').text().trim();
         const latest = $(el).find('.new1:last a span:last-child').text().trim();
         
         if (title) {
@@ -68,7 +89,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
             title,
             url: mangaUrl ? (mangaUrl.startsWith('http') ? mangaUrl : BASE_URL + mangaUrl) : null,
             thumbnail: image,
-            type: type || 'Manga',
+            type: mangaType || 'Manga',
             latest: latest || 'New'
           });
         }
@@ -84,7 +105,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       
       const title = $('h1 span').text().trim();
       const altTitle = $('.j2').text().trim();
-      const thumbnail = $('.ims img').attr('src') || $('.ims img').data('src');
+      const thumbnail = $('.ims img').attr('src') || $('.ims img').attr('data-src');
       const synopsis = $('.desc').text().trim();
       
       const info: any = {};
@@ -135,14 +156,17 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       
       const images: string[] = [];
       $('#Baca_Komik img').each((_, el) => {
-        // Try all common attributes for images
-        const src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-lazy-src');
+        // Prioritize data-src/data-lazy-src because Komiku uses placeholders in src
+        const src = $(el).attr('data-src') || $(el).attr('data-lazy-src') || $(el).attr('src');
         if (src && !src.includes('lazy.jpg') && !src.includes('iklan')) {
           images.push(src.trim());
         }
       });
 
       const title = $('h1').first().text().trim() || "Chapter Viewer";
+      
+      // Batch proxy the first 5 images for instant display, the rest will be done by the client
+      // Actually, we'll return original URLs and a proxyImage helper for the client to use
       
       return {
         status: true,
@@ -154,14 +178,26 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       };
     }
 
+    // --- RANKS ---
+    if (mode === 'rank') {
+      const res = await axios.get(BASE_URL, { headers: HEADERS });
+      const $ = cheerio.load(res.data);
+      const items: any[] = [];
+      $(`#rank-${rankType} article.ls4`).each((_, el) => {
+        items.push({
+          rank: $(el).find('.rank-num').text().trim(),
+          title: $(el).find('h4 a').text().trim(),
+          url: BASE_URL + $(el).find('h4 a').attr('href'),
+          views: $(el).find('.ls4s').text().trim(),
+          chapter: $(el).find('.ls24').text().trim(),
+        });
+      });
+      return { status: true, data: items };
+    }
+
     return { status: false, error: 'Invalid mode provided.' };
   } catch (error: any) {
     console.error('Komiku Action Error:', error.message);
-    return { 
-      status: false, 
-      error: error.response?.status === 403 
-        ? "Access Denied by Komiku. They may be blocking our node." 
-        : error.message 
-    };
+    return { status: false, error: error.message };
   }
 }

@@ -16,11 +16,13 @@ import {
   X,
   Theater,
   TrendingUp,
-  LayoutGrid
+  LayoutGrid,
+  Trophy,
+  Star
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
-import { fetchKomiku } from "@/app/actions/komiku";
+import { fetchKomiku, proxyImage } from "@/app/actions/komiku";
 import { useToast } from "@/hooks/use-toast";
 
 type View = 'discover' | 'search' | 'detail' | 'reader';
@@ -31,8 +33,10 @@ export function KomikuExplorer() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [discoverItems, setDiscoverItems] = useState<any[]>([]);
+  const [rankItems, setRankItems] = useState<any[]>([]);
   const [selectedManga, setSelectedManga] = useState<any>(null);
   const [chapterData, setChapterData] = useState<any>(null);
+  const [proxiedImages, setProxiedImages] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const { toast } = useToast();
@@ -45,8 +49,12 @@ export function KomikuExplorer() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchKomiku({ mode: 'home' });
-      if (res.status) setDiscoverItems(res.data.results);
+      const [homeRes, rankRes] = await Promise.all([
+        fetchKomiku({ mode: 'home' }),
+        fetchKomiku({ mode: 'rank', rankType: 'mingguan' })
+      ]);
+      if (homeRes.status) setDiscoverItems(homeRes.data.results);
+      if (rankRes.status) setRankItems(rankRes.data);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -93,12 +101,19 @@ export function KomikuExplorer() {
   const handleRead = async (url: string) => {
     setLoading(true);
     setError(null);
+    setProxiedImages({}); // Reset proxy cache
     try {
       const res = await fetchKomiku({ mode: 'chapter', url });
       if (!res.status) throw new Error(res.error);
       setChapterData(res.data);
       setView('reader');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Background load proxied images
+      res.data.images.forEach(async (imgUrl: string, idx: number) => {
+        const proxied = await proxyImage(imgUrl);
+        setProxiedImages(prev => ({ ...prev, [idx]: proxied }));
+      });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -199,7 +214,7 @@ export function KomikuExplorer() {
                   key={i} 
                   variant="outline" 
                   onClick={() => handleRead(ch.url)}
-                  className="h-16 rounded-2xl justify-between px-6 border-primary/5 hover:bg-orange-500/5 hover:text-orange-600 transition-all font-bold group shadow-sm"
+                  className="h-16 rounded-2xl justify-between px-6 border border-primary/5 hover:bg-orange-500/5 hover:text-orange-600 transition-all font-bold group shadow-sm"
                 >
                   <div className="flex items-center gap-4">
                     <div className="size-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-all">
@@ -241,15 +256,21 @@ export function KomikuExplorer() {
 
       <div className={cn("mx-auto space-y-1", isTheaterMode ? "max-w-4xl" : "max-w-2xl")}>
          {chapterData.images.map((img: string, i: number) => (
-           <div key={i} className="relative w-full overflow-hidden bg-secondary/10 animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
-              <img 
-                src={img} 
-                alt={`Panel ${i+1}`} 
-                className="w-full h-auto select-none"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                onContextMenu={(e) => e.preventDefault()}
-              />
+           <div key={i} className="relative w-full overflow-hidden bg-secondary/10 animate-fade-in-up" style={{ animationDelay: `${i * 30}ms` }}>
+              {proxiedImages[i] ? (
+                <img 
+                  src={proxiedImages[i]} 
+                  alt={`Panel ${i+1}`} 
+                  className="w-full h-auto select-none"
+                  loading="lazy"
+                  onContextMenu={(e) => e.preventDefault()}
+                />
+              ) : (
+                <div className="h-[400px] w-full flex flex-col items-center justify-center gap-4 text-muted-foreground/40">
+                   <Loader2 className="size-8 animate-spin" />
+                   <p className="text-[10px] font-bold uppercase tracking-widest">Handshaking with Panel {i+1}...</p>
+                </div>
+              )}
            </div>
          ))}
       </div>
@@ -261,7 +282,7 @@ export function KomikuExplorer() {
       <CardHeader className="p-8 sm:p-12 pb-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-500/10 text-orange-600 rounded-2xl">
+            <div className="p-3 bg-orange-500/10 text-orange-600 rounded-2xl shadow-inner">
               <BookOpen className="size-8" />
             </div>
             <div>
@@ -273,7 +294,7 @@ export function KomikuExplorer() {
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:max-w-xl">
             <div className="flex items-center bg-secondary/30 p-1 rounded-full border border-primary/5 shadow-inner">
                <Button variant="ghost" size="sm" onClick={() => setView('discover')} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", view === 'discover' ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
-                  <TrendingUp className="size-3" /> Trending
+                  <TrendingUp className="size-3" /> Discover
                </Button>
                <Button variant="ghost" size="sm" onClick={() => setView('search')} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", (view === 'search' || view === 'detail' || view === 'reader') ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
                   <LayoutGrid className="size-3" /> Archive
@@ -328,12 +349,42 @@ export function KomikuExplorer() {
         ) : (
           <div className="min-h-[400px]">
             {view === 'discover' && (
-               <div className="space-y-8">
-                  <div className="flex items-center gap-2 px-2">
-                    <TrendingUp className="size-4 text-orange-600/40" />
-                    <h3 className="text-lg font-bold font-headline uppercase tracking-widest">Latest Sync</h3>
+               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                  <div className="lg:col-span-8 space-y-8">
+                    <div className="flex items-center gap-2 px-2">
+                      <TrendingUp className="size-4 text-orange-600/40" />
+                      <h3 className="text-lg font-bold font-headline uppercase tracking-widest">Latest Sync</h3>
+                    </div>
+                    {renderGrid(discoverItems)}
                   </div>
-                  {renderGrid(discoverItems)}
+                  <div className="lg:col-span-4 space-y-8">
+                    <div className="flex items-center gap-2 px-2">
+                       <Trophy className="size-4 text-yellow-500/60" />
+                       <h3 className="text-lg font-bold font-headline uppercase tracking-widest">Weekly Ranks</h3>
+                    </div>
+                    <div className="space-y-3">
+                       {rankItems.map((item, idx) => (
+                         <div 
+                          key={idx} 
+                          onClick={() => handleDetail(item.url)}
+                          className="flex items-center justify-between p-5 rounded-2xl bg-secondary/20 border border-primary/5 hover:border-orange-500/20 transition-all cursor-pointer group shadow-sm"
+                         >
+                            <div className="flex items-center gap-4">
+                               <div className="size-10 rounded-xl bg-orange-600/10 text-orange-600 flex items-center justify-center font-bold font-headline text-lg group-hover:bg-orange-600 group-hover:text-white transition-all">
+                                 {idx + 1}
+                               </div>
+                               <div className="space-y-0.5">
+                                 <p className="text-sm font-bold line-clamp-1 group-hover:text-orange-600 transition-colors">{item.title}</p>
+                                 <p className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">{item.chapter}</p>
+                               </div>
+                            </div>
+                            <div className="text-right">
+                               <span className="text-[10px] font-bold text-muted-foreground/40 uppercase">{item.views}</span>
+                            </div>
+                         </div>
+                       ))}
+                    </div>
+                  </div>
                </div>
             )}
             {view === 'search' && (
