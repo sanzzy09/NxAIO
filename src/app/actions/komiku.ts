@@ -2,16 +2,17 @@
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import PDFDocument from 'pdfkit';
+import { PDFDocument } from 'pdf-lib';
 import sharp from 'sharp';
 
 /**
  * Server action to fetch data from Komiku.org
- * Enhanced with High-Fidelity image proxying and PDF generation.
+ * Enhanced with High-Fidelity image proxying and a resilient PDF engine (pdf-lib).
  */
 
 const BASE_URL = "https://komiku.org";
 const API_URL = "https://api.komiku.org";
+
 const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -28,6 +29,7 @@ const HEADERS = {
 
 /**
  * Proxies a manga image URL to a data URI to bypass hotlink protection.
+ * Optimized for Komiku's distributed CDN mirrors.
  */
 export async function proxyImage(url: string) {
   try {
@@ -38,6 +40,7 @@ export async function proxyImage(url: string) {
         'Sec-Fetch-Dest': 'image',
         'Sec-Fetch-Mode': 'no-cors',
         'Sec-Fetch-Site': 'cross-site',
+        'Referer': BASE_URL + '/',
       },
       responseType: 'arraybuffer',
       timeout: 20000
@@ -201,6 +204,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
               chapter_number: chapterData.chapter,
               total_pages: images.length,
               images: images,
+              url: url,
               has_next: chapterData.hasNext || false,
               next_chapter_url: chapterData.hasNext ? chapterData.link.replace(/[^/]+$/, '') + (parseInt(chapterData.chapter) + 1) + '/' : null
           }
@@ -232,53 +236,67 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
 }
 
 /**
- * Downloads chapter images and generates a PDF.
- * Returns the PDF as a base64 string.
+ * Downloads chapter images and generates a PDF using pdf-lib.
+ * pdf-lib is used to avoid Helvetica.afm filesystem errors common in pdfkit.
  */
 export async function downloadChapterPDF(url: string) {
   try {
     const chapterRes = await fetchKomiku({ mode: 'chapter', url });
-    if (!chapterRes.status || !chapterRes.data.images.length) throw new Error("Could not find chapter images.");
+    if (!chapterRes.status || !chapterRes.data.images.length) {
+      throw new Error("Could not find chapter images or chapter data is invalid.");
+    }
 
-    const { images, series, chapter } = chapterRes.data;
-    const doc = new PDFDocument({ autoFirstPage: false, margin: 0 });
+    const { images } = chapterRes.data;
+    const pdfDoc = await PDFDocument.create();
     
-    const buffers: Buffer[] = [];
-    doc.on('data', (chunk) => buffers.push(chunk));
+    // Set Metadata
+    pdfDoc.setTitle(`${chapterRes.data.series} - ${chapterRes.data.chapter}`);
+    pdfDoc.setAuthor('NxAIO Komiku Explorer');
 
     for (const img of images) {
       try {
         const imgRes = await axios.get(img.url, {
-          headers: HEADERS,
+          headers: {
+            ...HEADERS,
+            'Referer': BASE_URL + '/',
+          },
           responseType: 'arraybuffer',
-          timeout: 15000
+          timeout: 20000
         });
-        const imgBuffer = Buffer.from(imgRes.data);
-        const meta = await sharp(imgBuffer).metadata();
         
-        if (meta.width && meta.height) {
-          doc.addPage({ size: [meta.width, meta.height] });
-          doc.image(imgBuffer, 0, 0, { width: meta.width, height: meta.height });
+        const imgBuffer = Buffer.from(imgRes.data);
+        const contentType = imgRes.headers['content-type'] || '';
+        
+        let image;
+        if (contentType.includes('png')) {
+          image = await pdfDoc.embedPng(imgBuffer);
+        } else {
+          // Assume JPEG/JPG for everything else
+          image = await pdfDoc.embedJpg(imgBuffer);
         }
-      } catch (e) {
-        console.error(`Failed to include page ${img.page} in PDF:`, e);
+
+        const page = pdfDoc.addPage([image.width, image.height]);
+        page.drawImage(image, {
+          x: 0,
+          y: 0,
+          width: image.width,
+          height: image.height,
+        });
+      } catch (e: any) {
+        console.error(`Failed to embed page ${img.page}:`, e.message);
+        // Continue to next page rather than failing entire PDF
       }
     }
 
-    doc.end();
+    const pdfBytes = await pdfDoc.save();
 
-    return new Promise<{ status: boolean; data?: string; error?: string }>((resolve) => {
-      doc.on('end', () => {
-        const finalBuffer = Buffer.concat(buffers);
-        resolve({
-          status: true,
-          data: finalBuffer.toString('base64')
-        });
-      });
-      doc.on('error', (err) => resolve({ status: false, error: err.message }));
-    });
+    return {
+      status: true,
+      data: Buffer.from(pdfBytes).toString('base64')
+    };
 
   } catch (error: any) {
+    console.error('PDF Generation Error:', error.message);
     return { status: false, error: error.message };
   }
 }
