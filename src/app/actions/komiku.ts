@@ -2,12 +2,10 @@
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { PDFDocument } from 'pdf-lib';
-import sharp from 'sharp';
 
 /**
- * Server action to fetch data from Komiku.org
- * Enhanced with High-Fidelity image proxying and a resilient PDF engine.
+ * Server action to fetch data from Komiku.org.
+ * Focused on search, rankings, and series metadata.
  */
 
 const BASE_URL = "https://komiku.org";
@@ -19,40 +17,10 @@ const HEADERS = {
   'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
   'Referer': BASE_URL + '/',
   'Origin': BASE_URL,
-  'Sec-Fetch-Dest': 'document',
-  'Sec-Fetch-Mode': 'navigate',
-  'Sec-Fetch-Site': 'same-origin',
-  'Sec-Fetch-User': '?1',
-  'Upgrade-Insecure-Requests': '1',
   'Connection': 'keep-alive',
 };
 
-/**
- * Proxies a manga image URL to a data URI to bypass hotlink protection.
- */
-export async function proxyImage(url: string) {
-  try {
-    const res = await axios.get(url, {
-      headers: {
-        ...HEADERS,
-        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-        'Sec-Fetch-Dest': 'image',
-        'Sec-Fetch-Mode': 'no-cors',
-        'Sec-Fetch-Site': 'cross-site',
-        'Referer': BASE_URL + '/',
-      },
-      responseType: 'arraybuffer',
-      timeout: 20000
-    });
-    const contentType = res.headers['content-type'] || 'image/jpeg';
-    const base64 = Buffer.from(res.data).toString('base64');
-    return `data:${contentType};base64,${base64}`;
-  } catch (error) {
-    return null;
-  }
-}
-
-export async function fetchKomiku(input: { mode: string; query?: string; url?: string; page?: number; type?: string; rankType?: string }) {
+export async function fetchKomiku(input: { mode: string; query?: string; url?: string; page?: number; rankType?: string }) {
   try {
     const { mode, query, url, page = 1, rankType = "mingguan" } = input;
 
@@ -159,54 +127,6 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       };
     }
 
-    if (mode === 'chapter') {
-      const response = await axios.get(url!, { headers: HEADERS, timeout: 30000 });
-      const $ = cheerio.load(response.data);
-
-      let chapterData: any = {};
-      const scriptMatch = response.data.match(/var chapterData = ({[\s\S]*?});/);
-      if (scriptMatch) {
-          try {
-              const jsonLike = scriptMatch[1];
-              const jsonStr = jsonLike
-                .replace(/(\w+):/g, '"$1":')
-                .replace(/'/g, '"')
-                .replace(/,(\s*})/g, '$1');
-              chapterData = JSON.parse(jsonStr);
-          } catch (e) {}
-      }
-
-      const images: any[] = [];
-      $('#Baca_Komik img').each((i, el) => {
-          const src = $(el).attr('data-src') || $(el).attr('src');
-          if (src && !src.includes('lazy.jpg')) {
-              images.push({
-                  page: i + 1,
-                  url: src.trim().startsWith('//') ? 'https:' + src.trim() : src.trim()
-              });
-          }
-      });
-
-      const seriesTitle = $('.breadcrumb [itemprop="name"]').eq(1).text().trim() || 
-                          $('.breadcrumb a').eq(1).text().trim() || 
-                          chapterData.series || "Series";
-      const chapterTitle = $('h1').first().text().trim() || "Chapter";
-
-      return {
-          status: true,
-          data: {
-              series: seriesTitle,
-              chapter: chapterTitle,
-              chapter_number: chapterData.chapter,
-              total_pages: images.length,
-              images: images,
-              url: url,
-              has_next: chapterData.hasNext || false,
-              next_chapter_url: chapterData.hasNext ? chapterData.link.replace(/[^/]+$/, '') + (parseInt(chapterData.chapter) + 1) + '/' : null
-          }
-      };
-    }
-
     if (mode === 'rank') {
       const res = await axios.get(BASE_URL, { headers: HEADERS });
       const $ = cheerio.load(res.data);
@@ -224,64 +144,6 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
     }
 
     return { status: false, error: 'Invalid mode' };
-  } catch (error: any) {
-    return { status: false, error: error.message };
-  }
-}
-
-/**
- * Downloads chapter images and generates a PDF.
- * Uses sharp to convert images (like WebP) to PNG before embedding in PDF.
- */
-export async function downloadChapterPDF(url: string) {
-  try {
-    const chapterRes = await fetchKomiku({ mode: 'chapter', url });
-    if (!chapterRes.status || !chapterRes.data.images.length) {
-      throw new Error("Could not find chapter images.");
-    }
-
-    const { images, series, chapter } = chapterRes.data;
-    const pdfDoc = await PDFDocument.create();
-    
-    pdfDoc.setTitle(`${series} - ${chapter}`);
-    pdfDoc.setAuthor('NxAIO Komiku Explorer');
-
-    for (const img of images) {
-      try {
-        const imgRes = await axios.get(img.url, {
-          headers: {
-            ...HEADERS,
-            'Referer': BASE_URL + '/',
-          },
-          responseType: 'arraybuffer',
-          timeout: 20000
-        });
-        
-        // Convert to PNG using sharp to ensure compatibility with pdf-lib (handles WebP/AVIF)
-        const pngBuffer = await sharp(imgRes.data).png().toBuffer();
-        const image = await pdfDoc.embedPng(pngBuffer);
-
-        const page = pdfDoc.addPage([image.width, image.height]);
-        page.drawImage(image, {
-          x: 0,
-          y: 0,
-          width: image.width,
-          height: image.height,
-        });
-      } catch (e: any) {
-        console.error(`Failed to embed page ${img.page}:`, e.message);
-      }
-    }
-
-    const pdfBytes = await pdfDoc.save();
-
-    return {
-      status: true,
-      data: Buffer.from(pdfBytes).toString('base64'),
-      series,
-      chapter
-    };
-
   } catch (error: any) {
     return { status: false, error: error.message };
   }

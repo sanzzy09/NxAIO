@@ -13,35 +13,26 @@ import {
   ChevronLeft,
   Library,
   AlertCircle,
-  X,
-  Theater,
   TrendingUp,
   LayoutGrid,
   Trophy,
-  Download,
   ExternalLink,
   BookMarked
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { fetchKomiku, proxyImage, downloadChapterPDF } from "@/app/actions/komiku";
-import { useToast } from "@/hooks/use-toast";
+import { fetchKomiku } from "@/app/actions/komiku";
 
-type View = 'discover' | 'search' | 'detail' | 'reader';
+type View = 'discover' | 'search' | 'detail';
 
 export function KomikuExplorer() {
   const [view, setView] = useState<View>('discover');
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [downloading, setDownloading] = useState<string | null>(null);
   const [results, setResults] = useState<any[]>([]);
   const [discoverItems, setDiscoverItems] = useState<any[]>([]);
   const [rankItems, setRankItems] = useState<any[]>([]);
   const [selectedManga, setSelectedManga] = useState<any>(null);
-  const [chapterData, setChapterData] = useState<any>(null);
-  const [proxiedImages, setProxiedImages] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
-  const [isTheaterMode, setIsTheaterMode] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadDiscover();
@@ -97,64 +88,6 @@ export function KomikuExplorer() {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleRead = async (url: string) => {
-    setLoading(true);
-    setError(null);
-    setProxiedImages({}); 
-    try {
-      const res = await fetchKomiku({ mode: 'chapter', url });
-      if (!res.status) throw new Error(res.error);
-      setChapterData(res.data);
-      setView('reader');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      const images = res.data.images;
-      // Load in batches to prevent hitting browser concurrency limits too hard
-      for (let i = 0; i < images.length; i++) {
-        proxyImage(images[i].url).then(proxied => {
-          if (proxied) {
-            setProxiedImages(prev => ({ ...prev, [i]: proxied }));
-          }
-        });
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDownload = async (url: string, name: string) => {
-    setDownloading(url);
-    try {
-      const res = await downloadChapterPDF(url);
-      if (!res.status || !res.data) throw new Error(res.error || "Download failed.");
-      
-      const byteCharacters = atob(res.data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      
-      const downloadUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = `${name.replace(/\s+/g, '-')}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
-
-      toast({ title: "Download Complete", description: `PDF generated for ${name}` });
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Download Failed", description: err.message });
-    } finally {
-      setDownloading(null);
     }
   };
 
@@ -252,104 +185,31 @@ export function KomikuExplorer() {
                </h4>
                <span className="text-[10px] font-bold uppercase text-muted-foreground/40">{selectedManga.chapters?.length} Chapters Indexed</span>
             </div>
-            <div className="grid grid-cols-1 gap-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="grid grid-cols-1 gap-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
               {selectedManga.chapters?.map((ch: any, i: number) => (
-                <div 
+                <Button 
                   key={i} 
-                  className="flex items-center gap-3 animate-fade-in-up"
-                  style={{ animationDelay: `${i * 20}ms` }}
+                  asChild
+                  variant="outline" 
+                  className="h-16 rounded-2xl justify-between px-6 border border-primary/5 bg-secondary/10 hover:bg-orange-500/5 hover:text-orange-600 transition-all font-bold group shadow-sm"
                 >
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleRead(ch.url)}
-                    className="h-16 flex-1 rounded-2xl justify-between px-6 border border-primary/5 bg-secondary/10 hover:bg-orange-500/5 hover:text-orange-600 transition-all font-bold group shadow-sm"
-                  >
+                  <a href={ch.url} target="_blank" rel="noopener noreferrer">
                     <div className="flex items-center gap-4">
                       <div className="size-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-all">
                         {selectedManga.chapters.length - i}
                       </div>
                       <span className="truncate max-w-[250px]">{ch.name}</span>
                     </div>
-                    <span className="text-[10px] opacity-40 font-mono uppercase tracking-widest">{ch.date}</span>
-                  </Button>
-                  <Button 
-                    size="icon" 
-                    variant="secondary"
-                    disabled={downloading === ch.url}
-                    onClick={() => handleDownload(ch.url, `${selectedManga.title} - ${ch.name}`)}
-                    className="h-16 w-16 rounded-2xl bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-500/10 flex-shrink-0"
-                  >
-                    {downloading === ch.url ? <Loader2 className="size-5 animate-spin" /> : <Download className="size-5" />}
-                  </Button>
-                </div>
+                    <div className="flex items-center gap-4">
+                       <span className="text-[10px] opacity-40 font-mono uppercase tracking-widest">{ch.date}</span>
+                       <ExternalLink className="size-4 opacity-20 group-hover:opacity-100" />
+                    </div>
+                  </a>
+                </Button>
               ))}
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-
-  const renderReader = () => (
-    <div className={cn("space-y-8 animate-fade-in-up", isTheaterMode && "max-w-none")}>
-      <div className="flex items-center justify-between sticky top-24 z-30 bg-background/80 backdrop-blur-md p-4 rounded-3xl border border-primary/5 shadow-xl">
-         <div className="space-y-0.5">
-            <h3 className="text-sm font-bold font-headline">{chapterData.series} - {chapterData.chapter}</h3>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase">{chapterData.images.length} Panels Orchestrated</p>
-         </div>
-         <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setIsTheaterMode(!isTheaterMode)} 
-              className={cn("rounded-full text-[10px] font-bold uppercase gap-2", isTheaterMode && "bg-primary text-primary-foreground")}
-            >
-              <Theater className="size-3" /> {isTheaterMode ? "Exit Theater" : "Theater Mode"}
-            </Button>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              onClick={() => handleDownload(chapterData.url, `${chapterData.series} - ${chapterData.chapter}`)}
-              className="rounded-full text-[10px] font-bold uppercase gap-2 bg-orange-600 text-white hover:bg-orange-700"
-              disabled={!!downloading}
-            >
-              {downloading === chapterData.url ? <Loader2 className="size-3 animate-spin" /> : <Download className="size-3" />} PDF
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setView('detail')} className="rounded-full text-[10px] font-bold uppercase gap-2 hover:bg-destructive/5 hover:text-destructive">
-               <X className="size-3" /> Close
-            </Button>
-         </div>
-      </div>
-
-      <div className={cn("mx-auto space-y-1", isTheaterMode ? "max-w-4xl" : "max-w-2xl")}>
-         {chapterData.images.map((img: any, i: number) => (
-           <div key={i} className="relative w-full overflow-hidden bg-secondary/10 min-h-[400px] flex items-center justify-center">
-              {proxiedImages[i] ? (
-                <img 
-                  src={proxiedImages[i]} 
-                  alt={`Panel ${i+1}`} 
-                  className="w-full h-auto select-none"
-                  onContextMenu={(e) => e.preventDefault()}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground/40 animate-pulse">
-                   <Loader2 className="size-8 animate-spin" />
-                   <p className="text-[10px] font-bold uppercase tracking-widest">Handshaking Panel {i+1}...</p>
-                </div>
-              )}
-           </div>
-         ))}
-      </div>
-
-      <div className="flex flex-col items-center gap-6 py-12 border-t border-primary/5">
-        {chapterData.has_next && (
-           <Button onClick={() => handleRead(chapterData.next_chapter_url)} className="h-16 rounded-[2rem] px-12 bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-2xl shadow-orange-500/20">
-             Next Chapter <ChevronLeft className="size-4 ml-2 rotate-180" />
-           </Button>
-        )}
-        <Button variant="ghost" onClick={() => setView('detail')} className="rounded-full font-bold uppercase text-[10px] tracking-widest opacity-40 hover:opacity-100 transition-opacity">
-           Return to Directory
-        </Button>
       </div>
     </div>
   );
@@ -373,7 +233,7 @@ export function KomikuExplorer() {
                <Button variant="ghost" size="sm" onClick={() => setView('discover')} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", view === 'discover' ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
                   <TrendingUp className="size-3" /> Discover
                </Button>
-               <Button variant="ghost" size="sm" onClick={() => setView('search')} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", (view === 'search' || view === 'detail' || view === 'reader') ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
+               <Button variant="ghost" size="sm" onClick={() => setView('search')} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", (view === 'search' || view === 'detail') ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
                   <LayoutGrid className="size-3" /> Archive
                </Button>
             </div>
@@ -481,11 +341,9 @@ export function KomikuExplorer() {
               </div>
             )}
             {view === 'detail' && selectedManga && renderDetail()}
-            {view === 'reader' && chapterData && renderReader()}
           </div>
         )}
       </CardContent>
     </Card>
   );
 }
-
