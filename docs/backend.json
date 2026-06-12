@@ -168,6 +168,20 @@
         "usage": { "type": "object" }
       },
       "required": ["role", "content", "timestamp"]
+    },
+    "AppBuildRecord": {
+      "title": "AppBuildRecord",
+      "description": "Record of an Android app build process.",
+      "type": "object",
+      "properties": {
+        "appId": { "type": "string" },
+        "appName": { "type": "string" },
+        "url": { "type": "string" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "result": { "type": "object" }
+      },
+      "required": ["appId", "appName", "url", "status", "timestamp"]
     }
   },
   "auth": {
@@ -213,6 +227,10 @@
     "/users/{userId}/agent_messages/{messageId}": {
       "schema": "ChatMessage",
       "description": "Persistent AI conversation history for continuity."
+    },
+    "/users/{userId}/app_builds/{buildId}": {
+      "schema": "AppBuildRecord",
+      "description": "User's Android app build history."
     }
   }
 }
