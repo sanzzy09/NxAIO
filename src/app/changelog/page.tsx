@@ -15,7 +15,9 @@ import {
   History,
   CheckCircle2,
   Cpu,
-  Globe
+  Globe,
+  Palette,
+  CreditCard
 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
@@ -24,6 +26,39 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 const updates = [
+  {
+    version: "1.2.0",
+    date: "Nov 07, 2026",
+    title: "Identity & Branding Sync",
+    status: "Stable",
+    description: "A comprehensive update to our brand identity and financial orchestration layer. This release focuses on visual fidelity and real-time billing transparency.",
+    features: [
+      {
+        icon: <Sparkles className="size-4" />,
+        name: "Official Brand Orchestration",
+        desc: "Integrated the new official NxAIO emblem across the core shell with precision scaling and positioning.",
+        color: "bg-indigo-500/10 text-indigo-600"
+      },
+      {
+        icon: <CreditCard className="size-4" />,
+        name: "Secure Billing Node",
+        desc: "Tier upgrades are now routed through a verified WhatsApp engineering node for high-fidelity manual provisioning.",
+        color: "bg-emerald-500/10 text-emerald-600"
+      },
+      {
+        icon: <Clock className="size-4" />,
+        name: "Real-time Billing Ticker",
+        desc: "Implemented a live, high-precision countdown for subscription expirations in the billing settings.",
+        color: "bg-blue-500/10 text-blue-600"
+      },
+      {
+        icon: <Palette className="size-4" />,
+        name: "Luminance Optimization",
+        desc: "Optimized Dark Mode HSL variables to reduce eye strain and eliminate high-contrast 'blinding' white surfaces.",
+        color: "bg-orange-500/10 text-orange-600"
+      }
+    ]
+  },
   {
     version: "1.1.0",
     date: "Nov 06, 2026",
@@ -137,7 +172,7 @@ export default function ChangelogPage() {
               <div className="flex items-center gap-4 pt-4 border-t border-primary/5">
                  <div className="flex flex-col">
                     <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground/40">Build Type</span>
-                    <span className="text-sm font-bold font-headline">Production Alpha</span>
+                    <span className="text-sm font-bold font-headline">Production Stable</span>
                  </div>
                  <div className="w-px h-10 bg-primary/5" />
                  <div className="flex flex-col">
