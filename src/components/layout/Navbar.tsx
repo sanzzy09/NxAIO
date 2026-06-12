@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
+import { siteConfig } from '@/config/site';
 
 export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
@@ -35,14 +36,6 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const navLinks = [
-    { label: 'Tools', href: '/tools', onClick: onDashboardClick },
-    { label: 'Pricing', href: '/pricing' },
-    { label: 'FAQ', href: '/faq' },
-    { label: 'Contact', href: '/contact' },
-    { label: 'Changelog', href: '/changelog' },
-  ];
 
   const handleSignOut = async () => {
     await auth.signOut();
@@ -63,11 +56,11 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
           <div className="w-8 h-8 bg-primary-foreground rounded-lg flex items-center justify-center text-primary group-hover:rotate-12 transition-transform duration-300">
             <Boxes className="w-5 h-5" />
           </div>
-          <span className="font-headline font-bold text-lg md:text-xl tracking-tight">NxAIO</span>
+          <span className="font-headline font-bold text-lg md:text-xl tracking-tight">{siteConfig.name}</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
+          {siteConfig.navigation.map((link) => (
             <Link
               key={link.label}
               href={link.href}
@@ -86,7 +79,7 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
           />
 
           <Button variant="ghost" size="icon" asChild className="hidden sm:flex rounded-full text-primary-foreground/60 hover:text-primary-foreground hover:bg-white/10">
-            <Link href="https://github.com/sanzzy09" target="_blank" rel="noopener noreferrer">
+            <Link href={siteConfig.links.github} target="_blank" rel="noopener noreferrer">
               <Github className="w-5 h-5" />
             </Link>
           </Button>
@@ -159,7 +152,7 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
         <div className="absolute top-full left-4 right-4 mt-2 p-8 rounded-[2.5rem] bg-primary border border-white/10 shadow-2xl animate-fade-in-up md:hidden z-50">
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-6">
-              {navLinks.map((link) => (
+              {siteConfig.navigation.map((link) => (
                 <Link
                   key={link.label}
                   href={link.href}

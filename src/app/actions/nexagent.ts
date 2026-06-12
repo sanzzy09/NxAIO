@@ -5,6 +5,7 @@ import { initMailbox } from './temp-mail';
 import { createMusicJob } from './remusic';
 import { vidboxSearch } from './vidbox';
 import { fetchAnichin } from './anichin';
+import { siteConfig } from '@/config/site';
 
 /**
  * NexAgent Server Action
@@ -96,13 +97,13 @@ export async function nexAgentChat(messages: any[], modelId: string = "nvidia/ll
     baseURL: "https://openrouter.ai/api/v1",
     apiKey: apiKey,
     defaultHeaders: {
-      "HTTP-Referer": "https://nxaio.app",
-      "X-Title": "NxAIO NexAgent",
+      "HTTP-Referer": siteConfig.url,
+      "X-Title": `${siteConfig.name} NexAgent`,
     }
   });
 
   const systemInstructions = `
-You are NexAgent, the premium AI orchestrator for NxAIO. Your goal is to deliver high-fidelity, visual responses using Markdown. 
+You are NexAgent, the premium AI orchestrator for ${siteConfig.name}. Your goal is to deliver high-fidelity, visual responses using Markdown. 
 
 MANDATORY PROTOCOL: DO NOT USE CODE BLOCKS (triple backticks) to display cards or data. Generate the Markdown directly so it renders as UI elements.
 

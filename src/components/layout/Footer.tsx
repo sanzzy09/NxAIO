@@ -1,8 +1,9 @@
 "use client";
 
 import React from 'react';
-import { Boxes, Github, Twitter, Linkedin, MessageSquare, ShieldCheck, Cpu } from 'lucide-react';
+import { Boxes, Github, Twitter, Linkedin, ShieldCheck, Cpu } from 'lucide-react';
 import Link from 'next/link';
+import { siteConfig } from '@/config/site';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -19,19 +20,19 @@ export function Footer() {
               <div className="w-8 h-8 bg-primary-foreground rounded-lg flex items-center justify-center text-primary group-hover:rotate-12 transition-transform">
                 <Boxes className="w-5 h-5" />
               </div>
-              <span className="font-headline font-bold text-2xl tracking-tight">NxAIO</span>
+              <span className="font-headline font-bold text-2xl tracking-tight">{siteConfig.name}</span>
             </Link>
             <p className="text-primary-foreground/60 text-sm leading-relaxed max-w-xs">
-              The high-performance utility suite for modern developers. We orchestrate AI logic, anonymous identities, and creative assets with unparalleled speed.
+              {siteConfig.description}
             </p>
             <div className="flex gap-4">
-              <Link href="#" className="text-primary-foreground/40 hover:text-primary-foreground transition-colors">
+              <Link href={siteConfig.links.twitter} className="text-primary-foreground/40 hover:text-primary-foreground transition-colors">
                 <Twitter className="w-5 h-5" />
               </Link>
-              <Link href="#" className="text-primary-foreground/40 hover:text-primary-foreground transition-colors">
+              <Link href={siteConfig.links.github} className="text-primary-foreground/40 hover:text-primary-foreground transition-colors">
                 <Github className="w-5 h-5" />
               </Link>
-              <Link href="#" className="text-primary-foreground/40 hover:text-primary-foreground transition-colors">
+              <Link href={siteConfig.links.linkedin} className="text-primary-foreground/40 hover:text-primary-foreground transition-colors">
                 <Linkedin className="w-5 h-5" />
               </Link>
             </div>
@@ -92,7 +93,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-medium uppercase tracking-widest text-primary-foreground/40">
-          <p>© {currentYear} NxAIO Labs. Engineered for performance.</p>
+          <p>© {currentYear} {siteConfig.author}. Engineered for performance.</p>
           <div className="flex gap-8">
             <Link href="/privacy" className="hover:text-primary-foreground transition-colors">Privacy</Link>
             <Link href="/privacy" className="hover:text-primary-foreground transition-colors">Terms</Link>

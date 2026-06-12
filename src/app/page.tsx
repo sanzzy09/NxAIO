@@ -14,6 +14,7 @@ import { GradualSpacingText } from '@/components/ui/gradual-spacing-text';
 import Link from 'next/link';
 import { useFirestore, useDoc } from '@/firebase';
 import { doc, increment, setDoc, updateDoc } from 'firebase/firestore';
+import { siteConfig } from '@/config/site';
 
 export default function Home() {
   const db = useFirestore();
@@ -62,7 +63,7 @@ export default function Home() {
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-lg animate-fade-in-up [animation-delay:400ms]">
-                The minimalist control center for creative developers. Chain AI logic, optimize assets, and preview content in one snappy interface.
+                {siteConfig.description}
               </p>
               
               <div className="flex flex-wrap gap-4 pt-2 animate-fade-in-up [animation-delay:600ms]">
