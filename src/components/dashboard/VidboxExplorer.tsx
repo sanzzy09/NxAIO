@@ -287,7 +287,6 @@ export function VidboxExplorer() {
                allowFullScreen
                allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
                referrerPolicy="no-referrer"
-               sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
              />
            )}
         </div>
@@ -318,7 +317,7 @@ export function VidboxExplorer() {
           
           <div className="p-6 rounded-[2.5rem] bg-secondary/20 border border-primary/5 flex items-center gap-4">
              <MonitorPlay className="size-5 text-primary/40" />
-             <p className="text-[11px] text-muted-foreground leading-relaxed">
+             <p className="text-11px text-muted-foreground leading-relaxed">
                Streaming from distributed CDN servers. If a server fails or displays too many ads, try switching to another mirror in the list above.
              </p>
           </div>
@@ -343,7 +342,7 @@ export function VidboxExplorer() {
 
           <form onSubmit={handleSearch} className="flex gap-2 w-full lg:max-w-md">
             <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground opacity-40 group-focus-within:text-primary transition-colors" />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground opacity-40 group-focus-within:text-primary transition-colors" />
               <Input 
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}

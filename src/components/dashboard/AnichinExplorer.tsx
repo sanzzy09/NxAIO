@@ -301,7 +301,6 @@ export function AnichinExplorer() {
             allowFullScreen
             allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
             referrerPolicy="no-referrer"
-            sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
           />
         </div>
 
