@@ -54,12 +54,12 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
           className="flex items-center group"
           onClick={onDashboardClick}
         >
-          <div className="w-12 h-12 relative group-hover:rotate-12 transition-transform duration-300 flex items-center justify-center">
+          <div className="w-48 h-12 md:w-64 md:h-16 relative group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
             <Image 
               src={siteConfig.logo} 
               alt={siteConfig.name} 
-              width={48} 
-              height={48} 
+              width={256} 
+              height={64} 
               className="object-contain"
               priority
               unoptimized

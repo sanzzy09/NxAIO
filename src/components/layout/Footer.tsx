@@ -29,12 +29,12 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-6">
             <Link href="/" className="flex items-center group w-fit">
-              <div className="w-20 h-20 relative group-hover:rotate-12 transition-transform flex items-center justify-center">
+              <div className="w-64 h-24 relative group-hover:scale-105 transition-transform flex items-center justify-center">
                 <Image 
                   src={siteConfig.logo} 
                   alt={siteConfig.name} 
-                  width={80} 
-                  height={80} 
+                  width={256} 
+                  height={96} 
                   className="object-contain"
                   unoptimized
                 />
