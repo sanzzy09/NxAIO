@@ -6,12 +6,12 @@ import { createMusicJob, pollMusicStatus } from './remusic';
 import { vidboxSearch } from './vidbox';
 import { fetchAnichin } from './anichin';
 import { removeImageBackground } from './remove-bg';
+import { fetchKomiku } from './komiku';
 import { siteConfig } from '@/config/site';
 
 /**
  * NexAgent Server Action
  * Handles chat interactions via OpenRouter and processes tool calls.
- * Includes multi-turn history mapping for conversation memory.
  */
 
 const tools = [
@@ -108,12 +108,23 @@ const tools = [
         required: ['query']
       }
     }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'search_manga',
+      description: 'Searches for manga, manhwa, or manhua in the Komiku database.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Series title' }
+        },
+        required: ['query']
+      }
+    }
   }
 ];
 
-/**
- * Heuristic check to see if user input likely requires tool usage.
- */
 function isToolLikelyNeeded(content: string): boolean {
   const c = content.toLowerCase();
   const triggers = [
@@ -121,7 +132,7 @@ function isToolLikelyNeeded(content: string): boolean {
     'musik', 'music', 'lagu', 'nyanyi', 'compose', 'remusic', 'status musik', 'sudah jadi',
     'film', 'movie', 'nonton', 'bioskop', 'movieku', 'vidbox', 'tayang',
     'anime', 'donghua', 'anichin', 'otakudesu', 'kartun jepang',
-    'rekomendasi film', 'rekomendasi anime',
+    'manga', 'manhwa', 'manhua', 'komik', 'komiku', 'baca',
     'hapus background', 'hilangkan latar', 'bg remover'
   ];
   return triggers.some(t => c.includes(t));
@@ -149,29 +160,20 @@ export async function nexAgentChat(messages: any[], modelId: string = "google/ge
   const systemInstructions = `
 You are NexAgent, the premium AI orchestrator for ${siteConfig.name}. Your goal is to deliver high-fidelity, visual responses using Markdown. 
 
-MEMORY PROTOCOL: You have multi-turn conversation memory. You can remember previous actions, tokens, and data results. If you generated music or a mailbox in a previous turn, use the retrieved IDs/tokens from your history to check their status if the user asks.
-
-MANDATORY PROTOCOL: DO NOT USE CODE BLOCKS (triple backticks) to display cards or data. Generate the Markdown directly so it renders as UI elements.
-
 VISUAL OUTPUT PROTOCOLS:
-1. **Media Responses (Movies/Anime)**:
+1. **Media Responses (Movies/Anime/Manga)**:
    - FORMAT AS A VISUAL CARD:
    - Always start with the title in an H3 header: ### [Judul]
    - Display poster URL prominently: ![Poster](url)
    - List details in this format:
      - **Tahun**: [Year]
      - **Rating**: ⭐ [Rating]
-     - [▶️ Nonton Sekarang](URL)
+     - [▶️ Nonton/Baca Sekarang](URL)
    - Use a horizontal divider (---) to separate multiple results.
 
-2. **Music / Status**:
-   - If checking status, provide a progress report: **Status**: [Status] ([Percentage]%)
-   - Bold any **Ticket IDs** or **Song IDs**.
-
-3. **Tone**: Premium, technical, and concise. Respond in Indonesian for media results and status reports.
+2. **Tone**: Premium, technical, and concise. Respond in Indonesian for media results and status reports.
 `;
 
-  // Reconstruct chat history for the model including tool calls and results
   const chatHistory: any[] = [];
   for (const m of messages) {
     if (m.role === 'user') {
@@ -180,8 +182,6 @@ VISUAL OUTPUT PROTOCOLS:
       const assistantMsg: any = { role: "assistant", content: m.content };
       if (m.toolCalls) assistantMsg.tool_calls = m.toolCalls;
       chatHistory.push(assistantMsg);
-      
-      // If we have tool results stored, we MUST inject them after the assistant message
       if (m.toolResults) {
         for (const res of m.toolResults) {
           chatHistory.push({
@@ -214,7 +214,6 @@ VISUAL OUTPUT PROTOCOLS:
 
     const response = await client.chat.completions.create(chatParams);
     const message = response.choices[0].message;
-    const usage = response.usage;
 
     if (message.tool_calls && message.tool_calls.length > 0) {
       const toolMessages: any[] = [];
@@ -248,6 +247,9 @@ VISUAL OUTPUT PROTOCOLS:
             case 'search_anime':
               result = await fetchAnichin({ mode: 'search', query: args.query });
               break;
+            case 'search_manga':
+              result = await fetchKomiku({ mode: 'search', query: args.query });
+              break;
             default:
               result = { status: false, error: 'Tool not implemented.' };
           }
@@ -255,14 +257,12 @@ VISUAL OUTPUT PROTOCOLS:
           result = { status: false, error: e.message };
         }
 
-        const toolMsg = {
+        toolMessages.push({
           tool_call_id: toolCall.id,
           role: "tool",
           name: functionName,
           content: JSON.stringify(result),
-        };
-        
-        toolMessages.push(toolMsg);
+        });
         toolResultsForPersistence.push({ id: toolCall.id, name: functionName, result });
       }
 
@@ -295,11 +295,10 @@ VISUAL OUTPUT PROTOCOLS:
     return {
       role: "assistant",
       content: message.content || "I'm not sure how to respond to that.",
-      usage: usage
+      usage: response.usage
     };
 
   } catch (error: any) {
-    console.error('NexAgent Chat Error:', error);
     return {
       role: "assistant",
       content: `Nexus connection failure: ${error.message || 'Unknown error'}`

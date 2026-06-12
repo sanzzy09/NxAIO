@@ -18,7 +18,8 @@ import {
   Music,
   Video,
   Mail,
-  Bot
+  Bot,
+  BookOpen
 } from "lucide-react";
 
 interface Tool {
@@ -36,6 +37,13 @@ const tools: Tool[] = [
     description: "Autonomous AI agent that can orchestrate all your NxAIO utilities via chat.",
     icon: <Bot className="size-6" />,
     color: "bg-indigo-600 text-white"
+  },
+  {
+    id: "komiku",
+    name: "Komiku Explorer",
+    description: "Premium Manga, Manhwa, and Manhua directory with high-fidelity reader.",
+    icon: <BookOpen className="size-6" />,
+    color: "bg-orange-50 text-orange-600"
   },
   {
     id: "tempmail",

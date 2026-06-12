@@ -18,6 +18,7 @@ import { VidboxExplorer } from '@/components/dashboard/VidboxExplorer';
 import { MoviekuExplorer } from '@/components/dashboard/MoviekuExplorer';
 import { TempMailTool } from '@/components/dashboard/TempMailTool';
 import { NexAgent } from '@/components/dashboard/NexAgent';
+import { KomikuExplorer } from '@/components/dashboard/KomikuExplorer';
 import { LayoutGrid, ChevronLeft, Loader2 } from 'lucide-react';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
@@ -45,6 +46,7 @@ export default function ToolsPage() {
   const renderTool = () => {
     switch (activeTool) {
       case "nexagent": return <NexAgent />;
+      case "komiku": return <KomikuExplorer />;
       case "tempmail": return <TempMailTool />;
       case "movieku": return <MoviekuExplorer />;
       case "vidbox": return <VidboxExplorer />;
