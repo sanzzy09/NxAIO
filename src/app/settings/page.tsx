@@ -78,6 +78,38 @@ export default function SettingsPage() {
   const isSubActive = !subEnd || subEnd > new Date();
   const isPro = role !== 'free' && isSubActive;
 
+  // Real-time Billing Countdown
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+
+  useEffect(() => {
+    if (!subEnd || !isPro) {
+      setTimeRemaining("");
+      return;
+    }
+
+    const updateTimer = () => {
+      const now = new Date();
+      const diff = subEnd.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setTimeRemaining("Expired");
+        return;
+      }
+
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / (1000 * 60)) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+
+      setTimeRemaining(`${d}d ${h}h ${m}m ${s}s remaining`);
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(timer);
+  }, [subEnd, isPro]);
+
   const [formData, setFormData] = useState({
     displayName: "",
     photoURL: "",
@@ -205,25 +237,23 @@ export default function SettingsPage() {
       }
 
       // 2. Cleanup bi-directional follow records
-      // Find who I follow and remove me from their followers
       const followingSnapshot = await getDocs(collection(db, "users", user.uid, "following"));
       for (const followDoc of followingSnapshot.docs) {
         const targetUserId = followDoc.id;
         const batch = writeBatch(db);
         batch.delete(doc(db, "users", targetUserId, "followers", user.uid));
         batch.update(doc(db, "users", targetUserId), { followersCount: increment(-1) });
-        batch.delete(followDoc.ref); // Also delete my following entry
+        batch.delete(followDoc.ref);
         await batch.commit();
       }
 
-      // Find who follows me and remove them from following me
       const followersSnapshot = await getDocs(collection(db, "users", user.uid, "followers"));
       for (const followerDoc of followersSnapshot.docs) {
         const followerId = followerDoc.id;
         const batch = writeBatch(db);
         batch.delete(doc(db, "users", followerId, "following", user.uid));
         batch.update(doc(db, "users", followerId), { followingCount: increment(-1) });
-        batch.delete(followerDoc.ref); // Also delete my follower entry
+        batch.delete(followerDoc.ref);
         await batch.commit();
       }
 
@@ -238,7 +268,7 @@ export default function SettingsPage() {
         await deleteDoc(userRef);
       }
       
-      // 5. Delete Auth User (The most critical part - will trigger re-auth if token is old)
+      // 5. Delete Auth User
       await deleteUser(user);
       
       toast({
@@ -248,7 +278,6 @@ export default function SettingsPage() {
       
       router.push("/login");
     } catch (error: any) {
-      // Handle Firebase sensitive operation error
       if (error.code === 'auth/requires-recent-login') {
         toast({
           variant: "destructive",
@@ -585,7 +614,9 @@ export default function SettingsPage() {
                           "text-xs uppercase tracking-widest font-medium opacity-60",
                           role === 'free' ? "text-muted-foreground" : "text-primary-foreground"
                         )}>
-                          {isPro ? `Active Subscription · Expires Oct 2025` : 'Standard Identity · Free Forever'}
+                          {role === 'free' ? 'Standard Identity · Free Forever' : (
+                            isPro ? (subEnd ? `Expires ${subEnd.toLocaleDateString()} · ${timeRemaining}` : 'Active · Lifetime Access') : 'Subscription Expired'
+                          )}
                         </span>
                       </div>
                       <Button variant={role === 'free' ? "default" : "outline"} asChild className={cn(
