@@ -24,7 +24,8 @@ import {
   ChevronRight,
   ExternalLink,
   Plus,
-  UploadCloud
+  UploadCloud,
+  AlertCircle
 } from "lucide-react";
 import { initiateAppBuild, checkBuildStatus, getAppDownloadLinks } from "@/app/actions/appmaker";
 import { useToast } from "@/hooks/use-toast";
@@ -86,11 +87,11 @@ export function AppMakerTool() {
   // Auto-detect pending builds on load
   useEffect(() => {
     if (builds && builds.length > 0 && !activeAppId && !loading) {
-      const pending = builds.find(b => b.status === 'building' || b.status === 'pending');
+      const pending = builds.find(b => (b as any).status === 'building' || (b as any).status === 'pending');
       if (pending) {
-        setActiveAppId(pending.appId);
+        setActiveAppId((pending as any).appId);
         setLoading(true);
-        setStatus(`Resuming: ${pending.appName} compilation...`);
+        setStatus(`Resuming: ${(pending as any).appName} compilation...`);
         setActiveTab('studio');
       }
     }
@@ -120,6 +121,7 @@ export function AppMakerTool() {
     try {
       const res = await initiateAppBuild({
         ...formData,
+        email: formData.email || user.email || "",
         icon,
         splash
       });
@@ -184,7 +186,7 @@ export function AppMakerTool() {
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [activeAppId, user, toast, formData.appName]);
+  }, [activeAppId, user, toast, formData.appName, db]);
 
   const handleDeleteBuild = async (id: string) => {
     if (!user) return;
@@ -273,7 +275,7 @@ export function AppMakerTool() {
                             <span className="text-[10px] font-bold uppercase tracking-widest">Build Node Logic</span>
                          </div>
                          <p className="text-[11px] font-mono text-muted-foreground/60 leading-relaxed italic">
-                           > {LOG_MESSAGES[logIndex]}
+                           {">"} {LOG_MESSAGES[logIndex]}
                          </p>
                       </div>
                    </div>
@@ -542,3 +544,4 @@ export function AppMakerTool() {
     </Card>
   );
 }
+
