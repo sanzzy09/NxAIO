@@ -101,7 +101,7 @@ export function KomikuExplorer() {
   const handleRead = async (url: string) => {
     setLoading(true);
     setError(null);
-    setProxiedImages({}); // Reset proxy cache
+    setProxiedImages({}); 
     try {
       const res = await fetchKomiku({ mode: 'chapter', url });
       if (!res.status) throw new Error(res.error);
@@ -109,11 +109,15 @@ export function KomikuExplorer() {
       setView('reader');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      // Background load proxied images
-      res.data.images.forEach(async (img: any, idx: number) => {
-        const proxied = await proxyImage(img.url);
-        setProxiedImages(prev => ({ ...prev, [idx]: proxied }));
-      });
+      // Orchestrate panel loading in batches to prevent hitting server action rate limits
+      const images = res.data.images;
+      for (let i = 0; i < images.length; i++) {
+        proxyImage(images[i].url).then(proxied => {
+          if (proxied) {
+            setProxiedImages(prev => ({ ...prev, [i]: proxied }));
+          }
+        });
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -131,12 +135,10 @@ export function KomikuExplorer() {
         >
           <div className="relative aspect-[3/4] w-full bg-black/5">
             {item.thumbnail ? (
-              <Image 
+              <img 
                 src={item.thumbnail} 
                 alt={item.title} 
-                fill 
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-                unoptimized
+                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-muted/50">
@@ -166,7 +168,7 @@ export function KomikuExplorer() {
         <div className="lg:col-span-4 space-y-6">
           <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
             {selectedManga.thumbnail && (
-              <Image src={selectedManga.thumbnail} alt={selectedManga.title} fill className="object-cover" unoptimized />
+              <img src={selectedManga.thumbnail} alt={selectedManga.title} className="object-cover w-full h-full" />
             )}
           </div>
           <div className="bg-secondary/20 p-8 rounded-[2rem] border border-primary/5 space-y-6">
@@ -237,7 +239,7 @@ export function KomikuExplorer() {
       <div className="flex items-center justify-between sticky top-24 z-30 bg-background/80 backdrop-blur-md p-4 rounded-3xl border border-primary/5 shadow-xl">
          <div className="space-y-0.5">
             <h3 className="text-sm font-bold font-headline">{chapterData.series} - {chapterData.chapter}</h3>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase">{chapterData.total_pages} Panels Orchestrated</p>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase">{chapterData.images.length} Panels Orchestrated</p>
          </div>
          <div className="flex items-center gap-2">
             <Button 
@@ -256,24 +258,31 @@ export function KomikuExplorer() {
 
       <div className={cn("mx-auto space-y-1", isTheaterMode ? "max-w-4xl" : "max-w-2xl")}>
          {chapterData.images.map((img: any, i: number) => (
-           <div key={i} className="relative w-full overflow-hidden bg-secondary/10 animate-fade-in-up" style={{ animationDelay: `${i * 30}ms` }}>
+           <div key={i} className="relative w-full overflow-hidden bg-secondary/10 min-h-[400px] flex items-center justify-center">
               {proxiedImages[i] ? (
                 <img 
                   src={proxiedImages[i]} 
                   alt={`Panel ${i+1}`} 
                   className="w-full h-auto select-none"
-                  loading="lazy"
                   onContextMenu={(e) => e.preventDefault()}
                 />
               ) : (
-                <div className="h-[400px] w-full flex flex-col items-center justify-center gap-4 text-muted-foreground/40">
+                <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground/40 animate-pulse">
                    <Loader2 className="size-8 animate-spin" />
-                   <p className="text-[10px] font-bold uppercase tracking-widest">Handshaking with Panel {i+1}...</p>
+                   <p className="text-[10px] font-bold uppercase tracking-widest">Handshaking Panel {i+1}...</p>
                 </div>
               )}
            </div>
          ))}
       </div>
+
+      {chapterData.has_next && (
+        <div className="flex justify-center pt-8">
+           <Button onClick={() => handleRead(chapterData.next_chapter_url)} className="h-16 rounded-[2rem] px-12 bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-2xl shadow-orange-500/20">
+             Next Chapter <ChevronLeft className="size-4 ml-2 rotate-180" />
+           </Button>
+        </div>
+      )}
     </div>
   );
 

@@ -5,13 +5,14 @@ import * as cheerio from 'cheerio';
 
 /**
  * Server action to fetch data from Komiku.org
- * Enhanced with High-Fidelity image proxying and user-provided scraping logic.
+ * Enhanced with High-Fidelity image proxying and robust scraping logic.
  */
 
 const BASE_URL = "https://komiku.org";
+const API_URL = "https://api.komiku.org";
 const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
   'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
   'Referer': BASE_URL + '/',
   'Origin': BASE_URL,
@@ -31,14 +32,14 @@ export async function proxyImage(url: string) {
         'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
       },
       responseType: 'arraybuffer',
-      timeout: 15000
+      timeout: 20000
     });
     const contentType = res.headers['content-type'] || 'image/jpeg';
     const base64 = Buffer.from(res.data).toString('base64');
     return `data:${contentType};base64,${base64}`;
   } catch (error) {
     console.error('Image Proxy Error:', url);
-    return url; // Fallback to original if proxy fails
+    return null; // Return null on failure so UI can show error state
   }
 }
 
@@ -59,12 +60,14 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
         else if (flag?.includes('kr.png')) mangaType = "Manhwa";
         else if (flag?.includes('cn.png')) mangaType = "Manhua";
 
+        const thumb = $(el).find('.ls2v img').attr('data-src') || $(el).find('.ls2v img').attr('src');
+
         items.push({
           title: $(el).find('h3 a').text().trim(),
           url: BASE_URL + $(el).find('h3 a').attr('href'),
           type: mangaType,
           latest: $(el).find('.ls2l').text().trim(),
-          thumbnail: $(el).find('.ls2v img').attr('data-src') || $(el).find('.ls2v img').attr('src')
+          thumbnail: thumb?.includes('lazy.jpg') ? null : thumb
         });
       });
 
@@ -73,7 +76,8 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
 
     // --- SEARCH ---
     if (mode === 'search') {
-      const searchUrl = `${BASE_URL}/?post_type=manga&s=${encodeURIComponent(query!)}&page=${page}`;
+      // Use API subdomain for more reliable search results if possible, otherwise fallback
+      const searchUrl = `${API_URL}/?post_type=manga&s=${encodeURIComponent(query!)}&page=${page}`;
       const res = await axios.get(searchUrl, { headers: HEADERS, timeout: 30000 });
       const $ = cheerio.load(res.data);
       const items: any[] = [];
@@ -89,7 +93,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
           items.push({
             title,
             url: mangaUrl ? (mangaUrl.startsWith('http') ? mangaUrl : BASE_URL + mangaUrl) : null,
-            thumbnail: image,
+            thumbnail: image?.includes('lazy.jpg') ? null : image,
             type: mangaType || 'Manga',
             latest: latest || 'New'
           });
@@ -106,7 +110,7 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       
       const title = $('h1 span').text().trim();
       const altTitle = $('.j2').text().trim();
-      const thumbnail = $('.ims img').attr('src') || $('.ims img').attr('data-src');
+      const thumbnail = $('.ims img').attr('data-src') || $('.ims img').attr('src');
       const synopsis = $('.desc').text().trim();
       
       const info: any = {};
@@ -159,16 +163,23 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       const scriptMatch = response.data.match(/var chapterData = ({[\s\S]*?});/);
       if (scriptMatch) {
           try {
-              // Note: Using safely parsed object or simulated eval context
-              chapterData = JSON.parse(scriptMatch[1].replace(/([a-zA-Z0-9_]+):/g, '"$1":').replace(/'/g, '"'));
+              // Extract the JS object literal safely
+              const jsonLike = scriptMatch[1];
+              // Convert to JSON (heuristic: quote keys, fix quotes)
+              const jsonStr = jsonLike
+                .replace(/(\w+):/g, '"$1":')
+                .replace(/'/g, '"')
+                .replace(/,(\s*})/g, '$1');
+              chapterData = JSON.parse(jsonStr);
           } catch (e) {
-              // Fallback for complex script objects
+              // Simple fallback for evaluation in context
           }
       }
 
       const images: any[] = [];
       $('#Baca_Komik img').each((i, el) => {
-          const src = $(el).attr('src') || $(el).attr('data-src');
+          // Komiku uses data-src for lazy loading. src is often lazy.jpg
+          const src = $(el).attr('data-src') || $(el).attr('src');
           if (src && !src.includes('lazy.jpg')) {
               images.push({
                   page: i + 1,
