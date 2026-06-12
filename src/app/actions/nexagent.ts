@@ -113,7 +113,7 @@ const tools = [
     type: 'function',
     function: {
       name: 'search_manga',
-      description: 'Searches for manga, manhwa, or manhua in the Komiku database.',
+      description: 'Searches for premium manga, manhwa, or manhua in the Komiku high-fidelity database.',
       parameters: {
         type: 'object',
         properties: {

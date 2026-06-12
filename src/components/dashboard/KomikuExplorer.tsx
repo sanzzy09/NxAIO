@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,25 +15,46 @@ import {
   AlertCircle,
   X,
   History,
-  Theater
+  Theater,
+  TrendingUp,
+  Home,
+  LayoutGrid
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { fetchKomiku } from "@/app/actions/komiku";
 import { useToast } from "@/hooks/use-toast";
 
-type View = 'search' | 'detail' | 'reader';
+type View = 'discover' | 'search' | 'detail' | 'reader';
 
 export function KomikuExplorer() {
-  const [view, setView] = useState<View>('search');
+  const [view, setView] = useState<View>('discover');
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [discoverItems, setDiscoverItems] = useState<any[]>([]);
   const [selectedManga, setSelectedManga] = useState<any>(null);
   const [chapterData, setChapterData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadDiscover();
+  }, []);
+
+  const loadDiscover = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetchKomiku({ mode: 'home' });
+      if (res.status) setDiscoverItems(res.data.results);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,14 +65,6 @@ export function KomikuExplorer() {
     try {
       const res = await fetchKomiku({ mode: 'search', query });
       if (!res.status) throw new Error(res.error);
-      
-      if (res.data.results.length === 0) {
-        toast({
-          title: "No Results",
-          description: `Could not find any titles matching "${query}". Try a different keyword.`,
-          variant: "warning"
-        });
-      }
       
       setResults(res.data.results);
       setView('search');
@@ -94,9 +107,9 @@ export function KomikuExplorer() {
     }
   };
 
-  const renderGrid = () => (
+  const renderGrid = (items: any[]) => (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">
-      {results.map((item, i) => (
+      {items.map((item, i) => (
         <div 
           key={i} 
           onClick={() => handleDetail(item.url)}
@@ -121,9 +134,6 @@ export function KomikuExplorer() {
                  {item.type}
                </Badge>
             </div>
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-               <BookOpen className="size-10 text-white drop-shadow-2xl" />
-            </div>
           </div>
           <div className="p-4 space-y-1">
             <h4 className="font-headline font-bold text-xs line-clamp-2 leading-tight group-hover:text-orange-600 transition-colors">
@@ -146,7 +156,7 @@ export function KomikuExplorer() {
             )}
           </div>
           <div className="bg-secondary/20 p-8 rounded-[2rem] border border-primary/5 space-y-6">
-             <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Series Data</h5>
+             <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Series Metadata</h5>
              <div className="space-y-4">
                 {Object.entries(selectedManga.info || {}).map(([key, val]: [string, any]) => (
                   <div key={key} className="flex flex-col gap-1">
@@ -161,7 +171,8 @@ export function KomikuExplorer() {
         <div className="lg:col-span-8 space-y-10">
           <div className="space-y-4">
              <h2 className="text-4xl font-bold font-headline leading-tight tracking-tight">{selectedManga.title}</h2>
-             <div className="flex flex-wrap gap-2">
+             {selectedManga.altTitle && <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{selectedManga.altTitle}</p>}
+             <div className="flex flex-wrap gap-2 pt-2">
                 {selectedManga.genres?.map((g: string, i: number) => (
                   <Badge key={i} variant="secondary" className="bg-primary/5 text-primary/60 border-none px-3 py-1 rounded-lg text-[9px] uppercase font-bold">
                     {g}
@@ -181,7 +192,7 @@ export function KomikuExplorer() {
 
           <div className="space-y-6">
             <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 flex items-center gap-2">
-              <Library className="size-3" /> Available Chapters
+              <Library className="size-3" /> Chapter Archive
             </h4>
             <div className="grid grid-cols-1 gap-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               {selectedManga.chapters?.slice().reverse().map((ch: any, i: number) => (
@@ -212,7 +223,7 @@ export function KomikuExplorer() {
       <div className="flex items-center justify-between sticky top-24 z-30 bg-background/80 backdrop-blur-md p-4 rounded-3xl border border-primary/5 shadow-xl">
          <div className="space-y-0.5">
             <h3 className="text-sm font-bold font-headline">{chapterData.title}</h3>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase">{chapterData.total} Panels Loaded</p>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase">{chapterData.total} Panels Orchestrated</p>
          </div>
          <div className="flex items-center gap-2">
             <Button 
@@ -242,13 +253,6 @@ export function KomikuExplorer() {
            </div>
          ))}
       </div>
-
-      <div className="text-center py-12 border-t border-primary/5 space-y-4">
-         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">End of Chapter</p>
-         <Button onClick={() => setView('detail')} variant="outline" className="rounded-full px-8 h-12 font-bold uppercase text-[10px] tracking-widest">
-            Back to Series Info
-         </Button>
-      </div>
     </div>
   );
 
@@ -261,44 +265,55 @@ export function KomikuExplorer() {
               <BookOpen className="size-8" />
             </div>
             <div>
-              <CardTitle className="font-headline text-3xl">Komiku Explorer</CardTitle>
-              <CardDescription>Premium Manga, Manhwa, and Manhua directory with high-fidelity reader.</CardDescription>
+              <CardTitle className="font-headline text-3xl tracking-tight">Komiku Explorer</CardTitle>
+              <CardDescription className="text-sm font-medium">Premium library orchestrator for Manga, Manhwa, and Manhua.</CardDescription>
             </div>
           </div>
 
-          <form onSubmit={handleSearch} className="flex gap-2 w-full lg:max-w-md">
-            <div className="relative flex-1 group">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground opacity-40 group-focus-within:text-orange-600 transition-colors" />
-              <Input 
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search series titles..." 
-                className="h-14 pl-14 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-orange-500/20"
-              />
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:max-w-xl">
+            <div className="flex items-center bg-secondary/30 p-1 rounded-full border border-primary/5 shadow-inner">
+               <Button variant="ghost" size="sm" onClick={() => setView('discover')} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", view === 'discover' ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
+                  <TrendingUp className="size-3" /> Trending
+               </Button>
+               <Button variant="ghost" size="sm" onClick={() => setView('search')} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", (view === 'search' || view === 'detail' || view === 'reader') ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
+                  <LayoutGrid className="size-3" /> Archive
+               </Button>
             </div>
-            <Button 
-              type="submit" 
-              disabled={loading || !query.trim()} 
-              className="h-14 px-8 rounded-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-xl shadow-orange-500/10 transition-all active:scale-95"
-            >
-              {loading ? <Loader2 className="size-4 animate-spin" /> : "Search"}
-            </Button>
-          </form>
+
+            <form onSubmit={handleSearch} className="flex-1 flex gap-2 w-full">
+              <div className="relative flex-1 group">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground opacity-40 group-focus-within:text-orange-600 transition-colors" />
+                <Input 
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search series titles..." 
+                  className="h-12 pl-14 rounded-full bg-secondary/30 border-primary/5 focus-visible:ring-orange-500/20"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                disabled={loading || !query.trim()} 
+                className="h-12 px-6 rounded-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-xl shadow-orange-500/10"
+              >
+                {loading ? <Loader2 className="size-4 animate-spin" /> : "Search"}
+              </Button>
+            </form>
+          </div>
         </div>
       </CardHeader>
       
       <CardContent className="p-8 sm:p-12 pt-0 space-y-10">
-        {view !== 'search' && (
+        {(view !== 'discover' && view !== 'search') && (
           <Button 
             variant="ghost" 
-            onClick={() => setView('search')} 
+            onClick={() => setView(query ? 'search' : 'discover')} 
             className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-orange-600 -ml-4"
           >
-            <ChevronLeft className="size-3" /> Back to Results
+            <ChevronLeft className="size-3" /> Back to Dashboard
           </Button>
         )}
 
-        {loading && view === 'search' ? (
+        {loading && (view === 'discover' || view === 'search') ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
             <Loader2 className="size-12 animate-spin text-orange-500/20" />
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Polling comic database...</p>
@@ -306,24 +321,36 @@ export function KomikuExplorer() {
         ) : error ? (
           <div className="p-16 text-center bg-destructive/5 rounded-[3rem] border border-destructive/10 space-y-4 animate-fade-in-up">
              <AlertCircle className="size-12 text-destructive mx-auto opacity-30" />
-             <p className="text-sm font-bold text-destructive">Operation Interrupted</p>
+             <p className="text-sm font-bold text-destructive">Handshake Interrupted</p>
              <p className="text-xs text-destructive/60 font-medium">{error}</p>
-             <Button variant="outline" size="sm" onClick={() => setView('search')} className="rounded-full px-8 h-10 font-bold uppercase text-[10px] tracking-widest">Acknowledge</Button>
+             <Button variant="outline" size="sm" onClick={() => setView('discover')} className="rounded-full px-8 h-10 font-bold uppercase text-[10px] tracking-widest">Acknowledge</Button>
           </div>
         ) : (
           <div className="min-h-[400px]">
+            {view === 'discover' && (
+               <div className="space-y-8">
+                  <div className="flex items-center gap-2 px-2">
+                    <TrendingUp className="size-4 text-orange-600/40" />
+                    <h3 className="text-lg font-bold font-headline uppercase tracking-widest">Latest Sync</h3>
+                  </div>
+                  {renderGrid(discoverItems)}
+               </div>
+            )}
             {view === 'search' && (
-              results.length > 0 ? renderGrid() : (
-                <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
-                   <div className="size-20 rounded-full bg-secondary/50 flex items-center justify-center border border-primary/5">
-                      <Library className="size-10 text-muted-foreground/20" />
-                   </div>
-                   <div className="space-y-1">
-                      <h4 className="text-lg font-bold font-headline">Archive Waiting</h4>
-                      <p className="text-sm text-muted-foreground">Search for a series title to begin orchestrating your library.</p>
-                   </div>
+              <div className="space-y-8">
+                <div className="flex items-center gap-2 px-2">
+                  <Search className="size-4 text-orange-600/40" />
+                  <h3 className="text-lg font-bold font-headline">Archive Results: "{query}"</h3>
                 </div>
-              )
+                {results.length > 0 ? renderGrid(results) : (
+                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+                     <div className="size-20 rounded-full bg-secondary/50 flex items-center justify-center border border-primary/5">
+                        <Library className="size-10 text-muted-foreground/20" />
+                     </div>
+                     <p className="text-sm text-muted-foreground">Archive waiting for input.</p>
+                  </div>
+                )}
+              </div>
             )}
             {view === 'detail' && selectedManga && renderDetail()}
             {view === 'reader' && chapterData && renderReader()}
