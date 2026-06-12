@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "app-logo",
+      "description": "NxAIO abstract minimalist logo",
+      "imageUrl": "https://picsum.photos/seed/nxaio-logo/400/400",
+      "imageHint": "minimalist tech logo"
+    },
+    {
+      "id": "hero-abstract",
+      "description": "Minimalist geometric abstraction",
+      "imageUrl": "https://picsum.photos/seed/abstract/1200/600",
+      "imageHint": "minimalist abstract"
+    },
+    {
+      "id": "mockup-phone",
+      "description": "Smartphone mockup for previewer",
+      "imageUrl": "https://picsum.photos/seed/phone/800/1200",
+      "imageHint": "smartphone device"
+    },
+    {
+      "id": "media-fallback",
+      "description": "Generic fallback for missing manga or anime covers",
+      "imageUrl": "https://picsum.photos/seed/media-placeholder/400/600",
+      "imageHint": "manga cover"
+    }
+  ]
 }

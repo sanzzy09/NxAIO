@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Tv, 
   Search, 
@@ -273,7 +272,7 @@ export function AnichinExplorer() {
   const renderWatch = () => (
     <div className="space-y-10 animate-fade-in-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-         <div className="space-y-2">
+         <div className="space-y-1">
             <h2 className="text-2xl font-bold font-headline leading-tight">{data.name}</h2>
             <p className="text-xs font-bold text-orange-600 uppercase tracking-widest">{data.title}</p>
             <button onClick={() => handleFetch({ mode: 'detail', slug: data.rootSlug })} className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-orange-600 underline underline-offset-4">
