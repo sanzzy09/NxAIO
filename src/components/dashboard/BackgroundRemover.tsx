@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useRef, useMemo } from 'react';
@@ -31,12 +30,7 @@ import { doc, setDoc, collection, query, orderBy, serverTimestamp, deleteDoc } f
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-
-const ROLE_LIMITS = {
-  free: 3,
-  pro: 10,
-  sultan: 20
-};
+import { siteConfig, type TierId } from "@/config/site";
 
 export function BackgroundRemover() {
   const { user } = useUser();
@@ -54,8 +48,9 @@ export function BackgroundRemover() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const role = (profile?.role as keyof typeof ROLE_LIMITS) || 'free';
-  const limit = ROLE_LIMITS[role];
+  const role = (profile?.role as TierId) || 'free';
+  const tierConfig = siteConfig.tiers[role];
+  const limit = tierConfig.limits.remover;
   const usage = profile?.removerUsage || { count: 0, lastReset: getWIBDate() };
 
   // Daily Reset Check
@@ -211,7 +206,7 @@ export function BackgroundRemover() {
                 <Zap className="size-4" />
              </div>
              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Daily Credits ({role})</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Daily Credits ({tierConfig.name})</p>
                 <p className="text-sm font-bold font-headline">{remainingCredits} left</p>
              </div>
           </div>

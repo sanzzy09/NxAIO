@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -31,12 +30,7 @@ import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
 import { doc, setDoc, collection, query, orderBy, limit, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-
-const ROLE_LIMITS = {
-  free: 3,
-  pro: 25,
-  sultan: 50
-};
+import { siteConfig, type TierId } from "@/config/site";
 
 export function TempMailTool() {
   const { user } = useUser();
@@ -57,8 +51,9 @@ export function TempMailTool() {
   
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const role = (profile?.role as keyof typeof ROLE_LIMITS) || 'free';
-  const limitCount = ROLE_LIMITS[role];
+  const role = (profile?.role as TierId) || 'free';
+  const tierConfig = siteConfig.tiers[role];
+  const limitCount = tierConfig.limits.tempMail;
   const usage = profile?.tempMailUsage || { count: 0, lastReset: getWIBDate() };
 
   // Fetch active session from Firestore
@@ -118,7 +113,7 @@ export function TempMailTool() {
       const currentCount = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0;
 
       if (currentCount >= limitCount) {
-        toast({ variant: "warning", title: "Limit Reached", description: "You have used your daily identities." });
+        toast({ variant: "warning", title: "Limit Reached", description: `You have used your daily identity quota for the ${tierConfig.name} plan.` });
         return;
       }
 
@@ -206,7 +201,7 @@ export function TempMailTool() {
         <div className="mt-6 flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-primary/5">
            <div className="flex items-center gap-3">
               <Zap className={cn("size-4", role === 'sultan' ? "text-yellow-600" : "text-indigo-600")} />
-              <p className="text-xs font-bold font-headline">{remainingIdentities} daily identities remaining ({role})</p>
+              <p className="text-xs font-bold font-headline">{remainingIdentities} daily identities remaining ({tierConfig.name})</p>
            </div>
         </div>
       </CardHeader>

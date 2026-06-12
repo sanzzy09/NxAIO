@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -19,114 +18,9 @@ import { useUser, useFirestore } from "@/firebase";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { logActivity } from "@/lib/activity";
+import { siteConfig } from "@/config/site";
 
-const plans = [
-  {
-    id: "free",
-    name: "Starter",
-    description: "For individuals & casual trial",
-    price: "0",
-    features: [
-      {
-        category: "Daily & Weekly Quotas",
-        items: [
-          "64,000 AI Agent Tokens / day",
-          "3 Temp-Mail Identities / day", 
-          "3 AI Background Removals / day", 
-          "5 AI Music Tracks / week"
-        ]
-      },
-      {
-        category: "Core Features",
-        items: [
-          "Standard AI tools access", 
-          "5GB file hosting storage", 
-          "Public identity profile",
-          "Community support access"
-        ]
-      },
-      {
-        category: "Restrictions",
-        items: [
-          "No Profile GIFs / Banners",
-          "No Avatar Frames",
-          "Standard processing priority"
-        ]
-      }
-    ]
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    description: "For creators & frequent builders",
-    price: "29",
-    popular: true,
-    features: [
-      {
-        category: "Enhanced Quotas",
-        items: [
-          "256,000 AI Agent Tokens / day",
-          "25 Temp-Mail Identities / day", 
-          "10 AI Background Removals / day", 
-          "15 AI Music Tracks / week"
-        ]
-      },
-      {
-        category: "Premium Identity",
-        items: [
-          "Profile Banners enabled", 
-          "GIF profile photos support",
-          "Unlock Premium Avatar Frames",
-          "Ad-free tool experience"
-        ]
-      },
-      {
-        category: "Advanced Access",
-        items: [
-          "50GB high-speed hosting", 
-          "Priority AI processing queue",
-          "Private profile toggle",
-          "Priority email support"
-        ]
-      }
-    ]
-  },
-  {
-    id: "sultan",
-    name: "Sultan",
-    description: "For power users & agencies",
-    price: "99",
-    features: [
-      {
-        category: "Maximum Quotas",
-        items: [
-          "1,000,000 AI Agent Tokens / day",
-          "50 Temp-Mail Identities / day", 
-          "20 AI Background Removals / day", 
-          "30 AI Music Tracks / week"
-        ]
-      },
-      {
-        category: "Elite Identity",
-        items: [
-          "Exclusive Sultan Frames", 
-          "Official 'Sultanate' Badge",
-          "Animated identity assets",
-          "Custom profile vanity links"
-        ]
-      },
-      {
-        category: "Enterprise Scale",
-        items: [
-          "Unlimited hosting storage", 
-          "Beta tool early access", 
-          "API access for logic hub",
-          "Dedicated account manager"
-        ]
-      }
-    ]
-  }
-];
+const plans = Object.values(siteConfig.tiers);
 
 export default function PricingPage() {
   const { user } = useUser();
@@ -229,7 +123,7 @@ export default function PricingPage() {
               </div>
 
               <div className="flex-1 space-y-4">
-                <Accordion type="multiple" defaultValue={["item-0", "item-1", "item-2"]} className="space-y-3">
+                <Accordion type="multiple" defaultValue={["item-0", "item-1"]} className="space-y-3">
                   {plan.features.map((section, idx) => (
                     <AccordionItem 
                       key={idx} 
@@ -281,7 +175,7 @@ export default function PricingPage() {
                 <Mail className="size-6" />
               </div>
               <h4 className="font-headline font-bold text-xl">Identity Freedom</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">Rotate up to 50 temporary identities per day with our Sultan tier. Perfect for large scale testing and anonymous workflows.</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Rotate through multiple temporary identities per day with higher tiers. Perfect for large scale testing and anonymous workflows.</p>
            </div>
            <div className="space-y-4">
               <div className="size-12 bg-yellow-500/10 text-yellow-600 rounded-2xl flex items-center justify-center shadow-inner">

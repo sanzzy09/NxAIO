@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -36,18 +35,13 @@ import { doc, setDoc, collection, query, orderBy, serverTimestamp, deleteDoc } f
 import { logActivity } from "@/lib/activity";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { siteConfig, type TierId } from "@/config/site";
 
 const STYLES = {
   genre: ["Pop", "Rock", "Hip-Hop", "R&B", "Jazz", "Classical", "Electronic", "EDM", "Lo-fi", "Metal", "Soul", "Trap", "K-Pop", "Phonk", "Cinematic"],
   mood: ["Calm", "Happy", "Sad", "Energetic", "Epic", "Dark", "Dreamy", "Uplifting", "Melancholic", "Chill"],
   vocal: ["Male Vocal", "Female Vocal", "Duet", "Rap", "Whisper"],
   tempo: ["Slow", "Mid-tempo", "Upbeat", "Fast"]
-};
-
-const ROLE_LIMITS = {
-  free: 5,
-  pro: 15,
-  sultan: 30
 };
 
 export function MusicGenerator() {
@@ -66,8 +60,9 @@ export function MusicGenerator() {
   const [loading, setLoading] = useState(false);
   const [jobs, setJobs] = useState<any[]>([]);
   
-  const role = (profile?.role as keyof typeof ROLE_LIMITS) || 'free';
-  const limit = ROLE_LIMITS[role];
+  const role = (profile?.role as TierId) || 'free';
+  const tierConfig = siteConfig.tiers[role];
+  const limit = tierConfig.limits.music;
   const usage = profile?.musicUsage || { count: 0, weekStart: new Date().toISOString() };
 
   // Rolling Weekly Reset Logic
@@ -134,7 +129,7 @@ export function MusicGenerator() {
 
       if (!res.status) throw new Error(res.error);
 
-      // Increment Usage Count in Firestore (Reliable)
+      // Increment Usage Count in Firestore
       if (userRef) {
         const newCount = isResetNeeded ? 1 : (usage.count || 0) + 1;
         const newWeekStart = isResetNeeded ? new Date().toISOString() : usage.weekStart;
@@ -144,13 +139,7 @@ export function MusicGenerator() {
             count: newCount,
             weekStart: newWeekStart
           }
-        }, { merge: true }).catch(e => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: userRef.path,
-            operation: 'write',
-            requestResourceData: { musicUsage: { count: newCount, weekStart: newWeekStart } }
-          }));
-        });
+        }, { merge: true });
       }
 
       // Start tracking jobs
@@ -340,14 +329,9 @@ export function MusicGenerator() {
                 <Zap className="size-4" />
              </div>
              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Weekly Credits ({role})</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Weekly Credits ({tierConfig.name})</p>
                 <p className="text-sm font-bold font-headline">{remainingCredits} generations left</p>
              </div>
-             {role === 'free' && (
-               <Button variant="link" asChild className="h-auto p-0 ml-4 text-[10px] font-bold uppercase text-indigo-600">
-                  <a href="/pricing">Upgrade</a>
-               </Button>
-             )}
           </div>
         </div>
       </CardHeader>
@@ -518,7 +502,7 @@ export function MusicGenerator() {
           </TabsContent>
         </Tabs>
 
-        {/* Active Jobs Display - Always show if jobs exist */}
+        {/* Active Jobs Display */}
         {jobs.length > 0 && (
           <div className="space-y-4 animate-fade-in-up border-t border-primary/5 pt-8">
             <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 ml-1 flex items-center gap-2">

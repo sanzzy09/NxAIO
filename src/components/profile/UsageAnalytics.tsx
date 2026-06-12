@@ -5,38 +5,33 @@ import { BarChart3, Mail, Eraser, Music, Info, BrainCircuit, Zap } from "lucide-
 import { getWIBDate } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { Progress } from "@/components/ui/progress"
-
-const ROLE_LIMITS = {
-  tempmail: { free: 3, pro: 25, sultan: 50 },
-  remover: { free: 3, pro: 10, sultan: 20 },
-  music: { free: 5, pro: 15, sultan: 30 },
-  ai: { free: 64000, pro: 256000, sultan: 1000000 }
-}
+import { siteConfig, type TierId } from "@/config/site"
 
 export function UsageAnalytics({ profile }: { profile: any }) {
-  const role = (profile?.role as "free" | "pro" | "sultan") || "free"
+  const role = (profile?.role as TierId) || "free"
+  const tierConfig = siteConfig.tiers[role]
 
   // 1. Temp-Mail Stats (Daily WIB reset)
   const mailStats = useMemo(() => {
     const todayWIB = getWIBDate();
     const usage = profile?.tempMailUsage || { count: 0, lastReset: todayWIB }
-    const limit = ROLE_LIMITS.tempmail[role]
+    const limit = tierConfig.limits.tempMail
     const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
     const percentage = (remaining / limit) * 100
     return { current: count, limit: limit, remaining, percentage }
-  }, [profile, role])
+  }, [profile, tierConfig])
 
   // 2. BG Remover Stats (Daily WIB reset)
   const removerStats = useMemo(() => {
     const todayWIB = getWIBDate();
     const usage = profile?.removerUsage || { count: 0, lastReset: todayWIB }
-    const limit = ROLE_LIMITS.remover[role]
+    const limit = tierConfig.limits.remover
     const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
     const remaining = Math.max(0, limit - count)
     const percentage = (remaining / limit) * 100
     return { current: count, limit: limit, remaining, percentage }
-  }, [profile, role])
+  }, [profile, tierConfig])
 
   // 3. AI Music Stats (Weekly rolling reset)
   const musicStats = useMemo(() => {
@@ -46,22 +41,22 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const diff = now.getTime() - weekStart.getTime()
     const isReset = diff > 7 * 24 * 60 * 60 * 1000
     const count = isReset ? 0 : (usage.count || 0)
-    const limit = ROLE_LIMITS.music[role]
+    const limit = tierConfig.limits.music
     const remaining = Math.max(0, limit - count)
     const percentage = (remaining / limit) * 100
     return { current: count, limit: limit, remaining, percentage }
-  }, [profile, role])
+  }, [profile, tierConfig])
 
   // 4. AI Token Stats (Daily WIB reset)
   const aiStats = useMemo(() => {
     const todayWIB = getWIBDate();
     const usage = profile?.aiUsage || { tokens: 0, lastReset: todayWIB }
-    const limit = ROLE_LIMITS.ai[role]
+    const limit = tierConfig.limits.aiTokens
     const tokens = (usage.lastReset === todayWIB) ? (usage.tokens || 0) : 0
     const remaining = Math.max(0, limit - tokens)
     const percentage = (remaining / limit) * 100
     return { current: tokens, limit: limit, remaining, percentage }
-  }, [profile, role])
+  }, [profile, tierConfig])
 
   const formatTokens = (n: number) => {
     return Intl.NumberFormat("en-US", {
@@ -116,7 +111,7 @@ export function UsageAnalytics({ profile }: { profile: any }) {
          </div>
          <div>
             <h3 className="text-2xl font-bold font-headline tracking-tight">Utility Quotas</h3>
-            <p className="text-sm text-muted-foreground font-medium">Real-time capacity tracking for your {role} identity.</p>
+            <p className="text-sm text-muted-foreground font-medium">Real-time capacity tracking for your {tierConfig.name} identity.</p>
          </div>
       </div>
 
@@ -132,7 +127,7 @@ export function UsageAnalytics({ profile }: { profile: any }) {
         <div className="space-y-1">
           <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Intelligent Throttling</p>
           <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-            Capacities start full and drain as you perform logic operations. All metrics reset automatically at 00:00 WIB. Upgrade to Sultan tier to expand your bandwidth by up to 20x.
+            Capacities start full and drain as you perform logic operations. All metrics reset automatically at 00:00 WIB. Upgrade to higher tiers to expand your bandwidth.
           </p>
         </div>
       </div>

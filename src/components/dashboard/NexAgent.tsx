@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useCallback, memo, useEffect, useRef, useMemo } from 'react';
@@ -30,6 +29,7 @@ import { doc, updateDoc, increment, collection, query, orderBy, addDoc, serverTi
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { siteConfig, type TierId } from "@/config/site";
 import {
   ModelSelector,
   ModelSelectorContent,
@@ -100,12 +100,6 @@ interface Message {
   toolCalls?: any[];
   usage?: any;
 }
-
-const AI_LIMITS = {
-  free: 64000,
-  pro: 256000,
-  sultan: 1000000
-};
 
 const models = [
   { 
@@ -257,8 +251,9 @@ export function NexAgent() {
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [view, setView] = useState<'chat' | 'config'>('chat');
   
-  const role = (profile?.role as keyof typeof AI_LIMITS) || 'free';
-  const limit = AI_LIMITS[role];
+  const role = (profile?.role as TierId) || 'free';
+  const tierConfig = siteConfig.tiers[role];
+  const limit = tierConfig.limits.aiTokens;
   const aiUsage = profile?.aiUsage || { tokens: 0, lastReset: getWIBDate() };
   
   const isResetNeeded = aiUsage.lastReset !== getWIBDate();
@@ -284,12 +279,6 @@ export function NexAgent() {
     await addDoc(msgRef, {
       ...msg,
       timestamp: serverTimestamp()
-    }).catch(e => {
-       errorEmitter.emit('permission-error', new FirestorePermissionError({
-         path: msgRef.path,
-         operation: 'create',
-         requestResourceData: msg
-       }));
     });
   };
 
@@ -318,30 +307,23 @@ export function NexAgent() {
       toast({
         variant: "destructive",
         title: "Daily Limit Reached",
-        description: `You have consumed your daily quota of ${limit.toLocaleString()} tokens. Please upgrade or wait until 00:00 WIB.`,
+        description: `You have consumed your daily quota of ${limit.toLocaleString()} tokens for the ${tierConfig.name} plan.`,
       });
       return;
     }
 
     const userMsg: Message = { role: 'user', content: finalInput };
-    
-    // 1. Save user message to Firestore (this will update syncedMessages via hook)
     await saveMessage(userMsg);
     setInput("");
     setLoading(true);
 
     try {
-      // 2. Prepare full context from synced messages + new user message
       const historyForContext = syncedMessages.map(m => ({ role: m.role, content: m.content }));
       const fullContext = [...historyForContext, userMsg];
 
-      // 3. Call AI with continuity
       const response = await nexAgentChat(fullContext, selectedModel);
-      
-      // 4. Save AI response to Firestore
       await saveMessage(response as Message);
       
-      // 5. Update token usage
       if ((response as any).usage && userRef) {
         const u = (response as any).usage;
         const totalUsed = (u.total_tokens || 0);
@@ -372,7 +354,6 @@ export function NexAgent() {
     }
   };
 
-  // Base welcome message if history is empty
   const displayMessages = syncedMessages.length > 0 ? syncedMessages : [
     { role: 'assistant', content: "Hello! I am NexAgent. My neural memory is active. I can generate mailboxes, compose music, or explore movie databases. How can I help you today?" }
   ] as Message[];
