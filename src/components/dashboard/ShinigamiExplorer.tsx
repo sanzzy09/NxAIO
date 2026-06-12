@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -55,14 +54,28 @@ export function ShinigamiExplorer() {
 
   const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://picsum.photos/seed/media/400/600";
 
+  /**
+   * Robust cover resolution helper.
+   * Prioritizes the original cover from Shinigami API.
+   */
   const getCoverUrl = (item: any) => {
     if (!item) return fallbackImage;
-    // Check various possible cover fields
-    const cover = item.manga_cover || item.manga_cover_path || item.cover || item.manga_cover_url;
-    if (!cover || cover === "") return fallbackImage;
-    if (cover.startsWith('http')) return cover;
-    // Standard ASSETS_BASE prefix
-    return `https://assets.shngm.id${cover.startsWith('/') ? '' : '/'}${cover}`;
+    
+    // Check all possible field names for covers in the Shinigami API schema
+    const rawPath = item.manga_cover || 
+                    item.manga_cover_path || 
+                    item.cover || 
+                    item.cover_path || 
+                    item.manga_cover_url;
+
+    if (!rawPath || rawPath === "") return fallbackImage;
+    
+    // If it's already an absolute URL, return it
+    if (rawPath.startsWith('http')) return rawPath;
+    
+    // Normalize relative path and prefix with authorized assets base
+    const cleanPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+    return `https://assets.shngm.id${cleanPath}`;
   };
 
   useEffect(() => {
@@ -150,7 +163,7 @@ export function ShinigamiExplorer() {
       setView('reader');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // Progressive proxy loading
+      // Progressive proxy loading for panels
       data.images.forEach(async (imgUrl: string) => {
         const proxyRes = await proxyShinigamiImage(imgUrl);
         if (proxyRes.status) {
