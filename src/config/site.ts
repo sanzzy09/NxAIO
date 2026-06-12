@@ -14,6 +14,8 @@ export const siteConfig = {
     twitter: "https://twitter.com/nxaio",
     github: "https://github.com/sanzzy09",
     linkedin: "https://linkedin.com/company/nxaio",
+    instagram: "https://instagram.com/nxaio",
+    whatsapp: "https://wa.me/6281234567890",
     discord: "#",
   },
   contact: {
