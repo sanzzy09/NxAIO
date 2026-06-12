@@ -18,7 +18,8 @@ import {
   UserPlus, 
   Heart, 
   HeartOff,
-  Crown
+  Crown,
+  CheckCircle2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
@@ -144,7 +145,21 @@ export default function ProfilePage() {
                 />
                 
                 <div className="space-y-1 pt-4">
-                  <h2 className="text-2xl font-bold font-headline">{profileData?.displayName || "Account User"}</h2>
+                  <div className="flex items-center justify-center gap-2">
+                    <h2 className="text-2xl font-bold font-headline">{profileData?.displayName || "Account User"}</h2>
+                    {role === 'pro' && (
+                      <div className="flex items-center gap-1 bg-blue-600 text-white px-2 py-0.5 rounded-full shadow-lg shadow-blue-500/20" title="Pro Verified">
+                        <CheckCircle2 className="size-3.5 fill-white text-blue-600" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Verified</span>
+                      </div>
+                    )}
+                    {role === 'sultan' && (
+                      <div className="flex items-center gap-1 bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#B38728] text-yellow-900 px-2 py-0.5 rounded-full shadow-xl shadow-yellow-500/20 border-t border-white/20" title="Sultan Verified">
+                        <CheckCircle2 className="size-3.5 fill-yellow-900 text-[#FCF6BA]" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Verified</span>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground">{user.email}</p>
                 </div>
                 

@@ -8,7 +8,7 @@ import { useFirestore, useDoc, useUser } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { Badge } from "@/components/ui/badge";
 import { FollowButton } from "@/components/profile/FollowButton";
-import { Loader2, Calendar, Lock, ShieldAlert } from "lucide-react";
+import { Loader2, Calendar, Lock, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 import Image from 'next/image';
 import { AvatarFrame, FrameId } from '@/components/profile/AvatarFrame';
@@ -23,6 +23,7 @@ export default function PublicProfilePage() {
   const { data: profile, loading, error } = useDoc(userRef);
 
   const isOwner = currentUser?.uid === userId;
+  const role = profile?.role || 'free';
 
   if (loading) {
     return (
@@ -97,11 +98,26 @@ export default function PublicProfilePage() {
               </div>
 
               <div className="pt-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <h1 className="text-4xl font-bold font-headline tracking-tight leading-none">
                       <GradualSpacingText text={profile.displayName || "Anonymous User"} className="justify-start" />
                     </h1>
+                    
+                    {/* Tier Verification Badges */}
+                    {role === 'pro' && (
+                      <div className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1 rounded-full shadow-lg shadow-blue-500/20 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                        <CheckCircle2 className="size-3.5 fill-white text-blue-600" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Verified</span>
+                      </div>
+                    )}
+                    {role === 'sultan' && (
+                      <div className="flex items-center gap-1.5 bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#B38728] text-yellow-900 px-3 py-1 rounded-full shadow-xl shadow-yellow-500/30 border-t border-white/20 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                        <CheckCircle2 className="size-3.5 fill-yellow-900 text-[#FCF6BA]" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Verified</span>
+                      </div>
+                    )}
+
                     {profile.isPrivate && (
                       <Badge variant="outline" className="border-primary/20 text-primary/40">
                         <Lock className="w-3 h-3 mr-1" /> Private
@@ -114,7 +130,7 @@ export default function PublicProfilePage() {
                       Joined {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'recently'}
                     </div>
                     <Badge variant="secondary" className="bg-primary/5 text-primary/60 rounded-full text-[10px] font-bold uppercase tracking-widest border-none">
-                      Verified Member
+                      NxAIO Identity
                     </Badge>
                   </div>
                 </div>
