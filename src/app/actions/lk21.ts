@@ -113,7 +113,7 @@ export async function fetchLk21(input: {
       const meta: any = {};
       $(".gmr-moviedata").each((_, el) => {
         const rawKey = $(el).find("strong").text().replace(":", "").trim();
-        const key = rawKey.toLowerCase().replace(/\s+/g, "_");
+        const key = rawKey.toLowerCase();
         const val = $(el).text().replace(rawKey, "").replace(":", "").trim();
         if (key && val) meta[key] = val;
       });

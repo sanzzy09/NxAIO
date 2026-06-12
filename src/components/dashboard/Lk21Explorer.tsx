@@ -22,7 +22,8 @@ import {
   Clock,
   History,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Youtube
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -204,6 +205,30 @@ export function Lk21Explorer() {
                   {g}
                 </Badge>
               ))}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                size="lg" 
+                onClick={() => setView('watch')} 
+                className="rounded-full h-14 px-10 gap-3 bg-primary text-primary-foreground shadow-2xl font-bold transition-all hover:scale-105 active:scale-95 flex-1"
+              >
+                 <PlayCircle className="size-6" /> Start Streaming
+              </Button>
+              {selectedMovie.trailer && (
+                <Button 
+                  variant="outline"
+                  size="lg" 
+                  asChild
+                  className="rounded-full h-14 px-8 gap-3 border-primary/10 font-bold transition-all hover:bg-red-500/5 hover:text-red-600 hover:border-red-500/20 flex-1 sm:flex-none"
+                >
+                  <a href={selectedMovie.trailer} target="_blank" rel="noopener noreferrer">
+                     <Youtube className="size-6" /> Watch Trailer
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
 
