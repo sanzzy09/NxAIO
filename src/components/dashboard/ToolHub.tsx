@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -21,7 +20,8 @@ import {
   Mail,
   Bot,
   BookOpen,
-  Smartphone
+  Smartphone,
+  Brush
 } from "lucide-react";
 
 interface Tool {
@@ -33,6 +33,13 @@ interface Tool {
 }
 
 const tools: Tool[] = [
+  {
+    id: "editor",
+    name: "AI Image Editor",
+    description: "Modify images using natural language instructions powered by DeepAI neural processing.",
+    icon: <Brush className="size-6" />,
+    color: "bg-indigo-600 text-white"
+  },
   {
     id: "shinigami",
     name: "Shinigami Explorer",

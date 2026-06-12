@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useMemo } from "react"
-import { BarChart3, Mail, Eraser, Music, Info, BrainCircuit, Zap } from "lucide-react"
+import { BarChart3, Mail, Eraser, Music, Info, BrainCircuit, Zap, Brush } from "lucide-react"
 import { getWIBDate } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { Progress } from "@/components/ui/progress"
@@ -56,6 +56,17 @@ export function UsageAnalytics({ profile }: { profile: any }) {
     const remaining = Math.max(0, limit - tokens)
     const percentage = (remaining / limit) * 100
     return { current: tokens, limit: limit, remaining, percentage }
+  }, [profile, tierConfig])
+
+  // 5. Image Editor Stats (Daily WIB reset)
+  const editorStats = useMemo(() => {
+    const todayWIB = getWIBDate();
+    const usage = profile?.editorUsage || { count: 0, lastReset: todayWIB }
+    const limit = tierConfig.limits.remover // Re-use remover limit logic for consistency
+    const count = (usage.lastReset === todayWIB) ? (usage.count || 0) : 0
+    const remaining = Math.max(0, limit - count)
+    const percentage = (remaining / limit) * 100
+    return { current: count, limit: limit, remaining, percentage }
   }, [profile, tierConfig])
 
   const formatTokens = (n: number) => {
@@ -115,8 +126,9 @@ export function UsageAnalytics({ profile }: { profile: any }) {
          </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {renderQuotaBar("NexAgent Tokens", <BrainCircuit className="size-4" />, aiStats, "text-blue-600", "Daily Reset", true)}
+        {renderQuotaBar("Image Editor", <Brush className="size-4" />, editorStats, "text-indigo-600", "Daily Reset")}
         {renderQuotaBar("Temp-Mail IDs", <Mail className="size-4" />, mailStats, "text-indigo-600", "Daily Reset")}
         {renderQuotaBar("Background Removal", <Eraser className="size-4" />, removerStats, "text-pink-600", "Daily Reset")}
         {renderQuotaBar("AI Music Studio", <Music className="size-4" />, musicStats, "text-blue-600", "Weekly Reset")}

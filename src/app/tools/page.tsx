@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -23,10 +22,11 @@ import { KomikuExplorer } from '@/components/dashboard/KomikuExplorer';
 import { DailymotionExplorer } from '@/components/dashboard/DailymotionExplorer';
 import { AppMakerTool } from '@/components/dashboard/AppMakerTool';
 import { ShinigamiExplorer } from '@/components/dashboard/ShinigamiExplorer';
+import { ImageEditor } from '@/components/dashboard/ImageEditor';
 import { LayoutGrid, ChevronLeft, Loader2 } from 'lucide-react';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
-import { useFirestore, useDoc, useUser } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { UsageAnalytics } from '@/components/profile/UsageAnalytics';
@@ -49,6 +49,7 @@ export default function ToolsPage() {
 
   const renderTool = () => {
     switch (activeTool) {
+      case "editor": return <ImageEditor />;
       case "shinigami": return <ShinigamiExplorer />;
       case "appmaker": return <AppMakerTool />;
       case "nexagent": return <NexAgent />;
