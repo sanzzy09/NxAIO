@@ -46,6 +46,13 @@ const tools: Tool[] = [
     color: "bg-orange-50 text-orange-600"
   },
   {
+    id: "dailymotion",
+    name: "Dailymotion Explorer",
+    description: "Extract metadata, download mirrors, and subtitles from Dailymotion videos.",
+    icon: <Video className="size-6" />,
+    color: "bg-indigo-50 text-indigo-600"
+  },
+  {
     id: "tempmail",
     name: "Disposable Temp-Mail",
     description: "Instant anonymous mailbox with real-time sync and OTP auto-extraction.",
@@ -182,3 +189,4 @@ export function ToolHub({ onSelect }: { onSelect: (id: string) => void }) {
     </div>
   );
 }
+

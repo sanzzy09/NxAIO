@@ -7,6 +7,7 @@ import { vidboxSearch } from './vidbox';
 import { fetchAnichin } from './anichin';
 import { removeImageBackground } from './remove-bg';
 import { fetchKomiku } from './komiku';
+import { fetchDailymotion } from './dailymotion';
 import { siteConfig } from '@/config/site';
 
 /**
@@ -98,6 +99,20 @@ const tools = [
   {
     type: 'function',
     function: {
+      name: 'search_dailymotion',
+      description: 'Extracts metadata and download links from a Dailymotion video URL.',
+      parameters: {
+        type: 'object',
+        properties: {
+          url: { type: 'string', description: 'The Dailymotion video URL' }
+        },
+        required: ['url']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
       name: 'search_anime',
       description: 'Searches for anime in the Anichin database.',
       parameters: {
@@ -133,7 +148,8 @@ function isToolLikelyNeeded(content: string): boolean {
     'film', 'movie', 'nonton', 'bioskop', 'movieku', 'vidbox', 'tayang',
     'anime', 'donghua', 'anichin', 'otakudesu', 'kartun jepang',
     'manga', 'manhwa', 'manhua', 'komik', 'komiku', 'baca',
-    'hapus background', 'hilangkan latar', 'bg remover'
+    'hapus background', 'hilangkan latar', 'bg remover',
+    'dailymotion', 'unduh dailymotion', 'video dailymotion'
   ];
   return triggers.some(t => c.includes(t));
 }
@@ -161,13 +177,13 @@ export async function nexAgentChat(messages: any[], modelId: string = "google/ge
 You are NexAgent, the premium AI orchestrator for ${siteConfig.name}. Your goal is to deliver high-fidelity, visual responses using Markdown. 
 
 VISUAL OUTPUT PROTOCOLS:
-1. **Media Responses (Movies/Anime/Manga)**:
+1. **Media Responses (Movies/Anime/Manga/Videos)**:
    - FORMAT AS A VISUAL CARD:
    - Always start with the title in an H3 header: ### [Judul]
-   - Display poster URL prominently: ![Poster](url)
+   - Display poster/thumbnail URL prominently: ![Media](url)
    - List details in this format:
-     - **Tahun**: [Year]
-     - **Rating**: ⭐ [Rating]
+     - **Tahun/Status**: [Detail]
+     - **Rating/Platform**: [Detail]
      - [▶️ Nonton/Baca Sekarang](URL)
    - Use a horizontal divider (---) to separate multiple results.
 
@@ -249,6 +265,9 @@ VISUAL OUTPUT PROTOCOLS:
               break;
             case 'search_manga':
               result = await fetchKomiku({ mode: 'search', query: args.query });
+              break;
+            case 'search_dailymotion':
+              result = await fetchDailymotion(args.url);
               break;
             default:
               result = { status: false, error: 'Tool not implemented.' };

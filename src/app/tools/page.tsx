@@ -19,6 +19,7 @@ import { MoviekuExplorer } from '@/components/dashboard/MoviekuExplorer';
 import { TempMailTool } from '@/components/dashboard/TempMailTool';
 import { NexAgent } from '@/components/dashboard/NexAgent';
 import { KomikuExplorer } from '@/components/dashboard/KomikuExplorer';
+import { DailymotionExplorer } from '@/components/dashboard/DailymotionExplorer';
 import { LayoutGrid, ChevronLeft, Loader2 } from 'lucide-react';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
@@ -47,6 +48,7 @@ export default function ToolsPage() {
     switch (activeTool) {
       case "nexagent": return <NexAgent />;
       case "komiku": return <KomikuExplorer />;
+      case "dailymotion": return <DailymotionExplorer />;
       case "tempmail": return <TempMailTool />;
       case "movieku": return <MoviekuExplorer />;
       case "vidbox": return <VidboxExplorer />;
@@ -119,3 +121,4 @@ export default function ToolsPage() {
     </div>
   );
 }
+
