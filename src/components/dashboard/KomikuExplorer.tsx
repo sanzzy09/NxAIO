@@ -24,11 +24,14 @@ import {
   Maximize2,
   Minimize2,
   Download,
-  Scroll
+  Scroll,
+  Clock,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetchKomiku, proxyImage } from "@/app/actions/komiku";
 import { useToast } from "@/hooks/use-toast";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type View = 'discover' | 'search' | 'detail' | 'reader';
 
@@ -45,6 +48,8 @@ export function KomikuExplorer() {
   const [error, setError] = useState<string | null>(null);
   const [fullScreen, setFullScreen] = useState(false);
   const { toast } = useToast();
+
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png";
 
   useEffect(() => {
     loadDiscover();
@@ -318,7 +323,7 @@ export function KomikuExplorer() {
                 />
               ) : (
                 <div className="flex flex-col items-center gap-4 py-32 opacity-20 group-hover:opacity-40 transition-opacity">
-                   <Scroll className="size-12 animate-bounce" />
+                   <Scroll className="size-12 animate-bounce text-orange-600" />
                    <p className="text-[10px] font-bold uppercase tracking-widest">Handshaking with Panel {idx + 1}...</p>
                 </div>
               )}
