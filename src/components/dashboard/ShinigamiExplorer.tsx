@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { fetchShinigami, proxyShinigamiImage } from "@/app/actions/shinigami";
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type View = 'discover' | 'search' | 'detail' | 'reader';
 
@@ -51,6 +52,8 @@ export function ShinigamiExplorer() {
   const [error, setError] = useState<string | null>(null);
   const [fullScreen, setFullScreen] = useState(false);
   const { toast } = useToast();
+
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://picsum.photos/seed/media/400/600";
 
   useEffect(() => {
     loadDiscover();
@@ -162,11 +165,12 @@ export function ShinigamiExplorer() {
         >
           <div className="relative aspect-[3/4] w-full bg-black/5">
             <Image 
-              src={item.manga_cover || "https://placehold.co/400x600/png?text=No+Cover"} 
-              alt={item.title} 
+              src={item.manga_cover || fallbackImage} 
+              alt={item.title || "Manga Cover"} 
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-700"
               unoptimized
+              data-ai-hint="manga cover"
             />
             <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
                <Badge className="bg-indigo-600 border-none text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg">
@@ -199,7 +203,14 @@ export function ShinigamiExplorer() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-4 space-y-6">
           <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
-            <Image src={selectedManga.manga_cover} alt={selectedManga.title} fill className="object-cover" unoptimized />
+            <Image 
+              src={selectedManga.manga_cover || fallbackImage} 
+              alt={selectedManga.title || "Manga Cover"} 
+              fill 
+              className="object-cover" 
+              unoptimized 
+              data-ai-hint="manga cover"
+            />
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[80%]">
                <div className="bg-indigo-600 text-white p-3 rounded-2xl flex flex-col items-center gap-1 shadow-2xl">
                  <Star className="size-4 fill-white" />

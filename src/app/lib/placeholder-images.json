@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -17,6 +18,12 @@
       "description": "Smartphone mockup for previewer",
       "imageUrl": "https://picsum.photos/seed/phone/800/1200",
       "imageHint": "smartphone device"
+    },
+    {
+      "id": "media-fallback",
+      "description": "Generic fallback for missing manga or anime covers",
+      "imageUrl": "https://picsum.photos/seed/media-placeholder/400/600",
+      "imageHint": "manga cover"
     }
   ]
 }

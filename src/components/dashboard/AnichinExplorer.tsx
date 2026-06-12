@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/tabs";
 import { 
   Tv, 
   Search, 
@@ -28,6 +29,7 @@ import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { fetchAnichin } from "@/app/actions/anichin";
 import { useToast } from "@/hooks/use-toast";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type ViewMode = 'home' | 'search' | 'list' | 'genres' | 'detail' | 'watch' | 'genre_browse';
 
@@ -41,6 +43,8 @@ export function AnichinExplorer() {
   const [page, setPage] = useState(1);
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'media-fallback')?.imageUrl || "https://picsum.photos/seed/media/400/600";
 
   const handleFetch = async (params: { mode: string; query?: string; slug?: string; page?: number }) => {
     setLoading(true);
@@ -90,11 +94,12 @@ export function AnichinExplorer() {
           >
             <div className="relative aspect-[3/4] w-full bg-black/5 pointer-events-none">
               <Image 
-                src={item.thumbnail || "https://placehold.co/400x600/png?text=No+Cover"} 
-                alt={item.title} 
+                src={item.thumbnail || fallbackImage} 
+                alt={item.title || "Series Cover"} 
                 fill 
                 className="object-cover group-hover:scale-105 transition-transform duration-500" 
                 unoptimized 
+                data-ai-hint="manga cover"
               />
               <div className="absolute bottom-2 right-2 flex flex-col gap-1 items-end">
                 {item.type && item.type !== "Unknown" && <Badge className="bg-orange-600 border-none rounded-lg text-[10px] uppercase font-bold">{item.type}</Badge>}
@@ -175,7 +180,14 @@ export function AnichinExplorer() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-4 space-y-6">
           <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
-            <Image src={data.thumbnail || "https://placehold.co/400x600/png?text=No+Cover"} alt={data.name} fill className="object-cover" unoptimized />
+            <Image 
+              src={data.thumbnail || fallbackImage} 
+              alt={data.name || "Series Cover"} 
+              fill 
+              className="object-cover" 
+              unoptimized 
+              data-ai-hint="manga cover"
+            />
             <div className="absolute top-4 right-4 bg-orange-600 text-white p-3 rounded-2xl flex flex-col items-center gap-1 shadow-lg">
               <Star className="size-4 fill-white" />
               <span className="text-xs font-bold">{data.rating || "-"}</span>
