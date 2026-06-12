@@ -143,6 +143,18 @@
       },
       "required": ["id", "resultUrl", "timestamp"]
     },
+    "EditorHistoryRecord": {
+      "title": "EditorHistoryRecord",
+      "description": "Record of an AI image editing task.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "prompt": { "type": "string" },
+        "resultUrl": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "prompt", "resultUrl", "timestamp"]
+    },
     "MailboxRecord": {
       "title": "MailboxRecord",
       "description": "Record of a temporary mailbox session.",
@@ -219,6 +231,10 @@
     "/users/{userId}/removals/{removalId}": {
       "schema": "RemovalRecord",
       "description": "User's background removal history."
+    },
+    "/users/{userId}/editor_history/{historyId}": {
+      "schema": "EditorHistoryRecord",
+      "description": "User's AI image editing history."
     },
     "/users/{userId}/mailboxes/{mailboxId}": {
       "schema": "MailboxRecord",
