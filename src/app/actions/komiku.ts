@@ -5,7 +5,7 @@ import * as cheerio from 'cheerio';
 
 /**
  * Server action to fetch data from Komiku.org
- * Enhanced with High-Fidelity image proxying to bypass hotlink protection.
+ * Enhanced with High-Fidelity image proxying and user-provided scraping logic.
  */
 
 const BASE_URL = "https://komiku.org";
@@ -20,6 +20,7 @@ const HEADERS = {
 
 /**
  * Proxies a manga image URL to a data URI to bypass hotlink protection.
+ * This is CRITICAL for Komiku as their servers check Referer headers.
  */
 export async function proxyImage(url: string) {
   try {
@@ -151,30 +152,45 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
 
     // --- CHAPTER IMAGES ---
     if (mode === 'chapter') {
-      const res = await axios.get(url!, { headers: HEADERS, timeout: 30000 });
-      const $ = cheerio.load(res.data);
-      
-      const images: string[] = [];
-      $('#Baca_Komik img').each((_, el) => {
-        // Prioritize data-src/data-lazy-src because Komiku uses placeholders in src
-        const src = $(el).attr('data-src') || $(el).attr('data-lazy-src') || $(el).attr('src');
-        if (src && !src.includes('lazy.jpg') && !src.includes('iklan')) {
-          images.push(src.trim());
-        }
+      const response = await axios.get(url!, { headers: HEADERS, timeout: 30000 });
+      const $ = cheerio.load(response.data);
+
+      let chapterData: any = {};
+      const scriptMatch = response.data.match(/var chapterData = ({[\s\S]*?});/);
+      if (scriptMatch) {
+          try {
+              // Note: Using safely parsed object or simulated eval context
+              chapterData = JSON.parse(scriptMatch[1].replace(/([a-zA-Z0-9_]+):/g, '"$1":').replace(/'/g, '"'));
+          } catch (e) {
+              // Fallback for complex script objects
+          }
+      }
+
+      const images: any[] = [];
+      $('#Baca_Komik img').each((i, el) => {
+          const src = $(el).attr('src') || $(el).attr('data-src');
+          if (src && !src.includes('lazy.jpg')) {
+              images.push({
+                  page: i + 1,
+                  url: src.trim()
+              });
+          }
       });
 
-      const title = $('h1').first().text().trim() || "Chapter Viewer";
-      
-      // Batch proxy the first 5 images for instant display, the rest will be done by the client
-      // Actually, we'll return original URLs and a proxyImage helper for the client to use
-      
+      const seriesTitle = $('.breadcrumb a').eq(1).text().trim() || chapterData.series;
+      const chapterTitle = $('h1').first().text().trim();
+
       return {
-        status: true,
-        data: {
-          title,
-          images,
-          total: images.length
-        }
+          status: true,
+          data: {
+              series: seriesTitle,
+              chapter: chapterTitle,
+              chapter_number: chapterData.chapter,
+              total_pages: images.length,
+              images: images,
+              has_next: chapterData.hasNext || false,
+              next_chapter_url: chapterData.hasNext ? chapterData.link.replace(/[^/]+$/, '') + (parseInt(chapterData.chapter) + 1) + '/' : null
+          }
       };
     }
 

@@ -110,8 +110,8 @@ export function KomikuExplorer() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
       // Background load proxied images
-      res.data.images.forEach(async (imgUrl: string, idx: number) => {
-        const proxied = await proxyImage(imgUrl);
+      res.data.images.forEach(async (img: any, idx: number) => {
+        const proxied = await proxyImage(img.url);
         setProxiedImages(prev => ({ ...prev, [idx]: proxied }));
       });
     } catch (err: any) {
@@ -236,8 +236,8 @@ export function KomikuExplorer() {
     <div className={cn("space-y-8 animate-fade-in-up", isTheaterMode && "max-w-none")}>
       <div className="flex items-center justify-between sticky top-24 z-30 bg-background/80 backdrop-blur-md p-4 rounded-3xl border border-primary/5 shadow-xl">
          <div className="space-y-0.5">
-            <h3 className="text-sm font-bold font-headline">{chapterData.title}</h3>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase">{chapterData.total} Panels Orchestrated</p>
+            <h3 className="text-sm font-bold font-headline">{chapterData.series} - {chapterData.chapter}</h3>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase">{chapterData.total_pages} Panels Orchestrated</p>
          </div>
          <div className="flex items-center gap-2">
             <Button 
@@ -255,7 +255,7 @@ export function KomikuExplorer() {
       </div>
 
       <div className={cn("mx-auto space-y-1", isTheaterMode ? "max-w-4xl" : "max-w-2xl")}>
-         {chapterData.images.map((img: string, i: number) => (
+         {chapterData.images.map((img: any, i: number) => (
            <div key={i} className="relative w-full overflow-hidden bg-secondary/10 animate-fade-in-up" style={{ animationDelay: `${i * 30}ms` }}>
               {proxiedImages[i] ? (
                 <img 
