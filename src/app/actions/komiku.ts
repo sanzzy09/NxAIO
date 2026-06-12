@@ -3,6 +3,11 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
+/**
+ * Server action to fetch data from Komiku.org
+ * Handles search, detail extraction, and chapter image retrieval.
+ */
+
 const BASE_URL = "https://komiku.org";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
 
@@ -24,11 +29,13 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
     const { mode, query, url, page = 1 } = input;
 
     if (mode === 'search') {
+      // Use the standard search URL
       const searchUrl = `${BASE_URL}/?post_type=manga&s=${encodeURIComponent(query!)}&page=${page}`;
-      const res = await axios.get(searchUrl, { headers: HEADERS, timeout: 15000 });
+      const res = await axios.get(searchUrl, { headers: HEADERS, timeout: 20000 });
       const $ = cheerio.load(res.data);
       const items: any[] = [];
 
+      // Komiku uses .bge class for search result items
       $('.bge').each((_, el) => {
         const title = $(el).find('.kan h3').text().trim();
         const mangaUrl = $(el).find('.bgei a').first().attr('href');
@@ -41,17 +48,24 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
             title,
             url: mangaUrl.startsWith('http') ? mangaUrl : BASE_URL + mangaUrl,
             thumbnail: image,
-            type,
-            latest
+            type: type || 'Manga',
+            latest: latest || 'New Chapter'
           });
         }
       });
 
-      return { status: true, data: { results: items, query } };
+      return { 
+        status: true, 
+        data: { 
+          results: items, 
+          query,
+          count: items.length 
+        } 
+      };
     }
 
     if (mode === 'detail') {
-      const res = await axios.get(url!, { headers: HEADERS, timeout: 15000 });
+      const res = await axios.get(url!, { headers: HEADERS, timeout: 20000 });
       const $ = cheerio.load(res.data);
       
       const title = $('h1 span').text().trim();
@@ -92,19 +106,20 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
           synopsis,
           info,
           genres,
-          chapters: chapters.reverse()
+          chapters: chapters // Reverse handled in UI or keep as is if chronological
         }
       };
     }
 
     if (mode === 'chapter') {
-      const res = await axios.get(url!, { headers: HEADERS, timeout: 15000 });
+      const res = await axios.get(url!, { headers: HEADERS, timeout: 20000 });
       const $ = cheerio.load(res.data);
       
       const images: string[] = [];
       $('#Baca_Komik img').each((_, el) => {
         const src = $(el).attr('src');
-        if (src && !src.includes('lazy.jpg')) {
+        // Filter out low-res placeholders
+        if (src && !src.includes('lazy.jpg') && !src.includes('logo')) {
           images.push(src);
         }
       });
@@ -121,9 +136,14 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       };
     }
 
-    return { status: false, error: 'Invalid mode' };
+    return { status: false, error: 'Invalid mode provided.' };
   } catch (error: any) {
     console.error('Komiku Action Error:', error.message);
-    return { status: false, error: error.message };
+    return { 
+      status: false, 
+      error: error.response?.status === 403 
+        ? "Access Denied by Komiku. They may be blocking our node." 
+        : error.message 
+    };
   }
 }

@@ -9,19 +9,13 @@ import {
   BookOpen, 
   Search, 
   Loader2, 
-  Star, 
   Info, 
   ChevronLeft,
-  LayoutGrid,
   Library,
-  ArrowRight,
   AlertCircle,
-  Clock,
-  User,
-  Tags,
-  Download,
-  Eye,
-  X
+  X,
+  History,
+  Theater
 } from "lucide-react";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
@@ -38,6 +32,7 @@ export function KomikuExplorer() {
   const [selectedManga, setSelectedManga] = useState<any>(null);
   const [chapterData, setChapterData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
   const { toast } = useToast();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -49,6 +44,15 @@ export function KomikuExplorer() {
     try {
       const res = await fetchKomiku({ mode: 'search', query });
       if (!res.status) throw new Error(res.error);
+      
+      if (res.data.results.length === 0) {
+        toast({
+          title: "No Results",
+          description: `Could not find any titles matching "${query}". Try a different keyword.`,
+          variant: "warning"
+        });
+      }
+      
       setResults(res.data.results);
       setView('search');
     } catch (err: any) {
@@ -99,13 +103,19 @@ export function KomikuExplorer() {
           className="group cursor-pointer text-left bg-secondary/20 border border-primary/5 rounded-[2rem] overflow-hidden hover:border-orange-500/20 transition-all hover:shadow-xl relative"
         >
           <div className="relative aspect-[3/4] w-full bg-black/5">
-            <Image 
-              src={item.thumbnail || "https://placehold.co/400x600/png?text=No+Cover"} 
-              alt={item.title} 
-              fill 
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
-              unoptimized
-            />
+            {item.thumbnail ? (
+              <Image 
+                src={item.thumbnail} 
+                alt={item.title} 
+                fill 
+                className="object-cover group-hover:scale-105 transition-transform duration-700"
+                unoptimized
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted/50">
+                 <BookOpen className="size-10 text-muted-foreground/20" />
+              </div>
+            )}
             <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
                <Badge className="bg-orange-600 border-none text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg">
                  {item.type}
@@ -131,7 +141,9 @@ export function KomikuExplorer() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-4 space-y-6">
           <div className="relative aspect-[3/4] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-primary/5 bg-secondary/10">
-            <Image src={selectedManga.thumbnail} alt={selectedManga.title} fill className="object-cover" unoptimized />
+            {selectedManga.thumbnail && (
+              <Image src={selectedManga.thumbnail} alt={selectedManga.title} fill className="object-cover" unoptimized />
+            )}
           </div>
           <div className="bg-secondary/20 p-8 rounded-[2rem] border border-primary/5 space-y-6">
              <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Series Data</h5>
@@ -172,7 +184,7 @@ export function KomikuExplorer() {
               <Library className="size-3" /> Available Chapters
             </h4>
             <div className="grid grid-cols-1 gap-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-              {selectedManga.chapters?.map((ch: any, i: number) => (
+              {selectedManga.chapters?.slice().reverse().map((ch: any, i: number) => (
                 <Button 
                   key={i} 
                   variant="outline" 
@@ -181,7 +193,7 @@ export function KomikuExplorer() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="size-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-all">
-                      {i + 1}
+                      {selectedManga.chapters.length - i}
                     </div>
                     <span className="truncate max-w-[300px]">{ch.name}</span>
                   </div>
@@ -196,20 +208,30 @@ export function KomikuExplorer() {
   );
 
   const renderReader = () => (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className={cn("space-y-8 animate-fade-in-up", isTheaterMode && "max-w-none")}>
       <div className="flex items-center justify-between sticky top-24 z-30 bg-background/80 backdrop-blur-md p-4 rounded-3xl border border-primary/5 shadow-xl">
          <div className="space-y-0.5">
             <h3 className="text-sm font-bold font-headline">{chapterData.title}</h3>
             <p className="text-[10px] text-muted-foreground font-bold uppercase">{chapterData.total} Panels Loaded</p>
          </div>
-         <Button variant="ghost" size="sm" onClick={() => setView('detail')} className="rounded-full text-[10px] font-bold uppercase gap-2 hover:bg-destructive/5 hover:text-destructive">
-            <X className="size-3" /> Close Reader
-         </Button>
+         <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setIsTheaterMode(!isTheaterMode)} 
+              className={cn("rounded-full text-[10px] font-bold uppercase gap-2", isTheaterMode && "bg-primary text-primary-foreground")}
+            >
+              <Theater className="size-3" /> {isTheaterMode ? "Exit Theater" : "Theater Mode"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setView('detail')} className="rounded-full text-[10px] font-bold uppercase gap-2 hover:bg-destructive/5 hover:text-destructive">
+               <X className="size-3" /> Close
+            </Button>
+         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto space-y-1">
+      <div className={cn("mx-auto space-y-1", isTheaterMode ? "max-w-4xl" : "max-w-2xl")}>
          {chapterData.images.map((img: string, i: number) => (
-           <div key={i} className="relative w-full overflow-hidden bg-secondary/10 animate-fade-in-up" style={{ animationDelay: `${i * 100}ms` }}>
+           <div key={i} className="relative w-full overflow-hidden bg-secondary/10 animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
               <img 
                 src={img} 
                 alt={`Panel ${i+1}`} 
@@ -276,7 +298,7 @@ export function KomikuExplorer() {
           </Button>
         )}
 
-        {loading ? (
+        {loading && view === 'search' ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
             <Loader2 className="size-12 animate-spin text-orange-500/20" />
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">Polling comic database...</p>
