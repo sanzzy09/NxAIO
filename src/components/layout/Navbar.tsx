@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Boxes, Github, Menu, X, User as UserIcon, LogOut, LayoutGrid } from 'lucide-react';
+import { Github, Menu, X, User as UserIcon, LogOut, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
 import { siteConfig } from '@/config/site';
+import Image from 'next/image';
 
 export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
@@ -53,8 +54,16 @@ export function Navbar({ onDashboardClick }: { onDashboardClick?: () => void }) 
           className="flex items-center gap-2 group"
           onClick={onDashboardClick}
         >
-          <div className="w-8 h-8 bg-primary-foreground rounded-lg flex items-center justify-center text-primary group-hover:rotate-12 transition-transform duration-300">
-            <Boxes className="w-5 h-5" />
+          <div className="w-9 h-9 relative group-hover:rotate-12 transition-transform duration-300 flex items-center justify-center">
+            <Image 
+              src={siteConfig.logo} 
+              alt={siteConfig.name} 
+              width={36} 
+              height={36} 
+              className="object-contain"
+              priority
+              unoptimized
+            />
           </div>
           <span className="font-headline font-bold text-lg md:text-xl tracking-tight">{siteConfig.name}</span>
         </Link>

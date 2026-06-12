@@ -1,11 +1,10 @@
-
 {
   "placeholderImages": [
     {
       "id": "app-logo",
-      "description": "NxAIO abstract minimalist logo",
-      "imageUrl": "https://picsum.photos/seed/nxaio-logo/400/400",
-      "imageHint": "minimalist tech logo"
+      "description": "NxAIO official branding logo",
+      "imageUrl": "https://filegoat.s3.de.io.cloud.ovh.net/af71337e-ec0b-43ee-bdd8-a534811b3d4c/isolated-subject.png",
+      "imageHint": "official logo"
     },
     {
       "id": "hero-abstract",
@@ -21,9 +20,9 @@
     },
     {
       "id": "media-fallback",
-      "description": "Professional fallback for missing media assets",
-      "imageUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
-      "imageHint": "transparent pixel"
+      "description": "Official high-fidelity fallback for missing media covers",
+      "imageUrl": "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png",
+      "imageHint": "media placeholder"
     }
   ]
 }

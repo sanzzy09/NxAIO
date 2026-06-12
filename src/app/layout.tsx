@@ -20,6 +20,7 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
+    images: [{ url: siteConfig.ogImage }],
   },
   twitter: {
     card: "summary_large_image",
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     creator: "@nxaio",
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: siteConfig.logo,
   },
 };
 
@@ -39,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
