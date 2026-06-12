@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,18 +11,27 @@ import {
   Loader2, 
   Info, 
   ChevronLeft,
+  ChevronRight,
   Library,
   AlertCircle,
   TrendingUp,
   LayoutGrid,
   Trophy,
   ExternalLink,
-  BookMarked
+  BookMarked,
+  Eye,
+  ArrowUp,
+  Maximize2,
+  Minimize2,
+  Download,
+  Scroll
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { fetchKomiku } from "@/app/actions/komiku";
+import { fetchKomiku, proxyImage } from "@/app/actions/komiku";
+import { useToast } from "@/hooks/use-toast";
+import Image from 'next/image';
 
-type View = 'discover' | 'search' | 'detail';
+type View = 'discover' | 'search' | 'detail' | 'reader';
 
 export function KomikuExplorer() {
   const [view, setView] = useState<View>('discover');
@@ -32,7 +41,11 @@ export function KomikuExplorer() {
   const [discoverItems, setDiscoverItems] = useState<any[]>([]);
   const [rankItems, setRankItems] = useState<any[]>([]);
   const [selectedManga, setSelectedManga] = useState<any>(null);
+  const [chapterData, setChapterData] = useState<any>(null);
+  const [proxiedImages, setProxiedImages] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [fullScreen, setFullScreen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadDiscover();
@@ -84,6 +97,34 @@ export function KomikuExplorer() {
       setSelectedManga({ ...res.data, url });
       setView('detail');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadChapter = async (url: string) => {
+    setLoading(true);
+    setError(null);
+    setProxiedImages({});
+    try {
+      const res = await fetchKomiku({ mode: 'chapter', url });
+      if (!res.status) throw new Error(res.error);
+      
+      setChapterData(res.data);
+      setView('reader');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Parallel proxying of images to speed up loading
+      const images = res.data.images;
+      images.forEach(async (imgUrl: string) => {
+        const proxyRes = await proxyImage(imgUrl);
+        if (proxyRes.status) {
+          setProxiedImages(prev => ({ ...prev, [imgUrl]: proxyRes.data }));
+        }
+      });
+
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -189,27 +230,136 @@ export function KomikuExplorer() {
               {selectedManga.chapters?.map((ch: any, i: number) => (
                 <Button 
                   key={i} 
-                  asChild
                   variant="outline" 
+                  onClick={() => loadChapter(ch.url)}
                   className="h-16 rounded-2xl justify-between px-6 border border-primary/5 bg-secondary/10 hover:bg-orange-500/5 hover:text-orange-600 transition-all font-bold group shadow-sm"
                 >
-                  <a href={ch.url} target="_blank" rel="noopener noreferrer">
-                    <div className="flex items-center gap-4">
-                      <div className="size-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-all">
-                        {selectedManga.chapters.length - i}
-                      </div>
-                      <span className="truncate max-w-[250px]">{ch.name}</span>
+                  <div className="flex items-center gap-4">
+                    <div className="size-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold font-mono group-hover:bg-orange-600 group-hover:text-white transition-all">
+                      {selectedManga.chapters.length - i}
                     </div>
-                    <div className="flex items-center gap-4">
+                    <span className="truncate max-w-[250px]">{ch.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
                        <span className="text-[10px] opacity-40 font-mono uppercase tracking-widest">{ch.date}</span>
-                       <ExternalLink className="size-4 opacity-20 group-hover:opacity-100" />
-                    </div>
-                  </a>
+                       <Eye className="size-4 opacity-20 group-hover:opacity-100" />
+                  </div>
                 </Button>
               ))}
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+
+  const renderReader = () => (
+    <div className={cn(
+      "space-y-8 animate-fade-in-up transition-all duration-500",
+      fullScreen ? "fixed inset-0 z-50 bg-background overflow-y-auto p-4 md:p-8" : "relative"
+    )}>
+      {/* Reader Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-card border border-primary/5 p-6 rounded-[2rem] shadow-xl backdrop-blur-md sticky top-0 z-20">
+         <div className="space-y-1">
+            <h2 className="text-xl font-bold font-headline leading-tight">{chapterData.title}</h2>
+            <button 
+              onClick={() => handleDetail(chapterData.seriesUrl)}
+              className="text-[10px] font-bold text-orange-600 uppercase tracking-widest hover:underline flex items-center gap-1"
+            >
+              <Library className="size-2.5" /> {chapterData.seriesTitle}
+            </button>
+         </div>
+         <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setFullScreen(!fullScreen)}
+              className="rounded-full gap-2 border-primary/5 font-bold uppercase text-[10px] tracking-widest"
+            >
+              {fullScreen ? <Minimize2 className="size-3" /> : <Maximize2 className="size-3" />}
+              {fullScreen ? "Exit" : "Expand"}
+            </Button>
+            <div className="h-4 w-px bg-primary/10 mx-1" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              disabled={!chapterData.prev}
+              onClick={() => loadChapter(chapterData.prev)}
+              className="rounded-full gap-2 border-primary/5 font-bold uppercase text-[10px] tracking-widest"
+            >
+              <ChevronLeft className="size-3" /> Prev
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              disabled={!chapterData.next}
+              onClick={() => loadChapter(chapterData.next)}
+              className="rounded-full gap-2 border-primary/5 font-bold uppercase text-[10px] tracking-widest"
+            >
+              Next <ChevronRight className="size-3" />
+            </Button>
+            {fullScreen && (
+              <Button variant="ghost" size="icon" onClick={() => setFullScreen(false)} className="rounded-full hover:bg-destructive/10 hover:text-destructive ml-2">
+                <ChevronLeft className="size-5" />
+              </Button>
+            )}
+         </div>
+      </div>
+
+      {/* Comic Panels */}
+      <div className="flex flex-col items-center gap-0.5 bg-black/5 rounded-[3rem] overflow-hidden max-w-4xl mx-auto border border-primary/5 shadow-2xl min-h-screen">
+         {chapterData.images?.map((imgUrl: string, idx: number) => (
+           <div key={idx} className="relative w-full min-h-[400px] flex items-center justify-center bg-secondary/10 group">
+              {proxiedImages[imgUrl] ? (
+                <img 
+                  src={proxiedImages[imgUrl]} 
+                  alt={`Panel ${idx + 1}`} 
+                  className="w-full h-auto object-contain transition-opacity duration-700"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-4 py-32 opacity-20 group-hover:opacity-40 transition-opacity">
+                   <Scroll className="size-12 animate-bounce" />
+                   <p className="text-[10px] font-bold uppercase tracking-widest">Handshaking with Panel {idx + 1}...</p>
+                </div>
+              )}
+              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <Badge variant="secondary" className="bg-black/50 text-white border-none rounded-lg text-[10px] font-mono">
+                    Page {idx + 1} / {chapterData.images.length}
+                 </Badge>
+              </div>
+           </div>
+         ))}
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="max-w-4xl mx-auto flex justify-between items-center py-12 border-t border-primary/5">
+         <Button 
+            variant="ghost" 
+            onClick={() => { setFullScreen(false); setView('detail'); }}
+            className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-orange-600"
+          >
+            <ChevronLeft className="size-3" /> Return to Series
+          </Button>
+          <div className="flex gap-4">
+             {chapterData.prev && (
+               <Button onClick={() => loadChapter(chapterData.prev)} className="h-12 px-8 rounded-2xl bg-secondary text-primary font-bold shadow-sm hover:bg-secondary/80">
+                 Previous Chapter
+               </Button>
+             )}
+             {chapterData.next && (
+               <Button onClick={() => loadChapter(chapterData.next)} className="h-12 px-10 rounded-2xl bg-orange-600 text-white font-bold shadow-xl shadow-orange-500/20 hover:bg-orange-700">
+                 Next Chapter <ChevronRight className="size-4 ml-2" />
+               </Button>
+             )}
+          </div>
+          <Button 
+            variant="ghost" 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+          >
+            <ArrowUp className="size-3" /> To Top
+          </Button>
       </div>
     </div>
   );
@@ -230,7 +380,7 @@ export function KomikuExplorer() {
 
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:max-w-xl">
             <div className="flex items-center bg-secondary/30 p-1 rounded-full border border-primary/5 shadow-inner">
-               <Button variant="ghost" size="sm" onClick={() => setView('discover')} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", view === 'discover' ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
+               <Button variant="ghost" size="sm" onClick={() => { setView('discover'); loadDiscover(); }} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", view === 'discover' ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
                   <TrendingUp className="size-3" /> Discover
                </Button>
                <Button variant="ghost" size="sm" onClick={() => setView('search')} className={cn("rounded-full h-9 px-4 gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", (view === 'search' || view === 'detail') ? "bg-orange-600 text-white shadow-sm" : "text-muted-foreground/60")}>
@@ -264,7 +414,7 @@ export function KomikuExplorer() {
         {(view !== 'discover' && view !== 'search') && (
           <Button 
             variant="ghost" 
-            onClick={() => setView(query ? 'search' : 'discover')} 
+            onClick={() => { setFullScreen(false); setView(query ? 'search' : 'discover'); }} 
             className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-orange-600 -ml-4"
           >
             <ChevronLeft className="size-3" /> Back to Dashboard
@@ -341,6 +491,7 @@ export function KomikuExplorer() {
               </div>
             )}
             {view === 'detail' && selectedManga && renderDetail()}
+            {view === 'reader' && chapterData && renderReader()}
           </div>
         )}
       </CardContent>

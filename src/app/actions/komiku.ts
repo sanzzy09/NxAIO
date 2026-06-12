@@ -5,7 +5,7 @@ import * as cheerio from 'cheerio';
 
 /**
  * Server action to fetch data from Komiku.org.
- * Focused on search, rankings, and series metadata.
+ * Includes search, rankings, detail, and high-fidelity chapter scraping with proxying.
  */
 
 const BASE_URL = "https://komiku.org";
@@ -143,8 +143,72 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       return { status: true, data: items };
     }
 
+    if (mode === 'chapter') {
+      const res = await axios.get(url!, { headers: HEADERS, timeout: 30000 });
+      const $ = cheerio.load(res.data);
+      
+      const images: string[] = [];
+      $('#Baca_Komik img').each((_, el) => {
+        const src = $(el).attr('src') || $(el).attr('data-src');
+        if (src && !src.includes('lazy.jpg')) {
+          images.push(src);
+        }
+      });
+
+      const title = $('h1').first().text().trim();
+      const breadcrumbs = $('.breadcrumb a');
+      const seriesTitle = breadcrumbs.eq(1).text().trim();
+      const seriesUrl = breadcrumbs.eq(1).attr('href');
+
+      // Navigation logic
+      const prevA = $('.nextprev a[rel="prev"]').first();
+      const nextA = $('.nextprev a[rel="next"]').first();
+
+      return {
+        status: true,
+        data: {
+          title,
+          seriesTitle,
+          seriesUrl: seriesUrl ? BASE_URL + seriesUrl : null,
+          images,
+          prev: prevA.attr('href') ? BASE_URL + prevA.attr('href') : null,
+          next: nextA.attr('href') ? BASE_URL + nextA.attr('href') : null
+        }
+      };
+    }
+
     return { status: false, error: 'Invalid mode' };
   } catch (error: any) {
+    return { status: false, error: error.message };
+  }
+}
+
+/**
+ * Proxy action to fetch images from Komiku CDNs that block direct hotlinking.
+ */
+export async function proxyImage(imageUrl: string) {
+  try {
+    const res = await axios.get(imageUrl, {
+      responseType: 'arraybuffer',
+      headers: {
+        ...HEADERS,
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        'Sec-Fetch-Dest': 'image',
+        'Sec-Fetch-Mode': 'no-cors',
+        'Sec-Fetch-Site': 'cross-site',
+      },
+      timeout: 15000
+    });
+
+    const contentType = res.headers['content-type'] || 'image/jpeg';
+    const base64 = Buffer.from(res.data).toString('base64');
+    
+    return {
+      status: true,
+      data: `data:${contentType};base64,${base64}`
+    };
+  } catch (error: any) {
+    console.error('Proxy Error:', error.message);
     return { status: false, error: error.message };
   }
 }
