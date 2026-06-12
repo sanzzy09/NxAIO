@@ -23,6 +23,7 @@ import { DailymotionExplorer } from '@/components/dashboard/DailymotionExplorer'
 import { AppMakerTool } from '@/components/dashboard/AppMakerTool';
 import { ShinigamiExplorer } from '@/components/dashboard/ShinigamiExplorer';
 import { ImageEditor } from '@/components/dashboard/ImageEditor';
+import { RetatubeDownloader } from '@/components/dashboard/RetatubeDownloader';
 import { LayoutGrid, ChevronLeft, Loader2 } from 'lucide-react';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
@@ -49,6 +50,7 @@ export default function ToolsPage() {
 
   const renderTool = () => {
     switch (activeTool) {
+      case "retatube": return <RetatubeDownloader />;
       case "editor": return <ImageEditor />;
       case "shinigami": return <ShinigamiExplorer />;
       case "appmaker": return <AppMakerTool />;

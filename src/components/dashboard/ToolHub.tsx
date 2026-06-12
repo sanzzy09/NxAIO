@@ -34,6 +34,13 @@ interface Tool {
 
 const tools: Tool[] = [
   {
+    id: "retatube",
+    name: "Retatube Downloader",
+    description: "Premium AIO media extractor for TikTok, YouTube, and more with watermark removal logic.",
+    icon: <DownloadCloud className="size-6" />,
+    color: "bg-emerald-600 text-white"
+  },
+  {
     id: "editor",
     name: "AI Image Editor",
     description: "Modify images using natural language instructions powered by DeepAI neural processing.",
