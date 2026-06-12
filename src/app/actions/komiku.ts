@@ -7,7 +7,7 @@ import sharp from 'sharp';
 
 /**
  * Server action to fetch data from Komiku.org
- * Enhanced with High-Fidelity image proxying and a resilient PDF engine (pdf-lib).
+ * Enhanced with High-Fidelity image proxying and a resilient PDF engine.
  */
 
 const BASE_URL = "https://komiku.org";
@@ -29,7 +29,6 @@ const HEADERS = {
 
 /**
  * Proxies a manga image URL to a data URI to bypass hotlink protection.
- * Optimized for Komiku's distributed CDN mirrors.
  */
 export async function proxyImage(url: string) {
   try {
@@ -49,16 +48,14 @@ export async function proxyImage(url: string) {
     const base64 = Buffer.from(res.data).toString('base64');
     return `data:${contentType};base64,${base64}`;
   } catch (error) {
-    console.error('Image Proxy Error:', url);
     return null;
   }
 }
 
 export async function fetchKomiku(input: { mode: string; query?: string; url?: string; page?: number; type?: string; rankType?: string }) {
   try {
-    const { mode, query, url, page = 1, type = "semua", rankType = "mingguan" } = input;
+    const { mode, query, url, page = 1, rankType = "mingguan" } = input;
 
-    // --- HOME / LATEST ---
     if (mode === 'home') {
       const res = await axios.get(BASE_URL, { headers: HEADERS, timeout: 30000 });
       const $ = cheerio.load(res.data);
@@ -85,7 +82,6 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       return { status: true, data: { results: items } };
     }
 
-    // --- SEARCH ---
     if (mode === 'search') {
       const searchUrl = `${API_URL}/?post_type=manga&s=${encodeURIComponent(query!)}&page=${page}`;
       const res = await axios.get(searchUrl, { headers: HEADERS, timeout: 30000 });
@@ -113,7 +109,6 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       return { status: true, data: { results: items, count: items.length } };
     }
 
-    // --- DETAIL ---
     if (mode === 'detail') {
       const res = await axios.get(url!, { headers: HEADERS, timeout: 30000 });
       const $ = cheerio.load(res.data);
@@ -164,7 +159,6 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       };
     }
 
-    // --- CHAPTER IMAGES ---
     if (mode === 'chapter') {
       const response = await axios.get(url!, { headers: HEADERS, timeout: 30000 });
       const $ = cheerio.load(response.data);
@@ -188,13 +182,15 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
           if (src && !src.includes('lazy.jpg')) {
               images.push({
                   page: i + 1,
-                  url: src.trim()
+                  url: src.trim().startsWith('//') ? 'https:' + src.trim() : src.trim()
               });
           }
       });
 
-      const seriesTitle = $('.breadcrumb a').eq(1).text().trim() || chapterData.series;
-      const chapterTitle = $('h1').first().text().trim();
+      const seriesTitle = $('.breadcrumb [itemprop="name"]').eq(1).text().trim() || 
+                          $('.breadcrumb a').eq(1).text().trim() || 
+                          chapterData.series || "Series";
+      const chapterTitle = $('h1').first().text().trim() || "Chapter";
 
       return {
           status: true,
@@ -211,7 +207,6 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       };
     }
 
-    // --- RANKS ---
     if (mode === 'rank') {
       const res = await axios.get(BASE_URL, { headers: HEADERS });
       const $ = cheerio.load(res.data);
@@ -228,29 +223,27 @@ export async function fetchKomiku(input: { mode: string; query?: string; url?: s
       return { status: true, data: items };
     }
 
-    return { status: false, error: 'Invalid mode provided.' };
+    return { status: false, error: 'Invalid mode' };
   } catch (error: any) {
-    console.error('Komiku Action Error:', error.message);
     return { status: false, error: error.message };
   }
 }
 
 /**
- * Downloads chapter images and generates a PDF using pdf-lib.
- * pdf-lib is used to avoid Helvetica.afm filesystem errors common in pdfkit.
+ * Downloads chapter images and generates a PDF.
+ * Uses sharp to convert images (like WebP) to PNG before embedding in PDF.
  */
 export async function downloadChapterPDF(url: string) {
   try {
     const chapterRes = await fetchKomiku({ mode: 'chapter', url });
     if (!chapterRes.status || !chapterRes.data.images.length) {
-      throw new Error("Could not find chapter images or chapter data is invalid.");
+      throw new Error("Could not find chapter images.");
     }
 
-    const { images } = chapterRes.data;
+    const { images, series, chapter } = chapterRes.data;
     const pdfDoc = await PDFDocument.create();
     
-    // Set Metadata
-    pdfDoc.setTitle(`${chapterRes.data.series} - ${chapterRes.data.chapter}`);
+    pdfDoc.setTitle(`${series} - ${chapter}`);
     pdfDoc.setAuthor('NxAIO Komiku Explorer');
 
     for (const img of images) {
@@ -264,16 +257,9 @@ export async function downloadChapterPDF(url: string) {
           timeout: 20000
         });
         
-        const imgBuffer = Buffer.from(imgRes.data);
-        const contentType = imgRes.headers['content-type'] || '';
-        
-        let image;
-        if (contentType.includes('png')) {
-          image = await pdfDoc.embedPng(imgBuffer);
-        } else {
-          // Assume JPEG/JPG for everything else
-          image = await pdfDoc.embedJpg(imgBuffer);
-        }
+        // Convert to PNG using sharp to ensure compatibility with pdf-lib (handles WebP/AVIF)
+        const pngBuffer = await sharp(imgRes.data).png().toBuffer();
+        const image = await pdfDoc.embedPng(pngBuffer);
 
         const page = pdfDoc.addPage([image.width, image.height]);
         page.drawImage(image, {
@@ -284,7 +270,6 @@ export async function downloadChapterPDF(url: string) {
         });
       } catch (e: any) {
         console.error(`Failed to embed page ${img.page}:`, e.message);
-        // Continue to next page rather than failing entire PDF
       }
     }
 
@@ -292,11 +277,12 @@ export async function downloadChapterPDF(url: string) {
 
     return {
       status: true,
-      data: Buffer.from(pdfBytes).toString('base64')
+      data: Buffer.from(pdfBytes).toString('base64'),
+      series,
+      chapter
     };
 
   } catch (error: any) {
-    console.error('PDF Generation Error:', error.message);
     return { status: false, error: error.message };
   }
 }
