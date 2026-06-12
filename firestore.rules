@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deployment Sync Trigger: v13 - Added app_builds rules.
+    // Deployment Sync Trigger: v14 - Standardized subcollection rules for app_builds.
     
     // Global stats are publicly readable and writable for real-time tracking
     match /system/stats {
@@ -30,37 +30,31 @@ service cloud.firestore {
         allow write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Activity logs
+      // Subcollection access: restricted to the owner
       match /activities/{activityId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // File uploads
       match /uploads/{uploadId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Music history
       match /music/{musicId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Removal history
       match /removals/{removalId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Mailbox history
       match /mailboxes/{mailboxId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // AI conversation history
       match /agent_messages/{messageId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // App build history
       match /app_builds/{buildId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
