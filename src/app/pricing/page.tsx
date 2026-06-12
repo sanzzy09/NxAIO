@@ -9,26 +9,23 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { Check, Mail, Zap, Shield, Loader2, Star, Crown } from "lucide-react";
+import { Check, Zap, Loader2, Star, Crown, MessageCircle } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { GradualSpacingText } from "@/components/ui/gradual-spacing-text";
 import { cn } from "@/lib/utils";
-import { useUser, useFirestore } from "@/firebase";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { logActivity } from "@/lib/activity";
 import { siteConfig } from "@/config/site";
 
 const plans = Object.values(siteConfig.tiers);
 
 export default function PricingPage() {
   const { user } = useUser();
-  const db = useFirestore();
   const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<string | null>(null);
 
-  const handleUpgrade = async (planId: string) => {
+  const handleUpgrade = async (planId: string, planName: string) => {
     if (!user) {
       toast({
         variant: "destructive",
@@ -38,31 +35,41 @@ export default function PricingPage() {
       return;
     }
 
-    setUpgrading(planId);
-    try {
-      const userRef = doc(db, "users", user.uid);
-      // Simulate subscription end 1 year from now for Pro/Sultan
-      const subEnd = planId === 'free' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-
-      await updateDoc(userRef, {
-        role: planId,
-        subscriptionEnd: subEnd,
-        updatedAt: serverTimestamp()
-      });
-
-      logActivity(db, user.uid, 'profile_update', `Identity upgraded to ${planId.toUpperCase()} tier.`);
-
+    if (planId === 'free') {
       toast({
-        title: "Identity Refreshed",
-        description: `Your identity has been successfully upgraded to ${planId.toUpperCase()}.`,
+        title: "Standard Identity",
+        description: "You are currently operating on the foundational Starter tier.",
       });
+      return;
+    }
+
+    setUpgrading(planId);
+    
+    try {
+      // Construction of the WhatsApp order payload
+      const waNumber = siteConfig.links.whatsapp.split('/').pop();
+      const message = encodeURIComponent(
+        `Halo Admin NxAIO, saya ingin melakukan upgrade identity ke tier *${planName}*.\n\n` +
+        `*Detail Akun Logik:*\n` +
+        `- Email: ${user.email}\n` +
+        `- UID: ${user.uid}\n\n` +
+        `Mohon instruksi selanjutnya untuk aktivasi.`
+      );
+      
+      const waUrl = `https://wa.me/${waNumber}?text=${message}`;
+      
+      // Artificial delay for high-fidelity feel
+      setTimeout(() => {
+        window.open(waUrl, '_blank');
+        setUpgrading(null);
+      }, 800);
+
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Upgrade Failed",
-        description: error.message,
+        title: "Handshake Failed",
+        description: "Could not initialize secure redirection.",
       });
-    } finally {
       setUpgrading(null);
     }
   };
@@ -147,10 +154,10 @@ export default function PricingPage() {
               </div>
 
               <Button 
-                onClick={() => handleUpgrade(plan.id)}
+                onClick={() => handleUpgrade(plan.id, plan.name)}
                 disabled={upgrading !== null}
                 className={cn(
-                  "w-full h-14 rounded-2xl mt-10 font-bold text-sm transition-all duration-300",
+                  "w-full h-14 rounded-2xl mt-10 font-bold text-sm transition-all duration-300 gap-2",
                   plan.popular 
                     ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/10" 
                     : plan.id === 'sultan' 
@@ -161,7 +168,10 @@ export default function PricingPage() {
                 {upgrading === plan.id ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
-                  plan.id === 'free' ? "Current Vibe" : `Upgrade to ${plan.name}`
+                  <>
+                    {plan.id !== 'free' && <MessageCircle className="size-4" />}
+                    {plan.id === 'free' ? "Default Identity" : `Secure Upgrade`}
+                  </>
                 )}
               </Button>
             </div>
@@ -172,24 +182,24 @@ export default function PricingPage() {
         <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-12 animate-fade-in-up [animation-delay:800ms]">
            <div className="space-y-4">
               <div className="size-12 bg-indigo-500/10 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner">
-                <Mail className="size-6" />
+                <Zap className="size-6" />
               </div>
-              <h4 className="font-headline font-bold text-xl">Identity Freedom</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">Rotate through multiple temporary identities per day with higher tiers. Perfect for large scale testing and anonymous workflows.</p>
+              <h4 className="font-headline font-bold text-xl">Instant Redirection</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">Upgrade flows are routed through our verified WhatsApp node for secure manual verification and rapid provisioning of premium logic layers.</p>
            </div>
            <div className="space-y-4">
               <div className="size-12 bg-yellow-500/10 text-yellow-600 rounded-2xl flex items-center justify-center shadow-inner">
-                <Zap className="size-6" />
+                <Crown className="size-6" />
               </div>
-              <h4 className="font-headline font-bold text-xl">Instant Composition</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">Higher tiers grant you priority access to our AI Music Engine and Background Removal servers, significantly reducing wait times.</p>
+              <h4 className="font-headline font-bold text-xl">Sultan Privileges</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">Unlock the elite identity frame and the highest priority in our AI processing queue, ensuring your tasks are orchestrated before standard traffic.</p>
            </div>
            <div className="space-y-4">
               <div className="size-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
-                <Shield className="size-6" />
+                <Check className="size-6" />
               </div>
-              <h4 className="font-headline font-bold text-xl">Pro Privacy</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">Unlock private profile modes and encrypted identity logs to ensure your creative exploration remains strictly confidential.</p>
+              <h4 className="font-headline font-bold text-xl">Verified Billing</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">All transactions are handled directly with our billing team to provide a transparent, personalized upgrade experience for creators.</p>
            </div>
         </div>
       </main>
