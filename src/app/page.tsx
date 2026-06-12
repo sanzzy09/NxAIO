@@ -1,6 +1,7 @@
+
 "use client"
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Users, MousePointer2, UserPlus, TrendingUp, Sparkles, Activity, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
@@ -22,6 +23,29 @@ export default function Home() {
   // Real-time statistics from Firestore
   const statsRef = useMemo(() => doc(db, 'system', 'stats'), [db]);
   const { data: stats, loading: statsLoading } = useDoc(statsRef);
+
+  // Live Runtime Logic
+  const [runtime, setRuntime] = useState({ d: 124, h: 0, m: 0, s: 0 });
+  
+  useEffect(() => {
+    // Start date set to 124 days ago to maintain continuity with existing UI
+    const start = new Date();
+    start.setDate(start.getDate() - 124);
+    
+    const timer = setInterval(() => {
+      const now = new Date();
+      const diff = now.getTime() - start.getTime();
+      
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / (1000 * 60)) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+      
+      setRuntime({ d, h, m, s });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
 
   // Track real-time visitors
   useEffect(() => {
@@ -153,7 +177,10 @@ export default function Home() {
                     99.9%
                   </div>
                   <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
-                    <Clock className="w-3 h-3 text-primary/40" /> Active for <span className="text-primary/60">124 Days</span>
+                    <Clock className="w-3 h-3 text-primary/40" /> 
+                    Active for <span className="text-primary/60 font-mono font-bold">
+                      {runtime.d}d {runtime.h}h {runtime.m}m {runtime.s}s
+                    </span>
                   </div>
                 </div>
               </StaggeredFadeUp>

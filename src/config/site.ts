@@ -5,7 +5,7 @@
 
 export const siteConfig = {
   name: "NxAIO",
-  fullName: "NxAIO Intelligent Hub",
+  fullName: "NxAIO All In One Web",
   description: "The high-performance utility suite for modern developers. Orchestrate AI logic, anonymous identities, and creative assets with unparalleled speed.",
   url: "https://nxaio.app",
   ogImage: "https://picsum.photos/seed/nxaio-og/1200/630",
